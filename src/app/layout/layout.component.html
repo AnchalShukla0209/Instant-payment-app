@@ -1,0 +1,30 @@
+<div class="layout-wrapper d-flex h-100">
+  <!-- Sidebar fixed width -->
+  <div class="sidebar-wrap position-relative" [class.position-absolute]="isMobileScreen()"
+       [class.d-none]="!sidebarVisible && isMobileScreen()"
+       [class.zindex-1050]="isMobileScreen()">
+
+       <button *ngIf="isMobileScreen()" class="btn btn-sm btn-close m-2 ms-auto d-lg-none position-absolute top-0 end-0 zindex-1060"
+            (click)="toggleSidebar()" aria-label="Close sidebar"></button>
+
+    <app-sidebar></app-sidebar>
+    
+  </div>
+
+  <!-- Main area beside sidebar -->
+  <div class="main-wrap d-flex flex-column flex-grow-1 h-100">
+    <div class="header-wrap">
+      <app-header></app-header>
+    </div>
+
+    <!-- Router outlet under header -->
+    <div class="py-3 page-body">
+       <nav class="navbar navbar-light bg-light px-3 d-lg-none">
+        <button class="btn btn-outline-dark" (click)="toggleSidebar()">
+          <i class="bi bi-list"></i>
+        </button>
+      </nav>
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

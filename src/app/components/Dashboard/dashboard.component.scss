@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:host {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  padding: 1rem;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+.wallet-card .pull-right,
+.footer-buttons .pull-right {
+  margin-left: auto;
+}
+
+.footer-buttons {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.slider-controls span {
+  cursor: pointer;
+}
+
+.d-none {
+  display: none !important;
+}
+
+.card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+      border-radius: .375rem;
+    border: 1px solid rgba(0, 0, 0, 0.175);
+}
+
+.card-header {
+  border-bottom: 1px solid #eee;
+  background: #fff;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+      border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.card-action a {
+  color: #888;
+  transition: 0.2s;
+}
+
+.card-action a:hover {
+  color: #000;
+}
+
+
+
+.service-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.service-box img {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 10px;
+}
+
+.service-box strong {
+  font-size: 14px;
+  color: #111827;
+}
+
+.service-box br {
+  display: block;
+  line-height: 12px;
+}
+
+.card-body .avatar {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.card-body .h6 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.card-body small.text-muted {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.card-body small.text-success {
+  color: #198754 !important;
+  font-weight: 500;
+}
+
+.card-body small.text-danger {
+  color: #dc3545 !important;
+  font-weight: 500;
+}
+
+.btn-grey-outline {
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  color: #333;
+  border-radius: 8px;
+  padding: 6px 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-grey-outline:hover {
+  background: #eaeaea;
+  color: #000;
+}
+
+
+// Custom variables
+$referral-panel-radius: 12px;
+$referral-image-size: 50px;
+$referral-text-color: #6c757d; // Bootstrap's default gray-600 equivalent
+
+.referral-panel {
+  border-radius: $referral-panel-radius;
+  
+  .card-header {
+    border-top-left-radius: $referral-panel-radius - 1 !important;
+    border-top-right-radius: $referral-panel-radius - 1 !important;
+    font-weight: 600;
+  }
+
+  .card-body {
+    text-align: center;
+    padding: 1.75rem;
+
+    .referral-icon {
+      width: $referral-image-size;
+      height: $referral-image-size;
+      margin-bottom: 1rem;
+    }
+
+    .referral-amount {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin: 0.5rem 0;
+    }
+
+    .referral-text {
+      color: $referral-text-color; // Using our custom variable
+      margin-bottom: 1.5rem;
+    }
+
+    .btn-invite {
+      padding: 0.375rem 0.75rem;
+    }
+  }
+}
+
+.quick-tools-card {
+  border-radius: 12px;
+  
+  .card-header {
+    padding: 1.25rem 1.5rem 0;
+  }
+
+  .list-group-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    i {
+      font-size: 1.1rem;
+      width: 24px;
+      text-align: center;
+    }
+  }
+}
+
+.card-header
+{
+      color: #333;
+    background-color: #f5f5f5;
+    border-color: #ddd;
+    padding: 10px 15px;
+    border-bottom: 1px solid transparent;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.pull-right
+{
+  float: right !important;
+}
+
+#servicesContainer
+{
+  height: 350px !important;
+}
+
+.lu
+{
+      border: none;
+    text-decoration: none;
+}

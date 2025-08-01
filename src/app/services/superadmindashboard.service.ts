@@ -1,0 +1,30 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map  } from 'rxjs';
+import { Superadmindashboardpayload,ServiceMasterDTO } from '../models/SuperAdminDData';
+import { environment } from '../../environments/environment';
+import { EncryptionService } from '../encryption/encryption.service';
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SuperAdminService {
+
+  private url = `${environment.apiBaseUrl}/Master/GetSuperAdminDashboardData`;
+
+  constructor(private http: HttpClient, private encryptor: EncryptionService) {}
+
+GetDashboardData(payload: Superadmindashboardpayload): Observable<ServiceMasterDTO> {
+  const encrypted = this.encryptor.encrypt(payload);
+  return this.http.post(this.url, { data: encrypted }).pipe(
+    map((res: any) => {
+      const decrypted = this.encryptor.decrypt(res.data);
+      return decrypted as ServiceMasterDTO;
+      console.log(decrypted);
+    })
+  );
+}
+
+
+}

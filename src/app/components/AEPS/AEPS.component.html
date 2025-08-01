@@ -1,0 +1,240 @@
+<div class="container-fluid px-xl-5 px-lg-4 px-3 py-3">
+    
+<app-loader *ngIf="isLoading"></app-loader>
+
+  <!-- Tab Buttons -->
+  <div class="service-btns mb-3">
+    <button *ngFor="let s of services"
+          class="btn service-btn btn-sm me-2"
+          [class.active]="selectedTab() === s.label"
+          (click)="onTabSelect(s.label)">
+    <i class="bi" [ngClass]="s.icon"></i> {{ s.label }}
+  </button>
+  
+    <button class="btn btn-outline-info btn-sm" *ngIf="!showRecentTxns" (click)="toggleRecentTxns()" style="float:right;background: #054a58 !important;">
+    <i class="bi bi-clock-history"></i> Show Recent Transactions
+  </button>
+
+   <button class="btn btn-outline-info btn-sm" *ngIf="showRecentTxns" (click)="toggleRecentTxns()" style="float:right;background: #054a58 !important;">
+    <i class="bi bi-clock-history"></i> Hide Recent Transactions
+  </button>
+     
+  </div>
+
+
+
+
+
+  <!-- Mobile Tab -->
+  <div>
+
+
+
+    <div class="row">
+      <div [class.col-md-12]="!showRecentTxns" [class.col-md-6]="showRecentTxns">
+    <div class="card shadow-sm">
+        <div class="card-header bg-gradient-indigo text-white">
+            <strong><i class="bi" [ngClass]="selectedicon"></i> {{selectedService}}</strong>
+          </div>
+      <div class="card-body">
+        <div class="row">
+          <div [ngClass]="colClass" class="form-group">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-bank form-icon icon-label"></i> Select Bank
+            </label>
+            <input type="text" class="form-control" 
+                   [(ngModel)]="bankname"
+                   
+                   placeholder="Select Bank" />
+          </div>
+
+          <div [ngClass]="colClass" class="form-group">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
+            </label>
+            <input type="number" class="form-control" [(ngModel)]="mobileNumber" placeholder="Enter Mobile Number" />
+          </div>
+
+          <div [ngClass]="colClass" class="form-group">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-person-vcard form-icon icon-label"></i> Aadhar Number
+            </label>
+            <input type="number" class="form-control" [(ngModel)]="mobileAadhar" placeholder="Enter Aadhar" />
+          </div>
+
+          <!-- Conditionally show Amount -->
+          <div *ngIf="['Cash Withdrawal', 'Cash Deposit', 'Aadhar Pay'].includes(selectedTab())"
+               [ngClass]="colClass" class="form-group">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-currency-rupee form-icon icon-label"></i> Amount
+            </label>
+            <input type="number" class="form-control" [(ngModel)]="amount" placeholder="Enter Amount" />
+          </div>
+        </div>
+
+        <div class="mt-3 text-left">
+          <button class="btn btn-chandan btn-sm" (click)="openPreviewModal(previewModal)">
+            <i class="bi bi-check-circle"></i> Proceed
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Transactions Panel -->
+   <div *ngIf="showRecentTxns" class="col-md-6">
+    <div class="card shadow-sm plans-wrapper">
+          <div class="card-header bg-gradient-indigo text-white">
+            <strong><i class="bi bi-clock-history"></i> Recent Transactions</strong>
+          </div>
+          <div class="card-body">
+        <!-- Add your transaction listing logic here -->
+        <p class="text-muted">No transactions to display.</p>
+      </div>
+          </div>
+
+  </div>
+
+    </div>
+  </div>
+
+
+
+  <ng-template #previewModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">AEPS Preview - Instant Pay</h5>
+  </div>
+
+  <div class="modal-body">
+    <!-- Stage 1: Basic Details & Fingerprint -->
+    <div >
+      <table class="table table-bordered text-center small">
+        <thead class="bg-purple text-white">
+          <tr>
+            <th>Bank</th>
+            <th>Mobile</th>
+            <th>Aadhar</th>
+            <th *ngIf="['Cash Withdrawal', 'Cash Deposit', 'Aadhar Pay'].includes(selectedTab())">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ bankname }}</td>
+            <td>{{ mobileNumber }}</td>
+            <td>{{ mobileAadhar }}</td>
+            <td *ngIf="['Cash Withdrawal', 'Cash Deposit', 'Aadhar Pay'].includes(selectedTab())">₹{{ amount }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="finger-section mt-3 text-center" *ngIf="!fingerprintSuccess">
+        <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
+        <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
+         <div
+        *ngFor="let device of devices"
+        class="device-card"
+        [class.active]="selectedDevice === device.id"
+        (click)="selectDevice(device.id)"
+      >
+        <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}" style="height: 50px;width:50px" />
+        <span>{{ device.label }}</span>
+      </div>
+        </div>
+
+        <div class="mt-3">
+         <button type="button" class="btn btn-primary w-100 mb-3" (click)="startCapture()" [disabled]="!selectedDevice">
+    <i class="bi bi-fingerprint me-1"></i> Scan Fingerprint
+  </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 2: PIN and OTP -->
+     <div *ngIf="captureDone()">
+    <div class="form-group mb-2">
+      <label><i class="bi bi-key"></i> Txn PIN</label>
+      <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6" placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
+      <div *ngIf="showPinError" class="invalid-feedback d-block">
+        Txn PIN is required
+      </div>
+    </div>
+
+    <div class="form-group mb-2">
+      <label><i class="bi bi-shield-lock"></i> OTP (if required)</label>
+      <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" />
+    </div>
+
+  
+  </div>
+  </div>
+
+  <div class="modal-footer d-flex justify-content-between flex-wrap">
+    <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
+    <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitRecharge()" [disabled]="!fingerprintSuccess">
+      <i class="bi bi-check-circle"></i> Confirm & Proceed
+    </button>
+  </div>
+</ng-template>
+
+
+<!-- RECHARGE INVOICE MODAL -->
+<ng-template #invoiceModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">Recharge Invoice</h5>
+    
+  </div>
+
+  <div class="modal-body invoice-wrapper" id="invoiceContent">
+    <!-- HEADER FOR PDF -->
+    <div class="bg-purple text-white text-center p-3 rounded-top mb-3">
+      <h5 class="m-0">Recharge Invoice</h5>
+    </div>
+
+    <!-- Success Icon -->
+    <div class="text-center my-3">
+      <div class="success-icon-wrapper mx-auto">
+        <i class="bi bi-check-circle-fill text-success success-icon" id="successIcon"></i>
+        <div class="text-success mt-2 fs-5 fw-bold">Recharge Successful</div>
+      </div>
+    </div>
+
+    <!-- Invoice Content -->
+    <div class="invoice p-4">
+      <div class="text-center mb-4">
+        <h4 class="mt-2 text-purple">Instant Pay</h4>
+      </div>
+
+      <table class="table table-bordered table-sm mb-2">
+        <tbody>
+          <tr>
+            <th scope="row" class="text-purple">Mobile Number</th>
+            <td class="text-end">{{ mobileNumber }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="text-purple">Operator</th>
+            <td class="text-end">{{ bankname }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="text-purple">Amount</th>
+            <!-- <td class="text-end">₹{{ mobileAmount }}</td> -->
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="text-end mt-4">
+        <!-- <strong class="fs-5 text-purple">Total: ₹{{ mobileAmount }}</strong> -->
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer d-flex justify-content-between">
+    <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
+    <button class="btn btn-chandan btn-sm" (click)="downloadInvoice()">
+      <i class="bi bi-download me-1"></i>Download Invoice
+    </button>
+  </div>
+</ng-template>
+
+
+
+</div>

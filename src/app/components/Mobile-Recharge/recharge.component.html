@@ -1,0 +1,272 @@
+<div class="container-fluid px-xl-5 px-lg-4 px-3 py-3">
+    
+<app-loader *ngIf="isLoading"></app-loader>
+
+  <!-- Tab Buttons -->
+  <div class="service-btns mb-3">
+    <button class="btn service-btn me-2 btn-sm" [class.active]="selectedTab() === 'PREPAID'" (click)="onTabSelect('PREPAID')">
+      <i class="bi bi-phone"></i> Mobile Recharge
+    </button>
+    <button class="btn service-btn btn-sm" [class.active]="selectedTab() === 'DTH'" (click)="onTabSelect('DTH')">
+      <i class="bi bi-tv"></i> DTH Recharge
+    </button>
+  </div>
+
+
+
+  
+  <div>
+    <div class="row">
+      <div [ngClass]="getRechargeFieldClass()">
+        <div class="card shadow-sm">
+          <div class="card-header bg-gradient-indigo text-white">
+            <strong><i class="bi" [ngClass]="selectedTab() === 'PREPAID' ? 'bi-phone' : 'bi-tv'"></i> {{ selectedTab() === 'PREPAID' ? 'Mobile Recharge' : 'DTH Recharge' }}</strong>
+          </div>
+          <div class="card-body">
+            <div class="row">
+
+                
+  <!-- Mobile Number -->
+  <div [ngClass]="getMobileFieldClass()" >
+    <label class="form-label d-flex align-items-center">
+      <i class="form-icon icon-label bi" [ngClass]="selectedTab() === 'PREPAID' ? 'bi-phone' : 'bi-tv'" ></i>
+      {{ selectedTab() === 'PREPAID' ? 'Mobile Number' : 'Subscriber ID' }}
+    </label>
+    <input
+  type="text"
+  class="form-control"
+  [placeholder]="selectedTab() === 'PREPAID' ? 'Enter mobile number' : 'Enter Subscriber ID'"
+  [(ngModel)]="mobileNumber"
+  (ngModelChange)="validateMobileNumber()"
+  [class.is-invalid]="showMobileError"
+/>
+
+    
+    
+  </div>
+
+  <!-- Operator -->
+  <div [ngClass]="getMobileFieldClass()" >
+    <label class="form-label d-flex align-items-center">
+      <i class="bi bi-person form-icon icon-label"></i> Operator
+    </label>
+<input
+  type="text"
+  class="form-control"
+  [ngbTypeahead]="search"
+  (blur)="loadMobilePlans()"
+  [(ngModel)]="mobileOperator"
+  [inputFormatter]="inputFormatter"
+  [resultFormatter]="resultFormatter"
+  placeholder="Select Operator"
+  (selectItem)="onSelect()"
+/>
+  
+  </div>
+
+  <!-- Amount -->
+  <div [ngClass]="getMobileFieldClass()" >
+    <label class="form-label d-flex align-items-center">
+      <i class="bi bi-currency-rupee form-icon icon-label"></i> Amount
+    </label>
+    <input type="number" class="form-control" [(ngModel)]="mobileAmount" [class.is-invalid]="showAmountError" placeholder="Enter amount">
+      
+  </div>
+
+
+
+
+            </div>
+            <div class="mt-3">
+              <button class="btn btn-chandan btn-sm" (click)="openPreviewModal(previewModal)" type="button"><i class="bi bi-check-circle"></i>Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Plan List -->
+      <div class="col-md-6" *ngIf="showMobilePlans">
+        <div class="card shadow-sm plans-wrapper">
+          <div class="card-header bg-gradient-indigo text-white">
+            <strong><i class="bi bi-tags"></i> Valid Mobile Plans</strong>
+          </div>
+         <ng-container *ngIf="mobileOperator?.value as operatorKey">
+  <div class="card-body plans-scroll" *ngIf="mobilePlans[operatorKey]?.length">
+    <div
+      class="plan-item"
+      *ngFor="let plan of mobilePlans[operatorKey]"
+      (click)="selectPlan('PREPAID', plan.amount)">
+      <strong>₹{{ plan.amount }}</strong> -<span class="des-plan">{{ plan.desc }}</span> 
+    </div>
+  </div>
+</ng-container>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <ng-template #previewModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">{{ selectedTab() === 'PREPAID' ? 'Mobile Recharge Preview - Instant Payment' : 'DTH Recharge Preview - Instant Payment' }}</h5>
+   
+  </div>
+
+  <div class="modal-body">
+    <!-- Preview Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered mb-4 text-center" id="tblRechargePreview">
+        <thead class="bg-purple text-white">
+          <tr>
+            <th scope="col">{{ selectedTab() === 'PREPAID' ? 'Mobile No' : 'Subscriber ID' }}</th>
+            <th scope="col">Operator</th>
+            <th scope="col">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ mobileNumber }}</td>
+            <td>{{ mobileOperator?.label }}</td>
+            <td>₹{{ mobileAmount }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Txn Pin -->
+    <div class="form-group">
+         <label class="form-label d-flex align-items-center">
+      <i class="bi bi-key icon-label"></i> Txn PIN
+    </label>
+     
+     <input
+  type="password"
+  class="form-control"
+  [(ngModel)]="txnPin"
+  (ngModelChange)="onPinChange()"
+  maxlength="6"
+  placeholder="Enter 4 or 6-digit PIN"
+  inputmode="numeric"
+  autocomplete="one-time-code"
+  [class.is-invalid]="showPinError"
+/>
+
+    </div>
+     <div *ngIf="showPinError" class="invalid-feedback d-block error-box mt-1">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+    Txn PIN is required
+  </div>
+  </div>
+
+  <div class="modal-footer d-flex justify-content-between flex-wrap">
+    <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
+    <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitRecharge()"><i class="bi bi-check-circle"></i>Confirm & Recharge</button>
+  </div>
+</ng-template>
+
+<!-- RECHARGE INVOICE MODAL -->
+<ng-template #invoiceModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">{{ selectedTab() === 'PREPAID' ? 'Mobile Recharge Invoice' : 'DTH Recharge Invoice' }}</h5>
+    
+  </div>
+
+  <div class="modal-body invoice-wrapper" id="invoiceContent">
+    <!-- HEADER FOR PDF -->
+    <div class="bg-purple text-white text-center p-3 rounded-top mb-3">
+      <h5 class="m-0">{{ selectedTab() === 'PREPAID' ? 'Mobile Recharge Invoice' : 'DTH Recharge Invoice' }}</h5>
+    </div>
+
+    <!-- Success Icon -->
+ <div class="text-center my-3">
+  <div class="success-icon-wrapper mx-auto">
+    <!-- Icon -->
+    <i
+      class="bi"
+      [ngClass]="{
+        'bi-check-circle-fill text-success':rechargeStatus === 'Success',
+        'bi-hourglass-split text-warning':  rechargeStatus.toUpperCase() != 'SUCCESS' &&  rechargeStatus.toUpperCase() != 'FAILURE',
+        'bi-x-circle-fill text-danger': rechargeStatus.toUpperCase() === 'FAILURE'
+      }"
+      id="statusIcon"
+      class="success-icon"
+    ></i>
+
+    <!-- Message -->
+    <div
+      class="mt-2 fs-5 fw-bold"
+      [ngClass]="{
+        'text-success': rechargeStatus === 'Success',
+        'text-warning': rechargeStatus.toUpperCase() != 'SUCCESS' &&  rechargeStatus.toUpperCase() != 'FAILURE',
+        'text-danger': rechargeStatus.toUpperCase() === 'FAILURE'
+      }"
+    >
+      {{
+        rechargeStatus === 'Success'
+          ? (selectedTab() === 'PREPAID' ? 'Mobile Recharge Successful' : 'DTH Recharge Successful')
+          : rechargeStatus.toUpperCase() != 'SUCCESS' &&  rechargeStatus.toUpperCase() != 'FAILURE'
+          ? (selectedTab() === 'PREPAID' ? 'Mobile Recharge Pending' : 'DTH Recharge Pending')
+          : (selectedTab() === 'PREPAID' ? 'Mobile Recharge Failed' : 'DTH Recharge Failed')
+      }}
+    </div>
+  </div>
+</div>
+
+
+    <!-- Invoice Content -->
+    <div class="invoice p-4">
+      <div class="text-center mb-4">
+        <img src="../../../assets/images/logo__.png" alt="InstantPayment logo" class="brand-logo mb-4" style="height: 70px;">
+      </div>
+
+      <table class="table table-bordered table-sm mb-2">
+        <tbody>
+          <tr>
+            <th scope="row" class="text-purple">{{ selectedTab() === 'PREPAID' ? 'Mobile Number' : 'Subscriber ID' }}</th>
+            <td class="text-end">{{ mobileNumber }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="text-purple">Operator</th>
+            <td class="text-end">{{ mobileOperator?.label }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="text-purple">Amount</th>
+            <td class="text-end">₹{{ mobileAmount }}</td>
+          </tr>
+           <tr>
+            <th scope="row" class="text-purple">Txn Id</th>
+            <td class="text-end">{{ txnid }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="text-purple">BR Id</th>
+            <td class="text-end">{{ brid }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="text-purple">Action On</th>
+            <td class="text-end">{{ transactiondatetime }}</td>
+          </tr>
+          <tr>
+            <th scope="row" class="text-purple">Action By</th>
+            <td class="text-end">{{ userName }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="text-end mt-4">
+        <strong class="fs-5 text-purple">Total: ₹{{ mobileAmount }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer d-flex justify-content-between">
+    <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
+    <button class="btn btn-chandan btn-sm" (click)="downloadInvoice()">
+      <i class="bi bi-download me-1"></i>Download Invoice
+    </button>
+  </div>
+</ng-template>
+
+
+
+</div>

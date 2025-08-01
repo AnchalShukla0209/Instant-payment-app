@@ -1,0 +1,106 @@
+.layout-wrapper {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar-wrap {
+  width: 300px;
+  flex-shrink: 0;
+  background-color: #f6f8fa;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.main-wrap {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 270px);
+  height: 100vh;
+}
+
+.header-wrap {
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  z-index: 10;
+}
+
+.router-content {
+  overflow-y: auto !important;
+
+  // Firefox
+  scrollbar-width: none !important; 
+  scrollbar-color: #e8e6e6 transparent !important;
+}
+
+// Chrome, Edge, Safari (WebKit)
+.router-content::-webkit-scrollbar {
+  width: 0px !important; /* Hide by default */
+  height: 0px !important;
+  background: transparent !important;
+}
+
+.router-content:hover::-webkit-scrollbar {
+  width: 6px !important; /* Show thin scrollbar on hover */
+}
+
+.router-content:hover::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.router-content:hover::-webkit-scrollbar-thumb {
+  background-color: #e8e6e6 !important;
+  border-radius: 6px !important;
+}
+
+// ✅ Remove top/bottom arrows
+.router-content::-webkit-scrollbar-button {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+@media (min-width: 1200px) {
+    .px-xl-5 {
+        /* padding-right: 3rem !important; */
+        padding-left: 3rem !important;
+    }
+}
+
+@media (min-width: 1200px) {
+    .px-xl-5 {
+        /* padding-right: 3rem !important; */
+        padding-left: 3rem !important;
+    }
+}
+
+    .px-xl-5 {
+        /* padding-right: 3rem !important; */
+        padding-left: 3rem !important;
+    }
+
+.main_bg_body_lay
+{
+   padding-left: 3rem !important;
+}
+
+.zindex-1050 {
+  z-index: 1050;
+}
+
+.zindex-1060 {
+  z-index: 9999;
+}
+
+@media (max-width: 767px) {
+
+  .sidebar-wrap
+  {
+    width: 340px !important;
+    flex-shrink: 0;
+    background-color: #f6f8fa;
+    height: 100vh;
+    overflow-y: auto;
+  }
+}

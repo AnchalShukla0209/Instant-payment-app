@@ -1,0 +1,136 @@
+<div class="filter-section mb-3 p-3 border rounded bg-light">
+  <div class="row g-2">
+    <div class="col-md-2">
+      <label>Service</label>
+      <!-- <p-dropdown [options]="services" [(ngModel)]="txnForm.value.serviceType" placeholder="Select Service"></p-dropdown> -->
+    </div>
+    <div class="col-md-2">
+      <label>Status</label>
+      <!-- <p-dropdown [options]="statuses" [(ngModel)]="txnForm.value.status" placeholder="Select Status"></p-dropdown> -->
+    </div>
+    <div class="col-md-2">
+      <label>From Date</label>
+      <p-calendar [(ngModel)]="txnForm.value.dateFrom" dateFormat="yy-mm-dd"></p-calendar>
+    </div>
+    <div class="col-md-2">
+      <label>To Date</label>
+      <p-calendar [(ngModel)]="txnForm.value.dateTo" dateFormat="yy-mm-dd"></p-calendar>
+    </div>
+    <div class="col-md-2">
+      <label>User</label>
+      <!-- <p-dropdown [options]="users" [(ngModel)]="txnForm.value.userId" optionLabel="label" optionValue="value" placeholder="Select User"></p-dropdown> -->
+    </div>
+    <div class="col-md-2 d-flex align-items-end gap-2">
+      <button pButton type="button" label="Search" icon="pi pi-search" (click)="onSearch()" class="p-button-sm p-button-primary"></button>
+      <button pButton type="button" label="Reset" icon="pi pi-refresh" (click)="onReset()" class="p-button-sm p-button-secondary"></button>
+    </div>
+  </div>
+</div>
+<!-- 
+<p-table
+  [value]="records"
+  [paginator]="true"
+  [rows]="10"
+  [rowsPerPageOptions]="[10, 25, 50]"
+  [globalFilterFields]="['UserName', 'OperatorName', 'AccountNo']"
+  [resizableColumns]="true"
+  [scrollable]="true"
+  scrollHeight="400px"
+  [showCurrentPageReport]="true"
+  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+>
+
+<ng-template pTemplate="caption">
+    <div class="p-d-flex p-ai-center p-jc-between">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          placeholder="Global Search"
+          (input)="table.filterGlobal($event.target.value, 'contains')"
+        />
+      </span>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="header">
+    <tr>
+
+      <th>SrNo</th>
+      <th>BankRefNo</th>
+      <th pResizableColumn pSortableColumn="UserName">
+        UserName
+        <p-sortIcon field="UserName"></p-sortIcon>
+        <input
+          pInputText
+          type="text"
+          (input)="table.filter($event.target.value, 'UserName', 'contains')"
+          placeholder="Search User"
+          class="p-column-filter"
+        />
+      </th>
+      <th pResizableColumn pSortableColumn="OperatorName">
+        Operator Name
+        <p-sortIcon field="OperatorName"></p-sortIcon>
+        <input
+          pInputText
+          type="text"
+          (input)="table.filter($event.target.value, 'OperatorName', 'contains')"
+          placeholder="Search Operator"
+          class="p-column-filter"
+        />
+      </th>
+      <th pResizableColumn pSortableColumn="AccountNo">
+        Account No
+        <p-sortIcon field="AccountNo"></p-sortIcon>
+        <input
+          pInputText
+          type="text"
+          (input)="table.filter($event.target.value, 'AccountNo', 'contains')"
+          placeholder="Search Account"
+          class="p-column-filter"
+        />
+      </th>
+      
+      
+      <th>Opening Bal</th>
+      <th>Amount</th>
+      <th>Closing</th>
+      <th>Status</th>
+      <th>API Name</th>
+      <th>Coming From</th>
+      <th>Master Distributor</th>
+      <th>Distributor</th>
+      <th>TimeStamp</th>
+      <th>Updated Time</th>
+      <th>Success</th>
+      <th>Failed</th>
+      <th>API Response</th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-row let-i="rowIndex">
+    <tr>
+      <td>{{ i + 1 }}</td>
+      <td>{{ row.BankRefNo }}</td>
+      <td>{{ row.UserName }}</td>
+      <td>{{ row.OperatorName }}</td>
+      <td>{{ row.AccountNo }}</td>
+      <td>{{ row.OpeningBal }}</td>
+      <td>{{ row.Amount }}</td>
+      <td>{{ row.Closing }}</td>
+      <td>{{ row.Status }}</td>
+      <td>{{ row.APIName }}</td>
+      <td>{{ row.ComingFrom }}</td>
+      <td>{{ row.MasterDistributor }}</td>
+      <td>{{ row.Distributor }}</td>
+      <td>{{ row.TimeStamp | date: 'short' }}</td>
+      <td>{{ row.UpdatedTime | date: 'short' }}</td>
+      <td>{{ row.Success }}</td>
+      <td>{{ row.Failed }}</td>
+      <td>{{ row.APIRes }}</td>
+    </tr>
+  </ng-template>
+
+</p-table> -->

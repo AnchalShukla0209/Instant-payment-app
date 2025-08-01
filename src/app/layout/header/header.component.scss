@@ -1,0 +1,27 @@
+
+
+.header-container {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  font-family: 'Inter', sans-serif;
+}
+
+.bg-purple {
+  background: linear-gradient(to right, #7f5af0, #a04bdc);
+  color: #fff;
+}
+
+.bg-purple:hover {
+  background: linear-gradient(to right, #6e4cd1, #943fc9);
+}
+
+button.btn {
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 4px 12px;
+}
+
+button.btn i {
+  font-size: 16px;
+}

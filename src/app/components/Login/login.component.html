@@ -1,0 +1,133 @@
+<div class="container-fluid login-container left-panel">
+   <app-loader *ngIf="isLoading"></app-loader>
+  <div class="row g-0 min-vh-100">
+    <!-- Left Section -->
+    <div class="col-lg-6 d-flex flex-column justify-content-between text-white p-5">
+      <div class="welcome-section text-white py-5">
+        <div class="container">
+          <img
+            src="../../../assets/images/logo_2.png"
+            alt="InstantPayment logo"
+            style="height: 100px"
+            class="brand-logo mb-4"
+          />
+          <br /><br /><br/>
+          <span class="welcome-text">Welcome to the World of New Age Banking</span>
+
+          <div class="stats d-flex flex-wrap mt-4">
+            <div class="stat-box me-5 mb-3">
+              <h5 class="stat-value">1 Million+</h5>
+              <p class="stat-caption">Registered Businesses</p>
+            </div>
+            <div class="stat-box me-5 mb-3">
+              <h5 class="stat-value">$1 Billion+</h5>
+              <p class="stat-caption">Monthly Payments Value</p>
+            </div>
+            <div class="stat-box mb-3">
+              <h5 class="stat-value">1 Million+</h5>
+              <p class="stat-caption">Daily Transactions</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-auto pt-3">
+        <span class="small">Download Our App</span><br />
+        <img style="height: 45px;"
+          src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+          alt="Play Store"
+          class="store-badge me-2"
+        />
+        <img style="height: 45px;"
+          src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
+          alt="App Store"
+          class="store-badge"
+        />
+      </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="col-lg-6 d-flex align-items-center justify-content-center">
+      <div class="login-box p-4 p-md-5 rounded-4 bg-white shadow">
+        <h6>
+          <span class="fw-bold mb-4 text-heading" style="
+    color: #39416b;
+    font-size: 28px;
+    line-height: 36px;
+">Get Started</span>
+        </h6>
+        <br />
+        <form #loginForm="ngForm">
+        <div class="mb-3" *ngIf="isInputLogin==true && isotprequired==false">
+          <label for="username" class="form-label">Username</label>
+        <input
+          type="text"
+          class="form-control"
+          id="username"
+          name="username"
+          placeholder="User Name"
+          required
+          [(ngModel)]="username"
+        />
+        </div>
+        <div class="mb-3" *ngIf="isInputLogin==true && isotprequired==false">
+         <label for="password" class="form-label">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          name="password"
+          required
+          [(ngModel)]="password"
+        />
+        </div>
+        <div class="mb-3" *ngIf="isotprequired==true">
+         <label for="OTP" class="form-label">OTP</label>
+        <input
+          type="text"
+          class="form-control"
+          id="OTP"
+          name="OTP"
+          style="caret-color: auto !important; color: #000 !important; background-color: #fff !important;"
+          placeholder="Enter OTP"
+          required
+          [(ngModel)]="inputotp"
+        />
+        </div>
+        <button *ngIf="isInputLogin==true && isotprequired==false" class="btn btn-primary w-100 mb-2" type="button" (click)="onSubmit()">Proceed</button>
+        <div class="row">
+          <div class="col-md-1"></div>
+           <div class="col-md-5">
+             <button *ngIf="isotprequired==true" class="btn btn-primary w-100 mb-2" type="button" (click)="verifyOTP()">Verify OTP</button>
+           </div>
+            <div class="col-md-5">
+              <button *ngIf="isotprequired==true" class="btn btn-danger  w-100 mb-2" type="button" (click)="resendotp()">Resend OTP</button>
+            </div>
+             <div class="col-md-1"></div>
+       
+          
+          </div>
+        </form>
+        <div class="text-center mb-2">
+          <a href="#" class="text-decoration-none small text-primary">Trouble logging in?</a>
+        </div>
+        
+        <div class="text-center my-3 text-muted d-flex align-items-center justify-content-center">
+          <hr class="flex-grow-1 me-2" /> OR <hr class="flex-grow-1 ms-2" />
+        </div>
+
+        <button class="btn btn-outline-secondary w-100 mb-2">
+          <i class="bi bi-google me-2"></i> Continue with Google
+        </button>
+
+        <div class="text-center mt-3 small text-muted">
+          By continuing you agree to our
+          <a href="#" class="text-decoration-none">Terms of Service</a> &
+          <a href="#" class="text-decoration-none">Privacy Policy</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

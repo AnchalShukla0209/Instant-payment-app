@@ -1,0 +1,290 @@
+<div class="row">
+  <app-loader *ngIf="isLoading"></app-loader>
+  <div class="col-sm-4">
+    <div class="wallet-card business-wallet">
+      <div class="title">Business Wallet <span class="pull-right">I.P.↶</span></div>
+      <div class="amount">₹{{ walletAmount }}</div>
+      <div class="card-number">1234-XXXX-XXXX-1000</div>
+      <div class="footer-buttons">
+        <span>View Statement</span>
+        <span class="pull-right">Add Money</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="wallet-card outlet-limit">
+      <div class="title">Outlet Limit <span class="pull-right">I.P.↶</span></div>
+      <div class="amount">₹100.00</div>
+      <div class="card-number">XX-XXXX-6222</div>
+      <div class="footer-buttons">
+        <span>View Total</span>
+        
+        <span class="pull-right">Add Usable</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="slider-card">
+      <div class="slider-inner" id="sliderInner">
+        <div class="slider-item"></div>
+        <div class="slider-item"></div>
+      </div>
+      <div class="slider-controls">
+        <span (click)="slide(-1)">&lsaquo;</span>
+        <span (click)="slide(1)" style="margin-right: 12%">&rsaquo;</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="row">
+
+   <div class="row g-3 mb-3 row-deck">
+        <div class="col-md-6 col-lg-12 col-xl-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Quick Services</h6>
+                    <div class="card-action">
+
+                        <div>
+                            <a href="#" class="card-fullscreen" data-bs-toggle="tooltip" aria-label="Card Full Screen" data-bs-original-title="Card Full Screen">
+                                <svg class="svg-stroke" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M21 12v3a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10a1 1 0 0 1 1 -1h9">
+                                    </path>
+                                    <path d="M7 20l10 0"></path>
+                                    <path d="M9 16l0 4"></path>
+                                    <path d="M15 16l0 4"></path>
+                                    <path d="M17 4h4v4"></path>
+                                    <path d="M16 9l5 -5"></path>
+                                </svg>
+                            </a>
+
+
+                        </div>
+
+                    </div>
+                </div>
+                <div class="card-body row  g-0">
+                    <div class="row" id="servicesContainer">
+                         <div class="col-xs-6 col-sm-4" *ngFor="let service of services">
+    <div class="service-box">
+      <img [src]="service.ServiceImagePath" alt="{{ service.ServiceName }}">
+      <div>
+        <strong>{{ service.ServiceName }}</strong>
+        <p>Service</p>
+      </div>
+    </div>
+  </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="apex-basic-column"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-12 col-xl-6">
+            <div class="card">
+                <div class="card-header ">
+                    <h6 class="card-title mb-0">Recent Transaction</h6>
+                    <div class="card-action">
+                        <div>
+                            <a href="#" class="card-fullscreen" data-bs-toggle="tooltip" aria-label="Card Full Screen" data-bs-original-title="Card Full Screen">
+                                <svg class="svg-stroke" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M21 12v3a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10a1 1 0 0 1 1 -1h9">
+                                    </path>
+                                    <path d="M7 20l10 0"></path>
+                                    <path d="M9 16l0 4"></path>
+                                    <path d="M15 16l0 4"></path>
+                                    <path d="M17 4h4v4"></path>
+                                    <path d="M16 9l5 -5"></path>
+                                </svg>
+                            </a>
+
+
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <img class="avatar rounded" src="https://cdn-icons-png.flaticon.com/512/1041/1041881.png" alt="">
+                        <div class="flex-fill ms-3">
+                            <div class="h6 mb-0">Mobile Recharge</div>
+                            <small class="text-muted">Mobile &amp; DTH Recharge Total Monthly Transaction</small>
+                        </div>
+                        <div class="flex-end flex-column d-flex">
+                            <small class="fw-medium text-success">₹0.00</small>
+                            <small class="text-danger">₹0.00</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <img class="avatar rounded" src="https://cdn-icons-png.flaticon.com/512/4727/4727493.png" alt="">
+                        <div class="flex-fill ms-3">
+                            <div class="h6 mb-0">Bill Payment</div>
+                            <small class="text-muted">Bill Payment Total Monthly Transaction</small>
+                        </div>
+                        <div class="flex-end flex-column d-flex">
+                            <small class="fw-medium text-success">₹0.00</small>
+                            <small class="text-danger">₹0.00</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <img class="avatar rounded" src="https://cdn.pixabay.com/photo/2020/10/17/12/48/money-5661927_640.png" alt="">
+                        <div class="flex-fill ms-3">
+                            <div class="h6 mb-0">Money Transfer</div>
+                            <small class="text-muted">Money Transfer Total Monthly Transaction</small>
+                        </div>
+                        <div class="flex-end flex-column d-flex">
+                            <small class="fw-medium text-success">₹0.00</small>
+                            <small class="text-danger">₹0.00</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <img class="avatar rounded" src="https://cdn-icons-png.flaticon.com/512/2313/2313448.png" alt="">
+                        <div class="flex-fill ms-3">
+                            <div class="h6 mb-0">AEPS Services</div>
+                            <small class="text-muted">Aeps Services Total Monthly Transaction</small>
+                        </div>
+                        <div class="flex-end flex-column d-flex">
+                            <small class="fw-medium text-success">₹0.00</small>
+                            <small class="text-danger">₹0.00</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <img class="avatar rounded" src="https://cdn-icons-png.flaticon.com/512/1042/1042090.png" alt="">
+                        <div class="flex-fill ms-3">
+                            <div class="h6 mb-0">Wallet TopUp</div>
+                            <small class="text-muted">Total Wallet TopUp This Month</small>
+                        </div>
+                        <div class="flex-end flex-column d-flex">
+                            <small class="fw-medium text-success">₹0.00</small>
+                            <small class="text-danger">₹0.00</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <img class="avatar rounded" src="https://cdn-icons-png.flaticon.com/512/4727/4727493.png" alt="">
+                        <div class="flex-fill ms-3">
+                            <div class="h6 mb-0">Bill Payment</div>
+                            <small class="text-muted">Bill Payment Total Monthly Transaction</small>
+                        </div>
+                        <div class="flex-end flex-column d-flex">
+                            <small class="fw-medium text-success">₹0.00</small>
+                            <small class="text-danger">₹0.00</small>
+                        </div>
+                    </div>
+                    <a href="transaction.html" class="mt-3 btn btn-grey-outline w-100 fw-medium btnshowall">Show All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mb-3 row-deck">
+        <div class="col-sm-4">
+            <div class="panel panel-default service-cards">
+                <div class="panel-body text-center wallet-purple">
+                    <h4>Total Transactions</h4>
+                    <h3 id="TotalTran">₹{{ totalTransaction }}</h3>
+                    <p><i class="bi bi-graph-up"></i> +8.2% this month</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel panel-default  service-cards">
+                <div class="panel-body text-center wallet-red">
+                    <h4>Wallet Balance</h4>
+                    <h3 id="WLBalance">{{walletAmount}}</h3>
+                    <p><i class="bi bi-credit-card-2-front"></i> Active Balance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel panel-default service-cards">
+                <div class="panel-body text-center wallet-purple">
+                    <h4>New Users</h4>
+                    <h3 id="UserJoined">{{ newUsers }}</h3>
+                    <p><i class="bi bi-people-fill"></i> Joined this month</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+ <div class="col-md-12 g-3 mb-3 row-deck">
+<div class="card referral-panel">
+  <div class="card-header">
+    <strong>Referral Earnings</strong>
+  </div>
+  <div class="card-body">
+    <img src="https://cdn-icons-png.flaticon.com/512/201/201623.png" class="referral-icon">
+    <h4 class="referral-amount">₹850.00</h4>
+    <p class="referral-text">Total Commission From Referrals</p>
+    <a href="#" class="btn btn-success btn-invite">
+      <i class="fas fa-share-alt me-1"></i>Invite Now
+    </a>
+  </div>
+</div>
+</div>   
+
+
+  
+</div>
+
+<!-- Chatbot Launcher Button -->
+<div class="chatbot-btn" (click)="toggleChatbot()">
+ <i class="bi bi-chat-dots-fill"></i>
+
+</div>
+
+<!-- Chatbot Popup -->
+<div class="chatbot-popup panel panel-default" *ngIf="showChatbot">
+  <div class="panel-heading d-flex justify-content-between align-items-center">
+    <strong>Quick Tools</strong>
+    <span class="close-chat" style="cursor:pointer;" (click)="closeChatbot()">
+      <i class="bi bi-x-circle-fill text-danger"></i>
+    </span>
+  </div>
+
+  <div class="panel-body">
+    <div class="chatbot-tool">
+      <i class="bi bi-send-fill text-primary"></i> Fund Transfer
+    </div>
+    <div class="chatbot-tool">
+      <i class="bi bi-file-earmark-arrow-down-fill text-success"></i> Download Reports
+    </div>
+    <div class="chatbot-tool">
+      <i class="bi bi-ticket-perforated-fill text-warning"></i> Raise Support Ticket
+    </div>
+    <div class="chatbot-tool">
+      <i class="bi bi-plus-circle-fill text-info"></i> Wallet Top-up
+    </div>
+  </div>
+</div>
+
+
+
+<!-- <div class="quick-tools-card card border-0 shadow-sm">
+  <div class="card-header bg-white border-0 pb-0">
+    <h5 class="fw-semibold mb-0">Quick Tools</h5>
+  </div>
+  <div class="card-body p-0">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item border-0 py-3 px-4 d-flex align-items-center">
+        <i class="fas fa-exchange-alt me-3 text-primary"></i>
+        <span>Fund Transfer</span>
+      </li>
+      <li class="list-group-item border-0 py-3 px-4 d-flex align-items-center">
+        <i class="fas fa-file-download me-3 text-primary"></i>
+        <span>Download Reports</span>
+      </li>
+      <li class="list-group-item border-0 py-3 px-4 d-flex align-items-center">
+        <i class="fas fa-ticket-alt me-3 text-primary"></i>
+        <span>Raise Support Ticket</span>
+      </li>
+      <li class="list-group-item border-0 py-3 px-4 d-flex align-items-center">
+        <i class="fas fa-wallet me-3 text-primary"></i>
+        <span>Wallet Top-Up</span>
+      </li>
+    </ul>
+  </div>
+</div> -->
