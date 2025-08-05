@@ -1,0 +1,91 @@
+<div class="card manage-client">
+    <app-loader *ngIf="isLoading"></app-loader>
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <strong>Manage Client</strong> (Total User: {{ totalRecords }})
+      <a href="javascript:void(0)" (click)="getTotalBalance()"><span *ngIf="ShowTotalBalance">{{TotalBalance}}</span>Click To Know Total</a>
+    </div>
+    <button class="btn btn-sm btn-primary" (click)="onAddNew()">
+      <i class="bi bi-plus"></i> Add New
+    </button>
+  </div>
+
+  <div class="card-body">
+    <input type="text" [(ngModel)]="searchKeyword" class="form-control mb-3" (input)="applyFilter()" placeholder="Type a keyword..." />
+
+    <div class="d-flex justify-content-start gap-2 mb-3">
+      <input type="date" [(ngModel)]="fromDate" class="form-control" placeholder="From Date" />
+      <input type="date" [(ngModel)]="toDate" class="form-control" placeholder="To Date" />
+      <button class="btn btn-secondary" (click)="loadClients()">
+        <i class="bi bi-funnel"></i> Apply Filter
+      </button>
+    </div>
+
+
+
+    <div>
+      <table class="table table-bordered table-hover">
+        <thead class="table-primary">
+          <tr>
+            <th>User Name</th>
+            <th>Email ID</th>
+            <th>Company Name</th>
+            <th>Domain</th>
+            <th>City</th>
+            <th>Balance</th>
+            <th>Status</th>
+            <th>View</th>
+            <th>Edit</th>
+            <th>Downline</th>
+            <th>Pay</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of paginatedUsers">
+            <td>{{ user.UserName }}</td>
+            <td>{{ user.EmailId }}</td>
+            <td>{{ user.CompanyName }}</td>
+            <td>{{ user.Domain }}</td>
+            <td>{{ user.City }}</td>
+            <td>{{ user.MainBalance }}</td>
+            <td>
+              <span class="badge bg-success">
+                <i class="bi bi-check-circle"></i> {{ user.Status }}
+              </span>
+            </td>
+            <td><i class="bi bi-eye"></i></td>
+            <td><i class="bi bi-pencil-square"></i></td>
+            <td><i class="bi bi-people-fill"></i></td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-currency-rupee"></i> Pay
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <nav *ngIf="totalPages > 1" class="mt-3">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="pageIndex === 1">
+            <a class="page-link" (click)="changePage(pageIndex - 1)">Previous</a>
+          </li>
+
+          <ng-container *ngFor="let page of getVisiblePages(); let i = index">
+            <li class="page-item" [class.active]="page === pageIndex" *ngIf="page">
+              <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+            </li>
+            <li class="page-item disabled" *ngIf="!page">
+              <span class="page-link">...</span>
+            </li>
+          </ng-container>
+
+          <li class="page-item" [class.disabled]="pageIndex === totalPages">
+            <a class="page-link" (click)="changePage(pageIndex + 1)">Next</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

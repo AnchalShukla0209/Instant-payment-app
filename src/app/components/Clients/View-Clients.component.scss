@@ -1,0 +1,28 @@
+.manage-client .card-header {
+  background: linear-gradient(45deg, #6f42c1, #512da8);
+  color: white;
+}
+
+.manage-client .form-control {
+  max-width: 250px;
+}
+
+.manage-client .table {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.manage-client .pagination .page-link {
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.manage-client .pagination .page-item.active .page-link {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+}
+
+.manage-client .btn-outline-primary {
+  font-size: 0.8rem;
+}

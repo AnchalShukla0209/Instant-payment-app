@@ -1,136 +1,129 @@
-<div class="filter-section mb-3 p-3 border rounded bg-light">
-  <div class="row g-2">
-    <div class="col-md-2">
-      <label>Service</label>
-      <!-- <p-dropdown [options]="services" [(ngModel)]="txnForm.value.serviceType" placeholder="Select Service"></p-dropdown> -->
-    </div>
-    <div class="col-md-2">
-      <label>Status</label>
-      <!-- <p-dropdown [options]="statuses" [(ngModel)]="txnForm.value.status" placeholder="Select Status"></p-dropdown> -->
-    </div>
-    <div class="col-md-2">
-      <label>From Date</label>
-      <p-calendar [(ngModel)]="txnForm.value.dateFrom" dateFormat="yy-mm-dd"></p-calendar>
-    </div>
-    <div class="col-md-2">
-      <label>To Date</label>
-      <p-calendar [(ngModel)]="txnForm.value.dateTo" dateFormat="yy-mm-dd"></p-calendar>
-    </div>
-    <div class="col-md-2">
-      <label>User</label>
-      <!-- <p-dropdown [options]="users" [(ngModel)]="txnForm.value.userId" optionLabel="label" optionValue="value" placeholder="Select User"></p-dropdown> -->
-    </div>
-    <div class="col-md-2 d-flex align-items-end gap-2">
-      <button pButton type="button" label="Search" icon="pi pi-search" (click)="onSearch()" class="p-button-sm p-button-primary"></button>
-      <button pButton type="button" label="Reset" icon="pi pi-refresh" (click)="onReset()" class="p-button-sm p-button-secondary"></button>
+<div class="container-fluid px-lg-4">
+  <app-loader *ngIf="isLoading"></app-loader>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-gradient-indigo text-white">
+          <strong><i class="bi bi-filter"></i> Filter</strong>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="txnForm" class="row g-2 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold"><i class="bi bi-phone form-icon icon-label"></i>Service Type</label>
+              <select class="form-select" formControlName="serviceType" (change)="onServiceChange()">
+                <option value="All Service">All Service</option>
+                <option *ngFor="let s of services" [value]="s">{{ s }}</option>
+              </select>
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>From Date</label>
+              <input type="date" class="form-control" formControlName="dateFrom" />
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>To Date</label>
+              <input type="date" class="form-control" formControlName="dateTo" />
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label fw-semibold"><i class="bi bi-person form-icon icon-label"></i>Select User</label>
+              <select class="form-select" formControlName="userId">
+                <option value="0">--Select--</option>
+                <option *ngFor="let user of users" [value]="user.value">{{ user.label }}</option>
+              </select>
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+              <button class="btn btn-primary" type="button" (click)="onSearch()">
+                <i class="bi bi-search"></i> Search
+              </button>
+              <button class="btn btn-danger" type="button" (click)="onReset()">
+                <i class="bi bi-x-circle"></i> Reset
+              </button>
+
+              <div class="dropdown ms-auto">
+                <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  Export
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" (click)="export('pdf')">Export as PDF</a></li>
+                  <li><a class="dropdown-item" (click)="export('xls')">Export as XLS</a></li>
+                  <li><a class="dropdown-item" (click)="export('xlsx')">Export as XLSX</a></li>
+                  <li><a class="dropdown-item" (click)="export('doc')">Export as DOC</a></li>
+                </ul>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div class="table-responsive mt-4">
+    <table class="table table-bordered table-hover text-nowrap align-middle table-striped" id="TxnReport">
+      <thead class="table-dark">
+        <tr>
+          <th *ngFor="let col of visibleColumns">
+            {{ col }}
+            <input *ngIf="showFilter(col)" class="form-control form-control-sm mt-1" [(ngModel)]="filters[col]" (ngModelChange)="applyColumnFilter()" placeholder="Filter {{ col }}" />
+          </th>
+        </tr>
+        <tr>
+          <th [attr.colspan]="visibleColumns.length" class="text-end fw-semibold">
+            REPORTING | NO. OF TRANSACTION: {{ totalRecords }} | TOTAL TRANSACTION AMOUNT: {{ getTotalAmount() }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of filteredRecords; let i = index">
+          <td *ngFor="let col of visibleColumns">
+            <ng-container [ngSwitch]="col">
+             <ng-container *ngSwitchCase="'Sr No'">{{ (currentPage - 1) * pageSize + i + 1 }}</ng-container>
+              <ng-container *ngSwitchCase="'Success'">
+                <ng-container *ngIf="row.TransId > 0">
+                  <span *ngIf="row.Status === 'Success'">Success</span>
+                  <i *ngIf="row.Status !== 'Success'" class="bi bi-info-circle text-primary" (click)="openSuccessModal(row.TransId)"></i>
+                </ng-container>
+              </ng-container>
+              <ng-container *ngSwitchCase="'Failed'">
+                <ng-container *ngIf="row.TransId > 0">
+                  <i class="bi bi-x-circle text-danger" (click)="openFailedModal(row.TransId)"></i>
+                </ng-container>
+              </ng-container>
+              <ng-container *ngSwitchCase="'API Response'">
+                <i class="bi bi-info-circle" (click)="openApiResponseModal(row)"></i>
+              </ng-container>
+              <ng-container *ngSwitchDefault>{{ row[getKey(col)] }}</ng-container>
+            </ng-container>
+          </td>
+        </tr>
+        <tr *ngIf="filteredRecords.length === 0">
+          <td [attr.colspan]="visibleColumns.length" class="text-center text-muted">No records found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <nav *ngIf="totalPages > 1" class="mt-3">
+  <ul class="pagination justify-content-end">
+    <li class="page-item" [class.disabled]="currentPage === 1">
+      <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+    </li>
+
+    <ng-container *ngFor="let page of visiblePages">
+      <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+        <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+      </li>
+      <li class="page-item disabled" *ngIf="page === null">
+        <span class="page-link">...</span>
+      </li>
+    </ng-container>
+
+    <li class="page-item" [class.disabled]="currentPage === totalPages">
+      <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+    </li>
+  </ul>
+</nav>
+
 </div>
-<!-- 
-<p-table
-  [value]="records"
-  [paginator]="true"
-  [rows]="10"
-  [rowsPerPageOptions]="[10, 25, 50]"
-  [globalFilterFields]="['UserName', 'OperatorName', 'AccountNo']"
-  [resizableColumns]="true"
-  [scrollable]="true"
-  scrollHeight="400px"
-  [showCurrentPageReport]="true"
-  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
->
-
-<ng-template pTemplate="caption">
-    <div class="p-d-flex p-ai-center p-jc-between">
-      <span class="p-input-icon-left">
-        <i class="pi pi-search"></i>
-        <input
-          type="text"
-          pInputText
-          placeholder="Global Search"
-          (input)="table.filterGlobal($event.target.value, 'contains')"
-        />
-      </span>
-    </div>
-  </ng-template>
-
-  <ng-template pTemplate="header">
-    <tr>
-
-      <th>SrNo</th>
-      <th>BankRefNo</th>
-      <th pResizableColumn pSortableColumn="UserName">
-        UserName
-        <p-sortIcon field="UserName"></p-sortIcon>
-        <input
-          pInputText
-          type="text"
-          (input)="table.filter($event.target.value, 'UserName', 'contains')"
-          placeholder="Search User"
-          class="p-column-filter"
-        />
-      </th>
-      <th pResizableColumn pSortableColumn="OperatorName">
-        Operator Name
-        <p-sortIcon field="OperatorName"></p-sortIcon>
-        <input
-          pInputText
-          type="text"
-          (input)="table.filter($event.target.value, 'OperatorName', 'contains')"
-          placeholder="Search Operator"
-          class="p-column-filter"
-        />
-      </th>
-      <th pResizableColumn pSortableColumn="AccountNo">
-        Account No
-        <p-sortIcon field="AccountNo"></p-sortIcon>
-        <input
-          pInputText
-          type="text"
-          (input)="table.filter($event.target.value, 'AccountNo', 'contains')"
-          placeholder="Search Account"
-          class="p-column-filter"
-        />
-      </th>
-      
-      
-      <th>Opening Bal</th>
-      <th>Amount</th>
-      <th>Closing</th>
-      <th>Status</th>
-      <th>API Name</th>
-      <th>Coming From</th>
-      <th>Master Distributor</th>
-      <th>Distributor</th>
-      <th>TimeStamp</th>
-      <th>Updated Time</th>
-      <th>Success</th>
-      <th>Failed</th>
-      <th>API Response</th>
-    </tr>
-  </ng-template>
-
-  <ng-template pTemplate="body" let-row let-i="rowIndex">
-    <tr>
-      <td>{{ i + 1 }}</td>
-      <td>{{ row.BankRefNo }}</td>
-      <td>{{ row.UserName }}</td>
-      <td>{{ row.OperatorName }}</td>
-      <td>{{ row.AccountNo }}</td>
-      <td>{{ row.OpeningBal }}</td>
-      <td>{{ row.Amount }}</td>
-      <td>{{ row.Closing }}</td>
-      <td>{{ row.Status }}</td>
-      <td>{{ row.APIName }}</td>
-      <td>{{ row.ComingFrom }}</td>
-      <td>{{ row.MasterDistributor }}</td>
-      <td>{{ row.Distributor }}</td>
-      <td>{{ row.TimeStamp | date: 'short' }}</td>
-      <td>{{ row.UpdatedTime | date: 'short' }}</td>
-      <td>{{ row.Success }}</td>
-      <td>{{ row.Failed }}</td>
-      <td>{{ row.APIRes }}</td>
-    </tr>
-  </ng-template>
-
-</p-table> -->

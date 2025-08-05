@@ -106,7 +106,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body" style="  display: flex;justify-content: flex-end;align-items: center;">
+                <div class="card-body row  g-0" >
+                    <div class="row" id="bb" >
                  <apx-chart [series]="pieChartOptions.series"
                           [chart]="pieChartOptions.chart"
                           [labels]="pieChartOptions.labels"
@@ -114,6 +115,7 @@
                           [legend]="pieChartOptions.legend"
                           [fill]="pieChartOptions.fill">
                          </apx-chart>
+                         </div>
                 </div>
             </div>
         </div>

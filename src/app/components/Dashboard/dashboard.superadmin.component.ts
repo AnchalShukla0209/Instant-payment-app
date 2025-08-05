@@ -112,7 +112,7 @@ export class superadmindashboardComponent implements OnInit  {
         }
       }
     ],
-    legend: { position: 'right', show: true },
+    legend: { position: 'right', show: false },
     fill: { type: 'gradient' }
   };
 
