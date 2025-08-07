@@ -26,3 +26,62 @@
 .manage-client .btn-outline-primary {
   font-size: 0.8rem;
 }
+
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="datetime-local"],
+input[type="file"] {
+  font-size: 0.9rem;
+}
+
+
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    background-color: #5e2f82 !important;
+    color: white !important;
+    border-color: var(--bs-nav-tabs-link-active-border-color);
+}
+
+.modal-content {
+  position: relative;
+  z-index: 1055 !important; /* Bootstrap modal z-index default */
+}
+
+.bg-purple {
+  background-color: #5e2f82 !important;
+}
+.disablescss {
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px solid #ccc;
+}
+label
+{
+  font-weight: bold;
+}
+span
+{
+  font-size: 15px;
+}
+.bg-gradient-indigo {
+    background: linear-gradient(135deg, #5f2c82, #49a09d);
+    color: white !important;
+    border-radius: 5px 5px 0 0 !important;
+}
+
+.bg-purple {
+  background-color: #5e2f82 !important;
+}
+
+#tblClientData thead th
+{
+    background: #5e2f82 !important;
+    color: white !important;
+    font-weight: 500;
+    font-size: 13px;
+}

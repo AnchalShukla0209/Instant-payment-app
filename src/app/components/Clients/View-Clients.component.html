@@ -1,91 +1,1179 @@
-<div class="card manage-client">
-    <app-loader *ngIf="isLoading"></app-loader>
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <div>
-      <strong>Manage Client</strong> (Total User: {{ totalRecords }})
-      <a href="javascript:void(0)" (click)="getTotalBalance()"><span *ngIf="ShowTotalBalance">{{TotalBalance}}</span>Click To Know Total</a>
+<div class="container-fluid">
+  <app-loader *ngIf="isLoading"></app-loader>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-gradient-indigo text-white">
+          <strong><i class="bi bi-funnel"></i>Filter</strong>
+        </div>
+        <div class="card-body">
+          <div class="row align-items-end g-2">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold"><i class="bi bi-phone form-icon icon-label"></i>From Date</label>
+              <input type="date" [(ngModel)]="fromDate" class="form-control" placeholder="From Date" />
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>To
+                Date</label>
+              <input type="date" [(ngModel)]="toDate" class="form-control" placeholder="To Date" />
+            </div>
+
+            <div class="col-md-3 d-flex align-items-center gap-2">
+              <br />
+              <button class="btn btn-secondary" (click)="loadClients(1,2)">
+                <i class="bi bi-funnel"></i> Apply Filter
+              </button>
+
+              <div class="dropdown">
+                <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  Export
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" (click)="export('pdf')">Export as PDF</a></li>
+                  <li><a class="dropdown-item" (click)="export('xls')">Export as XLS</a></li>
+                  <li><a class="dropdown-item" (click)="export('xlsx')">Export as XLSX</a></li>
+                  <li><a class="dropdown-item" (click)="export('doc')">Export as DOC</a></li>
+                </ul>
+              </div>
+            </div>
+
+
+
+
+          </div>
+          <br />
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card shadow-sm">
+                <div
+                  class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong><i class="bi bi-funnel"></i>&nbsp;&nbsp;Manage Client (Total User: {{ totalRecords
+                      }})</strong>
+                    &nbsp;&nbsp;
+                    <a href="javascript:void(0)" style="color: white;" (click)="getTotalBalance()"><span
+                        *ngIf="ShowTotalBalance">{{TotalBalance}}</span>Click To Know Total</a>
+                  </div>
+                  <button class="btn btn-sm btn-primary" (click)="openAddClientForm()">
+                    <i class="bi bi-plus"></i> Add New
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row align-items-end g-2">
+                    <div class="col-md-2">
+                      <input type="text" [(ngModel)]="searchKeyword" class="form-control mb-3" (input)="applyFilter()"
+                        placeholder="Type a keyword..." />
+                    </div>
+
+                    <div class="col-md-12">
+                      <table id="tblClientData"
+                        class="table table-bordered mb-4 text-center table-responsive table-hover">
+                        <thead class="bg-purple text-white">
+                          <tr>
+                            <th>User Name</th>
+                            <th>Email ID</th>
+                            <th>Company Name</th>
+                            <th>Domain</th>
+                            <th>City</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>View</th>
+                            <th>Edit</th>
+                            <th>Downline</th>
+                            <th>Pay</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let user of paginatedUsers">
+                            <td>{{ user.UserName }}</td>
+                            <td>{{ user.EmailId }}</td>
+                            <td>{{ user.CompanyName }}</td>
+                            <td>{{ user.Domain }}</td>
+                            <td>{{ user.City }}</td>
+                            <td>{{ user.MainBalance }}</td>
+                            <td>
+                              <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> {{ user.Status }}
+                              </span>
+                            </td>
+                            <td style="cursor: pointer;"><i class="bi bi-eye" (click)="ViewClient(user.Id)"></i></td>
+                            <td style="cursor: pointer !important;"><i class="bi bi-pencil-square"
+                                (click)="editClient(user.Id)"></i></td>
+                            <td style="cursor: pointer !important;"><i class="bi bi-people-fill"></i></td>
+                            <td style="cursor: pointer !important;">
+                              <button class="btn btn-sm btn-outline-primary" type="button" (click)="PayClient(user.Id)">
+                                <i class="bi bi-currency-rupee"></i> Pay
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+
+                      <nav *ngIf="totalPages > 1" class="mt-3">
+                        <ul class="pagination justify-content-end">
+                          <li class="page-item" [class.disabled]="currentPage === 1">
+                            <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+                          </li>
+
+                          <ng-container *ngFor="let page of visiblePages">
+                            <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+                              <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                            </li>
+                            <li class="page-item disabled" *ngIf="page === null">
+                              <span class="page-link">...</span>
+                            </li>
+                          </ng-container>
+
+                          <li class="page-item" [class.disabled]="currentPage === totalPages">
+                            <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+                          </li>
+                        </ul>
+                      </nav>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+
     </div>
-    <button class="btn btn-sm btn-primary" (click)="onAddNew()">
-      <i class="bi bi-plus"></i> Add New
+
+
+
+  </div>
+
+
+</div>
+
+<ng-template #clientModel let-modal>
+  <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title"> {{ isEditMode ? 'Edit Client' : 'Add Client' }}</h5>
+
+    </div>
+
+    <div class="modal-body">
+      <!-- Tabs Header -->
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation" *ngFor="let tab of tabList">
+          <button class="nav-link" [class.active]="activeTab === tab.id" (click)="activeTab = tab.id" type="button"
+            role="tab">
+            {{ tab.label }}
+          </button>
+        </li>
+        <li>
+          <button class="nav-link" [class.active]="activeTab === 'previewTab'" (click)="goToPreviewTab()" type="button"
+            role="tab">
+            PREVIEW
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tabs Content -->
+      <div class="tab-content">
+
+
+        <div class="tab-pane fade" [class.show]="activeTab === 'companyInfo'"
+          [class.active]="activeTab === 'companyInfo'" formGroupName="companyInfo">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-building me-2 icon-label"></i>Company Name</label>
+              <input type="text" class="form-control" placeholder="Company Name" formControlName="CompanyName" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-person me-2 icon-label"></i>User Name</label>
+              <input type="text" class="form-control" placeholder="User Name" formControlName="UserName" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-envelope me-2 icon-label"></i>Email</label>
+              <input type="email" class="form-control" placeholder="EmailId" formControlName="EmailId" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-telephone me-2 icon-label"></i>Phone</label>
+              <input type="text" class="form-control" placeholder="Phone No" formControlName="Phone" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-lock me-2 icon-label"></i>Password</label>
+              <input type="password" class="form-control" formControlName="Password" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-globe me-2 icon-label"></i>Domain Name</label>
+              <input type="text" class="form-control" placeholder="Domain Name" formControlName="DomainName" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-card-text me-2 icon-label"></i>PAN Card</label>
+              <input type="text" class="form-control" placeholder="PAN Card" formControlName="PanCard" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-credit-card me-2 icon-label"></i>Aadhar Card</label>
+              <input type="text" class="form-control" placeholder="Aadhar Card" formControlName="AadharCard" />
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Address Info -->
+        <div class="tab-pane fade" [class.show]="activeTab === 'addressInfo'"
+          [class.active]="activeTab === 'addressInfo'" formGroupName="addressInfo">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-geo-alt me-2 icon-label"></i>Address Line 1</label>
+              <input type="text" class="form-control" placeholder="Address Line1" formControlName="AddressLine1" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-geo me-2 icon-label"></i>Address Line 2</label>
+              <input type="text" class="form-control" placeholder="Address Line2" formControlName="AddressLine2" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-map me-2 icon-label"></i>State</label>
+              <input type="text" class="form-control" placeholder="State" formControlName="State" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-building me-2 icon-label"></i>City</label>
+              <input type="text" class="form-control" placeholder="City" formControlName="City" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-mailbox me-2 icon-label"></i>Pin Code</label>
+              <input type="text" class="form-control" placeholder="Pin Code" formControlName="Pincode" />
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Service Rights -->
+        <div class="tab-pane fade" [class.show]="activeTab === 'serviceRights'"
+          [class.active]="activeTab === 'serviceRights'" formGroupName="serviceRights">
+          <div class="row g-3">
+            <!-- <div class="col-md-4"
+                *ngFor="let key of ['Recharge', 'MoneyTransfer', 'AEPS', 'BillPayment', 'MicroATM', 'APITransfer', 'Margin', 'Debit', 'Status']">
+                <label class="form-label">{{ key }}</label>
+                <select class="form-select" [formControlName]="key">
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div> -->
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-arrow-repeat icon-label"></i> Recharge</label>
+              <select class="form-select" formControlName="Recharge">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-cash-stack icon-label"></i> Money Transfer</label>
+              <select class="form-select" formControlName="MoneyTransfer">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-fingerprint icon-label"></i> AEPS</label>
+              <select class="form-select" formControlName="AEPS">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-receipt icon-label"></i>Bill Payment</label>
+              <select class="form-select" formControlName="BillPayment">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-credit-card icon-label"></i>MicroATM</label>
+              <select class="form-select" formControlName="MicroATM">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-diagram-3 icon-label"></i> APITransfer</label>
+              <select class="form-select" formControlName="APITransfer">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-piggy-bank icon-label"></i> Margin</label>
+              <select class="form-select" formControlName="Margin">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-arrow-down-circle icon-label"></i> Debit</label>
+              <select class="form-select" formControlName="Debit">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-info-circle icon-label"></i> Status</label>
+              <select class="form-select" formControlName="Status">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+
+        <!-- Upload Document -->
+        <div class="tab-pane fade" [class.show]="activeTab === 'uploadDocs'" [class.active]="activeTab === 'uploadDocs'"
+          formGroupName="uploadDocs">
+          <!-- <div class="row g-3">
+              <div class="col-md-6"
+                *ngFor="let key of ['LogoFile', 'PancopyFile', 'AadharFrontFile', 'AadharBackFile']">
+                <label class="form-label">{{ key }}</label>
+                <input type="file" class="form-control" (change)="onFileChange($event, key)" />
+              </div>
+            </div> -->
+
+          <div class="row">
+            <div class="col-md-12">
+              <table class="table table table-responsive table table-bordered" id="tblFileUpload"
+                style="border: 1px solid #f4f4f4 !important">
+                <tbody>
+                  <tr style="background-color: #605ca8;color: #fff;">
+                    <th style="background: #5e2f82 !important; color:white !important">#Type</th>
+                    <th style="background: #5e2f82 !important;color: white !important">File</th>
+                    <th style="background: #5e2f82 !important; color: white !important">Allowed Extensions</th>
+                  </tr>
+                  <tr>
+                    <td>
+                      <label>Logo</label>
+                    </td>
+                    <td>
+                      <input type="file" class="form-control" (change)="onFileChange($event, 'LogoFile')"
+                        *ngIf="!filePreviews['LogoFile']" formControlName="LogoFile" />
+                      <div *ngIf="filePreviews['LogoFile']" class="d-flex align-items-center gap-2">
+                        <img [src]="filePreviews['LogoFile']" width="80" height="80" />
+                        <button class="btn btn-sm btn-danger" (click)="deleteFile('LogoFile',clientId)">Delete</button>
+                      </div>
+                    </td>
+                    <td>
+                      <label>png, jpg, jpeg (Max Size:1 MB)</label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <label>PanCard</label>
+                    </td>
+                    <td>
+                      <input type="file" class="form-control" (change)="onFileChange($event, 'PancopyFile')"
+                        *ngIf="!filePreviews['PancopyFile']" />
+                      <div *ngIf="filePreviews['PancopyFile']" class="d-flex align-items-center gap-2">
+                        <img [src]=" filePreviews['PancopyFile']" width="80" height="80" />
+                        <button class="btn btn-sm btn-danger"
+                          (click)="deleteFile('PancopyFile',clientId)">Delete</button>
+                      </div>
+                    </td>
+                    <td>
+                      <label>pdf, png, jpg, jpeg (Max Size:1 MB)</label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <label>Aadhar Front</label>
+                    </td>
+                    <td>
+                      <input type="file" class="form-control" (change)="onFileChange($event, 'AadharFrontFile')"
+                        *ngIf="!filePreviews['AadharFrontFile']" />
+                      <div *ngIf="filePreviews['AadharFrontFile']" class="d-flex align-items-center gap-2">
+                        <img [src]="filePreviews['AadharFrontFile']" width="80" height="80" />
+                        <button class="btn btn-sm btn-danger"
+                          (click)="deleteFile('AadharFrontFile',clientId)">Delete</button>
+                      </div>
+                    </td>
+                    <td>
+                      <label>pdf, png, jpg, jpeg (Max Size:1 MB) (Mask Adhar For Security)</label>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <label>Aadhar Back</label>
+                    </td>
+                    <td>
+                      <input type="file" class="form-control" (change)="onFileChange($event, 'AadharBackFile')"
+                        *ngIf="!filePreviews['AadharBackFile']" />
+                      <div *ngIf="filePreviews['AadharBackFile']" class="d-flex align-items-center gap-2">
+                        <img [src]="filePreviews['AadharBackFile']" width="80" height="80" />
+                        <button class="btn btn-sm btn-danger"
+                          (click)="deleteFile('AadharBackFile',clientId)">Delete</button>
+                      </div>
+                    </td>
+                    <td>
+                      <label>pdf, png, jpg, jpeg (Max Size:1 MB) (Mask Adhar For Security)</label>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Preview -->
+        <!-- Preview -->
+        <div class="tab-pane fade" [class.show]="activeTab === 'previewTab'"
+          [class.active]="activeTab === 'previewTab'">
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-gradient-indigo text-white">
+                  <strong>
+                    <i class="bi bi-building"></i> Company Info
+                  </strong>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="ddlBusinessUnit">Company Name</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblCompanyName">{{ model.CompanyName }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="chkCPS">User Name</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblUserName">{{ model.UserName }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="ddlBusinessUnit">Email Address</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblEmailId">{{ model.EmailId }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="ddlBusinessUnit">Password</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblPassword">{{ model.Password }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="ddlBusinessUnit">Phone No</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblphoneno">{{ model.Phone }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>PAN Card No</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblPanCard">{{ model.PanCard }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Adhar Card Number</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblAdhar">{{ model.AadharCard }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Domain Name</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblDomainName">{{ model.DomainName }}</span>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <br />
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-gradient-indigo text-white">
+                  <strong>
+                    <i class="bi bi-geo-alt"></i>Address Info
+                  </strong>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Address Line 1</label>
+                        <span class="colonspacentry"> : </span>
+                        <textarea class="form-control disablescss"
+                          id="lblAddressLine1">{{ model.AddressLine1 }}</textarea>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Address Line 2</label>
+                        <span class="colonspacentry"> : </span>
+                        <textarea class="form-control disablescss"
+                          id="lblAddressline2">{{ model.AddressLine2 }}</textarea>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label>State</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblState">{{ model.State }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label>City</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblCity">{{ model.City }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label>Zip Code</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblZipCode">{{ model.Pincode }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br />
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-gradient-indigo text-white">
+                  <strong>
+                    <i class="bi bi-gear"></i> Service Rights Info
+                  </strong>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Recharge</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblRecharge">{{ model.Recharge }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Money Transfer</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblMoneyTransfer">{{ model.MoneyTransfer }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>AEPS</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblAEPS">{{ model.AEPS }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Bill Payment</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblBillPayment">{{ model.BillPayment }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Micro ATM</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblMicroATM"> {{ model.MicroATM }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>UPI Transfer</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblUPITransfer">{{ model.APITransfer }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Margin</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblMargin">{{ model.Margin }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Debit</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblDebit">{{ model.Debit }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Status</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblDebit">{{ model.Status }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Txn PIN</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblDebit">{{ model.TxnPin }}</span>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          <br />
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-gradient-indigo text-white">
+                  <strong>
+                    <i class="bi bi-file-earmark"></i>File Info
+                  </strong>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <table class="table table table-responsive table table-bordered" id="tblFileUpload"
+                        style="border: 1px solid #f4f4f4 !important">
+                        <tbody>
+                          <tr style="background-color: #605ca8;color: #fff;">
+                            <th style="background: #5e2f82 !important; color:white !important">#Type</th>
+                            <th style="background: #5e2f82 !important;color: white !important">File</th>
+                          </tr>
+                          <tr>
+                            <td>
+                              <label>Logo</label>
+                            </td>
+                            <td>
+                              <div *ngIf="filePreviews['LogoFile']" class="d-flex align-items-center gap-2">
+                                <img [src]="filePreviews['LogoFile']" width="80" height="80" />
+                              </div>
+                            </td>
+
+                          </tr>
+                          <tr>
+                            <td>
+                              <label>PanCard</label>
+                            </td>
+                            <td>
+
+                              <div *ngIf="filePreviews['PancopyFile']" class="d-flex align-items-center gap-2">
+                                <img [src]=" filePreviews['PancopyFile']" width="80" height="80" />
+
+                              </div>
+                            </td>
+
+                          </tr>
+                          <tr>
+                            <td>
+                              <label>Aadhar Front</label>
+                            </td>
+                            <td>
+
+                              <div *ngIf="filePreviews['AadharFrontFile']" class="d-flex align-items-center gap-2">
+                                <img [src]="filePreviews['AadharFrontFile']" width="80" height="80" />
+
+                              </div>
+                            </td>
+
+                          </tr>
+                          <tr>
+                            <td>
+                              <label>Aadhar Back</label>
+                            </td>
+                            <td>
+
+                              <div *ngIf="filePreviews['AadharBackFile']" class="d-flex align-items-center gap-2">
+                                <img [src]="filePreviews['AadharBackFile']" width="80" height="80" />
+
+                              </div>
+                            </td>
+
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <br />
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <!-- Left Side Buttons -->
+      <div>
+        <!-- Close only on first and last tab -->
+        <button type="button" *ngIf="activeTab === 'companyInfo' || activeTab === 'previewTab'"
+          class="btn btn-secondary" (click)="modalRef.close('cancel')">
+          Close
+        </button>
+
+        <!-- Previous for all except first tab -->
+        <button type="button" *ngIf="activeTab !== 'companyInfo' && activeTab !== 'previewTab'"
+          class="btn btn-outline-primary" (click)="goToPreviousTab()">
+          Previous
+        </button>
+      </div>
+
+      <!-- Right Side Buttons -->
+      <div>
+        <!-- Next Buttons -->
+        <button type="button"
+          *ngIf="activeTab === 'companyInfo' || activeTab === 'addressInfo' || activeTab === 'serviceRights'"
+          class="btn btn-primary" (click)="goToNextTab()">
+          Next
+        </button>
+
+        <!-- Preview Button -->
+        <button type="button" *ngIf="activeTab === 'uploadDocs'" class="btn btn-info" (click)="goToPreviewTab()">
+          Preview
+        </button>
+
+        <button *ngIf="activeTab === 'previewTab'" type="submit" class="btn btn-primary">{{ isEditMode ? 'Update' :
+          'Submit' }}</button>
+      </div>
+
+
+
+    </div>
+  </form>
+</ng-template>
+
+
+<ng-template #ViewclientDetailsModel let-modal>
+
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title"> View Client</h5>
+
+  </div>
+
+  <div class="modal-body">
+    <div class="tab-content">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-gradient-indigo text-white">
+              <strong>
+                <i class="bi bi-building"></i> Company Info
+              </strong>
+            </div>
+            <div class="card-body">
+              <div class="row">
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="ddlBusinessUnit">Company Name</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblCompanyName">{{ model.CompanyName }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="chkCPS">User Name</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblUserName">{{ model.UserName }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="ddlBusinessUnit">Email Address</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblEmailId">{{ model.EmailId }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="ddlBusinessUnit">Password</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblPassword">{{ model.Password }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="ddlBusinessUnit">Phone No</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblphoneno">{{ model.Phone }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>PAN Card No</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblPanCard">{{ model.PanCard }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Adhar Card Number</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblAdhar">{{ model.AadharCard }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Domain Name</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblDomainName">{{ model.DomainName }}</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br />
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-gradient-indigo text-white">
+              <strong>
+                <i class="bi bi-geo-alt"></i>Address Info
+              </strong>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Address Line 1</label>
+                    <span class="colonspacentry"> : </span>
+                    <textarea class="form-control disablescss" id="lblAddressLine1">{{ model.AddressLine1 }}</textarea>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Address Line 2</label>
+                    <span class="colonspacentry"> : </span>
+                    <textarea class="form-control disablescss" id="lblAddressline2">{{ model.AddressLine2 }}</textarea>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>State</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblState">{{ model.State }}</span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>City</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblCity">{{ model.City }}</span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>Zip Code</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblZipCode">{{ model.Pincode }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <br />
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-gradient-indigo text-white">
+              <strong>
+                <i class="bi bi-gear"></i> Service Rights Info
+              </strong>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Recharge</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblRecharge">{{ model.Recharge }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Money Transfer</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblMoneyTransfer">{{ model.MoneyTransfer }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>AEPS</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblAEPS">{{ model.AEPS }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Bill Payment</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblBillPayment">{{ model.BillPayment }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Micro ATM</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblMicroATM"> {{ model.MicroATM }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>UPI Transfer</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblUPITransfer">{{ model.APITransfer }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Margin</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblMargin">{{ model.Margin }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Debit</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblDebit">{{ model.Debit }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Status</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblDebit">{{ model.Status }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Txn PIN</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblDebit">{{ model.TxnPin }}</span>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <br />
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-gradient-indigo text-white">
+              <strong>
+                <i class="bi bi-file-earmark"></i>File Info
+              </strong>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-12">
+                  <table class="table table table-responsive table table-bordered" id="tblFileUpload"
+                    style="border: 1px solid #f4f4f4 !important">
+                    <tbody>
+                      <tr style="background-color: #605ca8;color: #fff;">
+                        <th style="background: #5e2f82 !important; color:white !important">#Type</th>
+                        <th style="background: #5e2f82 !important;color: white !important">File</th>
+                      </tr>
+                      <tr>
+                        <td>
+                          <label>Logo</label>
+                        </td>
+                        <td>
+                          <div *ngIf="filePreviews['LogoFile']" class="d-flex align-items-center gap-2">
+                            <img [src]="filePreviews['LogoFile']" width="80" height="80" />
+                          </div>
+                        </td>
+
+                      </tr>
+                      <tr>
+                        <td>
+                          <label>PanCard</label>
+                        </td>
+                        <td>
+
+                          <div *ngIf="filePreviews['PancopyFile']" class="d-flex align-items-center gap-2">
+                            <img [src]=" filePreviews['PancopyFile']" width="80" height="80" />
+
+                          </div>
+                        </td>
+
+                      </tr>
+                      <tr>
+                        <td>
+                          <label>Aadhar Front</label>
+                        </td>
+                        <td>
+
+                          <div *ngIf="filePreviews['AadharFrontFile']" class="d-flex align-items-center gap-2">
+                            <img [src]="filePreviews['AadharFrontFile']" width="80" height="80" />
+
+                          </div>
+                        </td>
+
+                      </tr>
+                      <tr>
+                        <td>
+                          <label>Aadhar Back</label>
+                        </td>
+                        <td>
+
+                          <div *ngIf="filePreviews['AadharBackFile']" class="d-flex align-items-center gap-2">
+                            <img [src]="filePreviews['AadharBackFile']" width="80" height="80" />
+
+                          </div>
+                        </td>
+
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br />
+    </div>
+
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modalRef.close('cancel')">
+      Close
     </button>
   </div>
 
-  <div class="card-body">
-    <input type="text" [(ngModel)]="searchKeyword" class="form-control mb-3" (input)="applyFilter()" placeholder="Type a keyword..." />
-
-    <div class="d-flex justify-content-start gap-2 mb-3">
-      <input type="date" [(ngModel)]="fromDate" class="form-control" placeholder="From Date" />
-      <input type="date" [(ngModel)]="toDate" class="form-control" placeholder="To Date" />
-      <button class="btn btn-secondary" (click)="loadClients()">
-        <i class="bi bi-funnel"></i> Apply Filter
-      </button>
-    </div>
+</ng-template>
 
 
 
-    <div>
-      <table class="table table-bordered table-hover">
-        <thead class="table-primary">
-          <tr>
-            <th>User Name</th>
-            <th>Email ID</th>
-            <th>Company Name</th>
-            <th>Domain</th>
-            <th>City</th>
-            <th>Balance</th>
-            <th>Status</th>
-            <th>View</th>
-            <th>Edit</th>
-            <th>Downline</th>
-            <th>Pay</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let user of paginatedUsers">
-            <td>{{ user.UserName }}</td>
-            <td>{{ user.EmailId }}</td>
-            <td>{{ user.CompanyName }}</td>
-            <td>{{ user.Domain }}</td>
-            <td>{{ user.City }}</td>
-            <td>{{ user.MainBalance }}</td>
-            <td>
-              <span class="badge bg-success">
-                <i class="bi bi-check-circle"></i> {{ user.Status }}
-              </span>
-            </td>
-            <td><i class="bi bi-eye"></i></td>
-            <td><i class="bi bi-pencil-square"></i></td>
-            <td><i class="bi bi-people-fill"></i></td>
-            <td>
-              <button class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-currency-rupee"></i> Pay
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
 
-      <!-- Pagination -->
-      <nav *ngIf="totalPages > 1" class="mt-3">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" [class.disabled]="pageIndex === 1">
-            <a class="page-link" (click)="changePage(pageIndex - 1)">Previous</a>
-          </li>
+<ng-template #PayClientModel let-modal>
 
-          <ng-container *ngFor="let page of getVisiblePages(); let i = index">
-            <li class="page-item" [class.active]="page === pageIndex" *ngIf="page">
-              <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-            </li>
-            <li class="page-item disabled" *ngIf="!page">
-              <span class="page-link">...</span>
-            </li>
-          </ng-container>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title"> <i class="bi bi-wallet2"></i> Pay Client</h5>
 
-          <li class="page-item" [class.disabled]="pageIndex === totalPages">
-            <a class="page-link" (click)="changePage(pageIndex + 1)">Next</a>
-          </li>
-        </ul>
-      </nav>
-    </div>
   </div>
-</div>
+
+  <div class="modal-body">
+    <div class="tab-content">
+       <div class="row">
+                <form #walletTxnForm="ngForm">
+                  <div class="row g-2">
+                    <div class="col-md-6">
+                      <i class="bi bi-arrow-left-right form-icon icon-label"></i> <label>Transaction Type</label>
+                      <select class="form-control" [(ngModel)]="walletTxn.status" name="status" required>
+                        <option value="Credit">Credit</option>
+                        <option value="Debit">Debit</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <i class="bi bi-cash-stack form-icon icon-label"></i> <label>Add Amount</label>
+                      <input type="text" class="form-control" [(ngModel)]="walletTxn.amount" pattern="^[0-9]+$" oninput="this.value = this.value.replace(/[^0-9]/g, '')" name="amount" required />
+                      <input type="hidden" [(ngModel)]="walletTxn.userId" name="userId" />
+                    </div>
+                    <div class="col-md-12">
+                      <i class="bi bi-key form-icon icon-label"></i> <label>Txn Pin</label>
+                      <input type="password" maxlength="4"  pattern="^[0-9]{4}$"
+      oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control" [(ngModel)]="walletTxn.txnPin" name="txnPin"
+                        required />
+                    </div>
+                  </div>
+                </form>
+              </div>
+      <br />
+
+    </div>
+
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modalRef.close('cancel')">
+      Close
+    </button>
+    <button type="button" class="btn btn-primary" (click)="submitWalletTxn()">Pay</button>
+  </div>
+
+</ng-template>

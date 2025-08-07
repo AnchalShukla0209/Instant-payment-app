@@ -163,14 +163,6 @@ label
     min-height: 100% !important;
 }
 
-
-/* Remove text caret globally */
-*:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  caret-color: transparent !important; /* Hides blinking cursor */
-}
-
 .device-card:focus {
   outline: none !important;
   box-shadow: none !important;
@@ -185,19 +177,6 @@ img
 }
 
 button.device-card:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  caret-color: transparent !important;
-}
-/* === Global fix to prevent blinking caret and focus outline === */
-*:focus,
-*:active {
-  outline: none !important;
-  box-shadow: none !important;
-  caret-color: transparent !important;
-}
-/* Only remove outline for mouse, keep for keyboard */
-:focus:not(:focus-visible) {
   outline: none !important;
   box-shadow: none !important;
   caret-color: transparent !important;
