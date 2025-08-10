@@ -8,20 +8,21 @@ import { FormsModule, FormGroup, FormBuilder, Validators, ReactiveFormsModule } 
 import { CommonModule } from '@angular/common';
 import { NgbModal, NgbTypeaheadModule, NgbToastModule, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import html2pdf from 'html2pdf.js';
 import { EncryptionService } from '../../encryption/encryption.service';
 
 @Component({
-  selector: 'app-client-details',
+  selector: 'app-client-user',
   standalone: true,
   imports: [ReactiveFormsModule, FormsModule, LoaderComponent, CommonModule, NgbTypeaheadModule, NgbToastModule],
-  templateUrl: './View-Clients.component.html',
-  styleUrls: ['./View-Clients.component.scss']
+  templateUrl: './Clients-User.component.html',
+  styleUrls: ['./Clients-User.component.scss']
 })
 
-export class ClientViewListComponent implements OnInit {
+export class ClientUserDetailComponent implements OnInit {
 
+  MainclientId!: number;
   private authServiceobj = inject(AuthService);
   private router = inject(Router);
 
@@ -51,6 +52,7 @@ export class ClientViewListComponent implements OnInit {
   IsSuccessful: string = '';
   ErrorMessages: string = '';
   model: any = {
+
     CompanyName: '',
     UserName: '',
     EmailId: '',
@@ -58,7 +60,19 @@ export class ClientViewListComponent implements OnInit {
     Password: '',
     PanCard: '',
     AadharCard: '',
-    DomainName: '',
+    CustomerName: '',
+    UserType: '',
+
+    ShopAddress: '',
+    ShopState: '',
+    ShopCity: '',
+    ShopZipCode: '',
+
+    MDName: '',
+    ADName: '',
+    ADMINName: '',
+
+
     Logo: '',
     AddressLine1: '',
     AddressLine2: '',
@@ -73,9 +87,6 @@ export class ClientViewListComponent implements OnInit {
     AEPS: 'Active',
     BillPayment: 'Active',
     MicroATM: 'Active',
-    APITransfer: 'Active',
-    Margin: 'Active',
-    Debit: 'Active',
     Status: 'Active',
     RegDate: new Date().toISOString().substring(0, 16),
     TxnPin: '',
@@ -96,13 +107,10 @@ export class ClientViewListComponent implements OnInit {
   tabList = [
     { id: 'companyInfo', label: 'COMPANY INFO' },
     { id: 'addressInfo', label: 'ADDRESS INFO' },
+    { id: 'shopInfo', label: 'SHOP INFO' },
     { id: 'serviceRights', label: 'SERVICE RIGHTS INFO' },
     { id: 'uploadDocs', label: 'DOCUMENT' }
   ];
-
-  // files: { [key: string]: File } = {};
-
-
 
   filePreview(file: File): string {
     return URL.createObjectURL(file);
@@ -127,8 +135,8 @@ export class ClientViewListComponent implements OnInit {
   isLoading: boolean = false;
   TotalBalance: Number = 0;
   ShowTotalBalance: boolean = false;
-
-
+  lat: string = '';
+  lng: string = '';
   totalRecords = 0;
   totalPages = 0;
   currentPage = 1;
@@ -139,18 +147,20 @@ export class ClientViewListComponent implements OnInit {
   @ViewChild('ViewclientDetailsModel', { static: true }) ViewclientDetailsModel!: TemplateRef<any>;
   @ViewChild('PayClientModel', { static: true }) PayClientmodal !: TemplateRef<any>;
   @ViewChild('invoiceModal', { static: true }) invoiceModal !: TemplateRef<any>;
-  constructor(private fb: FormBuilder, private http: HttpClient, private toastr: ToastrService, private _clientservice: ClientReportService, private modalService: NgbModal, private encryptor: EncryptionService) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private toastr: ToastrService, private _clientservice: ClientReportService, private modalService: NgbModal, private route: ActivatedRoute, private encryptor: EncryptionService) {
 
     this.clientForm = this.fb.group({
       companyInfo: this.fb.group({
+        UserType: ['MD', Validators.required],
         CompanyName: ['', Validators.required],
+        CustomerName: ['', Validators.required],
         UserName: ['', Validators.required],
         EmailId: ['', [Validators.required, Validators.email]],
         Phone: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
         Password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/)]],
         PanCard: ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
         AadharCard: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
-        DomainName: ['', Validators.required]
+
       }),
       addressInfo: this.fb.group({
         AddressLine1: ['', Validators.required],
@@ -159,15 +169,18 @@ export class ClientViewListComponent implements OnInit {
         City: ['', Validators.required],
         Pincode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
       }),
+      shopInfo: this.fb.group({
+        ShopAddress: ['', Validators.required],
+        ShopState: ['', Validators.required],
+        ShopCity: ['', Validators.required],
+        ShopZipCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+      }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
         MoneyTransfer: ['Active', Validators.required],
         AEPS: ['Active', Validators.required],
         BillPayment: ['Active', Validators.required],
         MicroATM: ['Active', Validators.required],
-        APITransfer: ['Active', Validators.required],
-        Margin: ['Active', Validators.required],
-        Debit: ['Active', Validators.required],
         Status: ['Active', Validators.required],
       }),
       uploadDocs: this.fb.group({
@@ -176,8 +189,8 @@ export class ClientViewListComponent implements OnInit {
         AadharBackFile: [null, Validators.required],
         LogoFile: [null, Validators.required]
       }),
-      TxnPin: ['9999', Validators.required],
-      PlanId: ['1', Validators.required],
+      TxnPin: ['9999', Validators.required]
+
     });
   }
 
@@ -217,7 +230,7 @@ export class ClientViewListComponent implements OnInit {
     this.model[`${controlName}`] = null;
     this.clientForm.get('uploadDocs')?.get(controlName)?.setValue(null);
 
-    this.http.delete(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/Client/delete-file?clientId=${FileId}&fileType=${controlName}`)
+    this.http.delete(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/delete-file?clientId=${FileId}&fileType=${controlName}`)
       .subscribe({
         next: (res) => {
           if (controlName === 'LogoFile') this.model.LogoFile = null;
@@ -240,6 +253,9 @@ export class ClientViewListComponent implements OnInit {
   }
 
   ngOnInit() {
+
+    this.setCurrentLocation();
+    this.MainclientId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadClients(this.currentPage, this.pageSize);
   }
 
@@ -250,11 +266,11 @@ export class ClientViewListComponent implements OnInit {
       toDate: this.toDate,
       pageIndex,
       pageSize,
-      ClientId:0
+      ClientId: this.MainclientId
     };
 
 
-    this._clientservice.getClientReport(payload).subscribe({
+    this._clientservice.getClientUserReport(payload).subscribe({
       next: (res: any) => {
         debugger
         this.users = res.Users || [];
@@ -268,6 +284,11 @@ export class ClientViewListComponent implements OnInit {
       },
       error: () => (this.isLoading = false),
     });
+  }
+
+  async setCurrentLocation(): Promise<void> {
+    this.lat = await this.getCurrentLatitude();
+    this.lng = await this.getCurrentLongitude();
   }
 
   updateVisiblePages(): void {
@@ -373,14 +394,16 @@ export class ClientViewListComponent implements OnInit {
 
     this.clientForm = this.fb.group({
       companyInfo: this.fb.group({
+        UserType: ['MD', Validators.required],
         CompanyName: ['', Validators.required],
+        CustomerName: ['', Validators.required],
         UserName: ['', Validators.required],
         EmailId: ['', [Validators.required, Validators.email]],
         Phone: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
         Password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/)]],
         PanCard: ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
         AadharCard: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
-        DomainName: ['', Validators.required]
+
       }),
       addressInfo: this.fb.group({
         AddressLine1: ['', Validators.required],
@@ -389,15 +412,18 @@ export class ClientViewListComponent implements OnInit {
         City: ['', Validators.required],
         Pincode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
       }),
+      shopInfo: this.fb.group({
+        ShopAddress: ['', Validators.required],
+        ShopState: ['', Validators.required],
+        ShopCity: ['', Validators.required],
+        ShopZipCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+      }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
         MoneyTransfer: ['Active', Validators.required],
         AEPS: ['Active', Validators.required],
         BillPayment: ['Active', Validators.required],
         MicroATM: ['Active', Validators.required],
-        APITransfer: ['Active', Validators.required],
-        Margin: ['Active', Validators.required],
-        Debit: ['Active', Validators.required],
         Status: ['Active', Validators.required],
       }),
       uploadDocs: this.fb.group({
@@ -406,15 +432,17 @@ export class ClientViewListComponent implements OnInit {
         AadharBackFile: [null, Validators.required],
         LogoFile: [null, Validators.required]
       }),
-      TxnPin: ['9999', Validators.required],
-      PlanId: ['1', Validators.required],
+      TxnPin: ['9999', Validators.required]
+
     });
 
     this.filePreviews = {};
     this.isEditMode = false;
+
     this.clientId=0;
+
     this.modalRef = this.modalService.open(this.clientModal, {
-      size: 'lg',
+      size: 'xl',
       backdrop: true,
       keyboard: true,
     });
@@ -458,18 +486,29 @@ export class ClientViewListComponent implements OnInit {
   prepareModel() {
     const companyInfo = this.clientForm.get('companyInfo')?.value;
     const addressInfo = this.clientForm.get('addressInfo')?.value;
+    const shopInfo = this.clientForm.get('shopInfo')?.value;
     const serviceRights = this.clientForm.get('serviceRights')?.value;
     const uploadDocs = this.clientForm.get('uploadDocs')?.value;
 
     this.model = {
       CompanyName: companyInfo.CompanyName,
+      CustomerName: companyInfo.CustomerName,
       UserName: companyInfo.UserName,
       EmailId: companyInfo.EmailId,
       Phone: companyInfo.Phone,
       Password: companyInfo.Password,
       PanCard: companyInfo.PanCard,
       AadharCard: companyInfo.AadharCard,
-      DomainName: companyInfo.DomainName,
+      UserType: companyInfo.UserType,
+
+      ShopAddress: shopInfo.ShopAddress,
+      ShopState: shopInfo.ShopState,
+      ShopCity: shopInfo.ShopCity,
+      ShopZipCode: shopInfo.ShopZipCode,
+
+      MDName: '',
+      ADName: '',
+      ADMINName: '',
 
       AddressLine1: addressInfo.AddressLine1,
       AddressLine2: addressInfo.AddressLine2,
@@ -516,6 +555,12 @@ export class ClientViewListComponent implements OnInit {
       this.isLoading = false;
       return;
     }
+    const ShopInfoGroup = this.clientForm.get('shopInfo') as FormGroup;
+    if (ShopInfoGroup.invalid) {
+      this.showValidationMessages(ShopInfoGroup);
+      this.isLoading = false;
+      return;
+    }
     const servicerightsinfoGroup = this.clientForm.get('serviceRights') as FormGroup;
     if (servicerightsinfoGroup.invalid) {
       this.showValidationMessages(servicerightsinfoGroup);
@@ -557,26 +602,54 @@ export class ClientViewListComponent implements OnInit {
         case 'AadharCard': return 'Aadhar must be 12-digit number.';
         case 'Password': return 'Password must be 10+ chars, include letters, number & special char.';
         case 'Pincode': return 'Pincode must be 6-digit number.';
+        case 'ShopZipCode': return 'ShopZipCode must be 6-digit number.';
         default: return `${field} format is invalid.`;
       }
     }
     return `${field} is invalid.`;
   }
 
+  getCurrentLatitude(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by this browser.');
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => resolve(position.coords.latitude.toString()),
+        error => alert(error.message)
+      );
+    });
+  }
+
+  getCurrentLongitude(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by this browser.');
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => resolve(position.coords.longitude.toString()),
+        error => alert(error.message)
+      );
+    });
+  }
+
+
   onSubmit(): void {
 
     this.isLoading = true;
-    if (this.clientForm.invalid) {
-      this.toastr.error('Please fill all required fields correctly.', 'Validation Error');
-      this.clientForm.markAllAsTouched();
-      this.isLoading = false;
-      return;
-    }
+    // if (this.clientForm.invalid) {
+    //   this.toastr.error('Please fill all required fields correctly.', 'Validation Error');
+    //   this.clientForm.markAllAsTouched();
+    //   this.isLoading = false;
+    //   return;
+    // }
 
     const formData = new FormData();
-    // Flatten and append companyInfo group
     const companyInfo = this.clientForm.get('companyInfo')?.value;
-    //this.clientId
     formData.append('ClientId', this.clientId?.toString() || '0');
     formData.append('CompanyName', companyInfo.CompanyName);
     formData.append('UserName', companyInfo.UserName);
@@ -585,9 +658,9 @@ export class ClientViewListComponent implements OnInit {
     formData.append('Password', this.encryptor.encrypt(companyInfo.Password));
     formData.append('PanCard', companyInfo.PanCard);
     formData.append('AadharCard', companyInfo.AadharCard);
-    formData.append('DomainName', companyInfo.DomainName);
+    formData.append('UserType', companyInfo.UserType);
+    formData.append('CustomerName', companyInfo.CustomerName);
 
-    // Flatten and append addressInfo group
     const addressInfo = this.clientForm.get('addressInfo')?.value;
     formData.append('AddressLine1', addressInfo.AddressLine1);
     formData.append('AddressLine2', addressInfo.AddressLine2);
@@ -595,22 +668,26 @@ export class ClientViewListComponent implements OnInit {
     formData.append('City', addressInfo.City);
     formData.append('Pincode', addressInfo.Pincode);
 
-    // Flatten and append serviceRights group
+    const shopaddressInfo = this.clientForm.get('shopInfo')?.value;
+    formData.append('ShopAddress', shopaddressInfo.ShopAddress);
+    formData.append('ShopState', shopaddressInfo.ShopState);
+    formData.append('ShopCity', shopaddressInfo.ShopCity);
+    formData.append('ShopZipCode', shopaddressInfo.ShopZipCode);
+
     const serviceRights = this.clientForm.get('serviceRights')?.value;
     formData.append('Recharge', serviceRights.Recharge);
     formData.append('MoneyTransfer', serviceRights.MoneyTransfer);
     formData.append('AEPS', serviceRights.AEPS);
     formData.append('BillPayment', serviceRights.BillPayment);
     formData.append('MicroATM', serviceRights.MicroATM);
-    formData.append('APITransfer', serviceRights.APITransfer);
-    formData.append('Margin', serviceRights.Margin);
-    formData.append('Debit', serviceRights.Debit);
     formData.append('Status', serviceRights.Status);
 
     // Flat fields outside nested groups
-    formData.append('TxnPin', this.clientForm.get('TxnPin')?.value);
-    formData.append('PlanId', this.clientForm.get('PlanId')?.value);
-    formData.append('RegDate', new Date().toISOString().substring(0, 16));
+    formData.append('TxnPin', '9999');
+    formData.append('lat', this.lat);
+    formData.append('longitute', this.lng);
+
+    formData.append('WLID', this.MainclientId?.toString() || '0');
 
     // Append files (from uploadedFiles object)
     ['PancopyFile', 'AadharFrontFile', 'AadharBackFile', 'LogoFile'].forEach(key => {
@@ -620,7 +697,7 @@ export class ClientViewListComponent implements OnInit {
       }
     });
 
-    this.http.post<any>('http://ec2-54-175-38-116.compute-1.amazonaws.com/api/Client/CreateOrUpdateClient', formData).subscribe({
+    this.http.post<any>('http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/CreateOrUpdateClient', formData).subscribe({
       next: (res) => {
         if (res.flag) {
           this.toastr.success(res.msg, 'Success');
@@ -644,18 +721,19 @@ export class ClientViewListComponent implements OnInit {
   editClient(clientId: number): void {
     this.isLoading = true;
     this.activeTab = 'companyInfo';
-    this.http.get<any>(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/Client/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
         this.clientForm.get('companyInfo')?.patchValue({
           CompanyName: res.companyName,
+          UserType: res.userType,
+          CustomerName: res.customerName,
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
           Password: this.encryptor.decrypt(res.password),
           PanCard: res.panCard,
-          AadharCard: res.aadharCard,
-          DomainName: res.domainName
+          AadharCard: res.aadharCard
         });
 
         this.clientForm.get('addressInfo')?.patchValue({
@@ -666,22 +744,22 @@ export class ClientViewListComponent implements OnInit {
           Pincode: res.pincode
         });
 
+        this.clientForm.get('shopInfo')?.patchValue({
+          ShopAddress: res.shopAddress,
+          ShopState: res.shopState,
+          ShopCity: res.shopCity,
+          ShopZipCode: res.shopZipCode
+        });
+
         this.clientForm.get('serviceRights')?.patchValue({
           Recharge: res.recharge,
           MoneyTransfer: res.moneyTransfer,
           AEPS: res.aeps,
           BillPayment: res.billPayment,
           MicroATM: res.microATM,
-          APITransfer: res.apiTransfer,
-          Margin: res.margin,
-          Debit: res.debit,
           Status: res.status
         });
 
-        this.clientForm.patchValue({
-          TxnPin: res.txnPin,
-          PlanId: res.planId
-        });
 
         // Set uploaded file paths (for preview)
         const uploadGroup = this.clientForm.get('uploadDocs') as FormGroup;
@@ -719,7 +797,7 @@ export class ClientViewListComponent implements OnInit {
         this.clientId = res.id; // Store for update
         this.isEditMode = true; // Flag for UI update
         this.modalRef = this.modalService.open(this.clientModal, {
-          size: 'lg',
+          size: 'xl',
           backdrop: true,
           keyboard: true,
         });
@@ -745,19 +823,32 @@ export class ClientViewListComponent implements OnInit {
 
   ViewClient(clientId: number): void {
     this.isLoading = true;
-    this.http.get<any>(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/Client/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
 
         this.model = {
+
           CompanyName: res.companyName,
+          CustomerName: res.customerName,
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
           Password: this.encryptor.decrypt(res.password),
           PanCard: res.panCard,
           AadharCard: res.aadharCard,
-          DomainName: res.domainName,
+          UserType: res.userType,
+
+
+          ShopAddress: res.shopAddress,
+          ShopState: res.shopState,
+          ShopCity: res.shopCity,
+          ShopZipCode: res.shopZipCode,
+
+          MDName: res.mdName,
+          ADName: res.adName,
+          ADMINName: res.adminName,
+
 
           AddressLine1: res.addressLine1,
           AddressLine2: res.addressLine2,
@@ -877,7 +968,7 @@ export class ClientViewListComponent implements OnInit {
       actionById: Number(this.walletTxn.actionById)
     };
 
-    this.http.post<any>('http://ec2-54-175-38-116.compute-1.amazonaws.com/api/Client/wallet-transaction', payload).subscribe({
+    this.http.post<any>('http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/wallet-transaction', payload).subscribe({
       next: (response) => {
         if (response.isSuccessful) {
 
@@ -908,7 +999,7 @@ export class ClientViewListComponent implements OnInit {
             backdrop: true,
             keyboard: true,
           });
-          
+
         } else {
           this.toastr.error(response.errorMessage || 'Transaction failed');
           this.isLoading = false;
@@ -941,21 +1032,14 @@ export class ClientViewListComponent implements OnInit {
     this.modalService.dismissAll();
   }
 
-  ResetPayPopup(){
+  ResetPayPopup() {
 
-    this.walletTxn.status='';
-    this.walletTxn.txnPin='';
-    this.walletTxn.amount=null;
-    this.walletTxn.userId=0;
-    this.walletTxn.actionById=0;
-    
-  }
+    this.walletTxn.status = '';
+    this.walletTxn.txnPin = '';
+    this.walletTxn.amount = null;
+    this.walletTxn.userId = 0;
+    this.walletTxn.actionById = 0;
 
-   viewClientUser(clientId: number): void {
-    const url = this.router.serializeUrl(
-    this.router.createUrlTree(['/ClientUsersReport', clientId])
-  );
-  window.open(url, '_blank');
   }
 
   downloadInvoice() {
@@ -978,8 +1062,6 @@ export class ClientViewListComponent implements OnInit {
     }).from(clone).save();
     this.isLoading = false;
   }
-
- 
 
 }
 

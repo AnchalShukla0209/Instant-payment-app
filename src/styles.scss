@@ -181,3 +181,20 @@ button.device-card:focus {
   box-shadow: none !important;
   caret-color: transparent !important;
 }
+
+body
+{
+  font-family: "Inter", sans-serif !important
+}
+
+#tblClientData
+{
+  th
+  {
+    white-space: nowrap;
+  }
+  td
+  {
+    white-space: nowrap;
+  }
+}

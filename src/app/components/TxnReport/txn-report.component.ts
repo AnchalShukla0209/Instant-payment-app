@@ -28,6 +28,7 @@ export class TxnReportComponent implements OnInit {
     'AccountNo', 'Status', 'Success', 'Failed', 'API Response',
     'TimeStamp', 'OpeningBal', 'Closing', 'APIName'
   ];
+  searchKeyword: string = '';
   filters: any = {};
   isLoading = false;
 
@@ -53,13 +54,20 @@ export class TxnReportComponent implements OnInit {
 
   ngOnInit(): void {
     const today = new Date();
-    const fromDate = new Date(today.setMonth(today.getMonth() - 3));
+const fromDateObj = new Date();
+fromDateObj.setMonth(fromDateObj.getMonth() - 3);
 
+function formatDateLocal(date: Date) {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  return `${yyyy}-${mm}-${dd}`; // format for input type="date"
+}
     this.txnForm = this.fb.group({
       serviceType: ['All Service'],
       status: [''],
-      dateFrom: [fromDate.toISOString().split('T')[0]],
-      dateTo: [new Date().toISOString().split('T')[0]],
+      dateFrom: [formatDateLocal(fromDateObj)],
+  dateTo: [formatDateLocal(today)],
       userId: [0],
     });
 
@@ -87,7 +95,7 @@ export class TxnReportComponent implements OnInit {
   onServiceChange(): void {
     this.updateVisibleColumns();
     this.filters = {};
-    this.applyColumnFilter();
+    this.applyFilter();
     this.onSearch();
   }
 
@@ -102,7 +110,7 @@ export class TxnReportComponent implements OnInit {
       status: this.txnForm.value.status,
       dateFrom: this.formatDate(this.txnForm.value.dateFrom),
       dateTo: this.formatDate(this.txnForm.value.dateTo),
-      userId: this.txnForm.value.userId,
+      userId: 0,
       pageIndex,
       pageSize,
     };
@@ -116,7 +124,7 @@ export class TxnReportComponent implements OnInit {
         this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
         this.currentPage = pageIndex;
         this.updateVisiblePages();
-        this.applyColumnFilter();
+        this.applyFilter();
         this.isLoading = false;
       },
       error: () => (this.isLoading = false),
@@ -159,14 +167,27 @@ updateVisiblePages(): void {
   this.visiblePages = pages;
 }
 
+applyFilter(): void {
+  this.isLoading = true;
+  const keyword = this.searchKeyword.toLowerCase();
+  this.filteredRecords = this.records.filter(user =>
+    user.TXN_ID?.toLowerCase().includes(keyword) ||
+    user.BankRefNo?.toLowerCase().includes(keyword) ||
+    user.UserName?.toLowerCase().includes(keyword) ||
+    user.Amount?.toString().toLowerCase().includes(keyword) ||
+    user.OperatorName?.toLowerCase().includes(keyword) ||
+    user.AccountNo?.toLowerCase().includes(keyword) ||
+    user.Status?.toLowerCase().includes(keyword) ||
+    user.Success?.toString().toLowerCase().includes(keyword) ||
+    user.Failed?.toString().toLowerCase().includes(keyword) ||
+    user.OpeningBal?.toString().toLowerCase().includes(keyword) ||
+    user.Closing?.toString().toLowerCase().includes(keyword) ||
+    user.APIName?.toLowerCase().includes(keyword)
+  );
+  this.isLoading = false;
+}
 
-  applyColumnFilter(): void {
-    this.filteredRecords = this.records.filter(row => {
-      return Object.keys(this.filters).every(col => {
-        return !this.filters[col] || (row[this.getKey(col)]?.toString().toLowerCase().includes(this.filters[col].toLowerCase()));
-      });
-    });
-  }
+
 
   showFilter(col: string): boolean {
     const noFilterCols = ['Sr No', 'TimeStamp', 'Updated Time', 'Success', 'Failed', 'API Response'];

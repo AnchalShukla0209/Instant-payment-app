@@ -9,36 +9,56 @@ export class EncryptionService {
   private readonly iv = CryptoJS.enc.Utf8.parse('1234567890123456'); // 16 bytes
 
   encrypt(value: any): string {
-    const encrypted = CryptoJS.AES.encrypt(
-      JSON.stringify(value),
-      this.key,
-      {
-        iv: this.iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7
-      }
-    );
-    return encrypted.toString(); // base64
+  let stringValue: string;
+
+  if (typeof value === 'string') {
+    stringValue = value;
+  } else {
+    stringValue = JSON.stringify(value);
   }
+
+  const encrypted = CryptoJS.AES.encrypt(
+    stringValue,
+    this.key,
+    {
+      iv: this.iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    }
+  );
+
+  return encrypted.toString();
+}
 
 
 
 decrypt(data: string): any {
-    if (!data) return null;
-    try {
-      const decrypted = CryptoJS.AES.decrypt(data, this.key, {
-        iv: this.iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7
-      });
+  if (!data) return null;
 
-      const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
-      return JSON.parse(decryptedText);  // Parsed object: like { Token: ..., Username: ..., ... }
-    } catch (e) {
-      console.error('Decryption failed', e);
-      return null;
+  try {
+    const decrypted = CryptoJS.AES.decrypt(data, this.key, {
+      iv: this.iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    });
+
+    const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+
+    if (!decryptedText) return null;
+
+    // Try to parse as JSON, fallback to plain string
+    try {
+      return JSON.parse(decryptedText);
+    } catch {
+      return decryptedText; // not JSON, return as-is
     }
+
+  } catch (e) {
+    console.error('Decryption failed', e);
+    return null;
   }
+}
+
 
 
 

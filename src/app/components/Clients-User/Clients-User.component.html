@@ -66,35 +66,45 @@
                         placeholder="Type a keyword..." />
                     </div>
 
-                    <div class="col-md-12">
-                      <table id="tblClientData"
-                        class="table table-bordered mb-4 text-center table-responsive table-hover">
+                    <div class="col-md-12 table-responsive">
+                      <table id="tblClientData" class="table table-bordered mb-4 text-center table-hover">
                         <thead class="bg-purple text-white">
                           <tr>
                             <th>User Name</th>
                             <th>Email ID</th>
                             <th>Company Name</th>
-                            <th>Domain</th>
+                            <th>User Type</th>
                             <th>City</th>
+                            <th>Phone</th>
+                            <th>Plan Name</th>
+                            <th>MD</th>
+                            <th>AD</th>
                             <th>Balance</th>
+                            <th>Created Date</th>
                             <th>Status</th>
                             <th>View</th>
                             <th>Edit</th>
-                            <th>Downline</th>
                             <th>Pay</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr *ngIf="paginatedUsers.length === 0">
-                            <td colspan="11" class="text-center text-muted">No Record Found</td>
+                            <td colspan="15" class="text-center text-muted">No Record Found</td>
                           </tr>
                           <tr *ngFor="let user of paginatedUsers">
                             <td>{{ user.UserName }}</td>
                             <td>{{ user.EmailId }}</td>
                             <td>{{ user.CompanyName }}</td>
-                            <td>{{ user.Domain }}</td>
+                            <td>{{ user.UserType }}</td>
                             <td>{{ user.City }}</td>
+                            <td>{{ user.Phone }}</td>
+
+                            <td>{{ user.PlanName }}</td>
+                            <td>{{ user.MDName }}</td>
+                            <td>{{ user.ADName }}</td>
                             <td>{{ user.MainBalance }}</td>
+                            <td>{{ user.CreatedDate }}</td>
+
                             <td>
                               <span class="badge bg-success">
                                 <i class="bi bi-check-circle"></i> {{ user.Status }}
@@ -103,8 +113,7 @@
                             <td style="cursor: pointer;"><i class="bi bi-eye" (click)="ViewClient(user.Id)"></i></td>
                             <td style="cursor: pointer !important;"><i class="bi bi-pencil-square"
                                 (click)="editClient(user.Id)"></i></td>
-                            <td style="cursor: pointer !important;"><i class="bi bi-people-fill"
-                                (click)="viewClientUser(user.Id)"></i></td>
+
                             <td style="cursor: pointer !important;">
                               <button class="btn btn-sm btn-outline-primary" type="button" (click)="PayClient(user.Id)">
                                 <i class="bi bi-currency-rupee"></i> Pay
@@ -163,7 +172,7 @@
 <ng-template #clientModel let-modal>
   <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
     <div class="modal-header bg-purple text-white">
-      <h5 class="modal-title"> {{ isEditMode ? 'Edit Client' : 'Add Client' }}</h5>
+      <h5 class="modal-title"> {{ isEditMode ? 'Edit Client User' : 'Add Client User' }}</h5>
 
     </div>
 
@@ -192,8 +201,20 @@
           [class.active]="activeTab === 'companyInfo'" formGroupName="companyInfo">
           <div class="row g-3">
             <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-person me-2 icon-label"></i>User Type</label>
+              <select class="form-select" formControlName="UserType">
+                <option value="MD">MD</option>
+                <option value="AD">AD</option>
+                <option value="RT">RT</option>
+              </select>
+            </div>
+            <div class="col-md-4">
               <label class="form-label"><i class="bi bi-building me-2 icon-label"></i>Company Name</label>
               <input type="text" class="form-control" placeholder="Company Name" formControlName="CompanyName" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-building me-2 icon-label"></i>Customer Name</label>
+              <input type="text" class="form-control" placeholder="Customer Name" formControlName="CustomerName" />
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-person me-2 icon-label"></i>User Name</label>
@@ -210,10 +231,6 @@
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-lock me-2 icon-label"></i>Password</label>
               <input type="password" class="form-control" formControlName="Password" />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label"><i class="bi bi-globe me-2 icon-label"></i>Domain Name</label>
-              <input type="text" class="form-control" placeholder="Domain Name" formControlName="DomainName" />
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-card-text me-2 icon-label"></i>PAN Card</label>
@@ -254,19 +271,33 @@
           </div>
         </div>
 
+        <div class="tab-pane fade" [class.show]="activeTab === 'shopInfo'" [class.active]="activeTab === 'shopInfo'"
+          formGroupName="shopInfo">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-geo-alt me-2 icon-label"></i>Shop Address</label>
+              <input type="text" class="form-control" placeholder="Shop Address" formControlName="ShopAddress" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-geo me-2 icon-label"></i>State</label>
+              <input type="text" class="form-control" placeholder="State" formControlName="ShopState" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-map me-2 icon-label"></i>City</label>
+              <input type="text" class="form-control" placeholder="City" formControlName="ShopCity" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-mailbox me-2 icon-label"></i>Zip Code</label>
+              <input type="text" class="form-control" placeholder="Zip Code" formControlName="ShopZipCode" />
+            </div>
+          </div>
+        </div>
+
 
         <!-- Service Rights -->
         <div class="tab-pane fade" [class.show]="activeTab === 'serviceRights'"
           [class.active]="activeTab === 'serviceRights'" formGroupName="serviceRights">
           <div class="row g-3">
-            <!-- <div class="col-md-4"
-                *ngFor="let key of ['Recharge', 'MoneyTransfer', 'AEPS', 'BillPayment', 'MicroATM', 'APITransfer', 'Margin', 'Debit', 'Status']">
-                <label class="form-label">{{ key }}</label>
-                <select class="form-select" [formControlName]="key">
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div> -->
 
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-arrow-repeat icon-label"></i> Recharge</label>
@@ -308,29 +339,6 @@
               </select>
             </div>
 
-            <div class="col-md-4">
-              <label class="form-label"><i class="bi bi-diagram-3 icon-label"></i> APITransfer</label>
-              <select class="form-select" formControlName="APITransfer">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label"><i class="bi bi-piggy-bank icon-label"></i> Margin</label>
-              <select class="form-select" formControlName="Margin">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label"><i class="bi bi-arrow-down-circle icon-label"></i> Debit</label>
-              <select class="form-select" formControlName="Debit">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
 
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-info-circle icon-label"></i> Status</label>
@@ -513,9 +521,17 @@
 
                     <div class="col-md-6">
                       <div class="form-group">
-                        <label>Domain Name</label>
+                        <label>User Type</label>
                         <span class="colonspacentry"> : </span>
-                        <span id="lblDomainName">{{ model.DomainName }}</span>
+                        <span id="lblDomainName">{{ model.UserType }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Customer Name</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblDomainName">{{ model.CustomerName }}</span>
                       </div>
                     </div>
 
@@ -586,6 +602,54 @@
               <div class="card shadow-sm">
                 <div class="card-header bg-gradient-indigo text-white">
                   <strong>
+                    <i class="bi bi-geo-alt"></i>Shop Info
+                  </strong>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="form-group">
+                        <label>Shop Address</label>
+                        <span class="colonspacentry"> : </span>
+                        <textarea class="form-control disablescss"
+                          id="lblAddressLine1">{{ model.ShopAddress }}</textarea>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label>State</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblState">{{ model.ShopState }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label>City</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblCity">{{ model.ShopCity }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label>Zip Code</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblZipCode">{{ model.ShopZipCode }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br />
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-gradient-indigo text-white">
+                  <strong>
                     <i class="bi bi-gear"></i> Service Rights Info
                   </strong>
                 </div>
@@ -631,29 +695,6 @@
                       </div>
                     </div>
 
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label>UPI Transfer</label>
-                        <span class="colonspacentry"> : </span>
-                        <span id="lblUPITransfer">{{ model.APITransfer }}</span>
-                      </div>
-                    </div>
-
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label>Margin</label>
-                        <span class="colonspacentry"> : </span>
-                        <span id="lblMargin">{{ model.Margin }}</span>
-                      </div>
-                    </div>
-
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label>Debit</label>
-                        <span class="colonspacentry"> : </span>
-                        <span id="lblDebit">{{ model.Debit }}</span>
-                      </div>
-                    </div>
 
                     <div class="col-md-6">
                       <div class="form-group">
@@ -780,7 +821,7 @@
       <div>
         <!-- Next Buttons -->
         <button type="button"
-          *ngIf="activeTab === 'companyInfo' || activeTab === 'addressInfo' || activeTab === 'serviceRights'"
+          *ngIf="activeTab === 'companyInfo' || activeTab === 'addressInfo' || activeTab === 'serviceRights' || activeTab === 'shopInfo'"
           class="btn btn-primary" (click)="goToNextTab()">
           Next
         </button>
@@ -879,12 +920,42 @@
 
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label>Domain Name</label>
+                    <label>User Type</label>
                     <span class="colonspacentry"> : </span>
-                    <span id="lblDomainName">{{ model.DomainName }}</span>
+                    <span id="lblDomainName">{{ model.UserType }}</span>
                   </div>
                 </div>
 
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Customer Name</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblDomainName">{{ model.CustomerName }}</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>MD Name (Admin) </label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblDomainName">{{ model.MDName }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>AD Name (Admin) </label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblDomainName">{{ model.ADName }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Admin</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblDomainName">{{ model.ADMINName }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -950,6 +1021,53 @@
           <div class="card shadow-sm">
             <div class="card-header bg-gradient-indigo text-white">
               <strong>
+                <i class="bi bi-geo-alt"></i>Shop Info
+              </strong>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label>Shop Address</label>
+                    <span class="colonspacentry"> : </span>
+                    <textarea class="form-control disablescss" id="lblAddressLine1">{{ model.ShopAddress }}</textarea>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>State</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblState">{{ model.ShopState }}</span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>City</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblCity">{{ model.ShopCity }}</span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>Zip Code</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblZipCode">{{ model.ShopZipCode }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <br />
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-gradient-indigo text-white">
+              <strong>
                 <i class="bi bi-gear"></i> Service Rights Info
               </strong>
             </div>
@@ -995,29 +1113,7 @@
                   </div>
                 </div>
 
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label>UPI Transfer</label>
-                    <span class="colonspacentry"> : </span>
-                    <span id="lblUPITransfer">{{ model.APITransfer }}</span>
-                  </div>
-                </div>
 
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Margin</label>
-                    <span class="colonspacentry"> : </span>
-                    <span id="lblMargin">{{ model.Margin }}</span>
-                  </div>
-                </div>
-
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Debit</label>
-                    <span class="colonspacentry"> : </span>
-                    <span id="lblDebit">{{ model.Debit }}</span>
-                  </div>
-                </div>
 
                 <div class="col-md-6">
                   <div class="form-group">

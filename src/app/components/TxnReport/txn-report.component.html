@@ -11,18 +11,20 @@
             <div class="col-md-3">
               <label class="form-label fw-semibold"><i class="bi bi-phone form-icon icon-label"></i>Service Type</label>
               <select class="form-select" formControlName="serviceType" (change)="onServiceChange()">
-                <option value="All Service">All Service</option>
+               
                 <option *ngFor="let s of services" [value]="s">{{ s }}</option>
               </select>
             </div>
 
             <div class="col-md-2">
-              <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>From Date</label>
+              <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>From
+                Date</label>
               <input type="date" class="form-control" formControlName="dateFrom" />
             </div>
 
             <div class="col-md-2">
-              <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>To Date</label>
+              <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>To
+                Date</label>
               <input type="date" class="form-control" formControlName="dateTo" />
             </div>
 
@@ -61,12 +63,16 @@
   </div>
 
   <div class="table-responsive mt-4">
+    <div class="col-md-2">
+      <input type="text" [(ngModel)]="searchKeyword" class="form-control mb-3" (input)="applyFilter()"
+        placeholder="Type a keyword..." />
+    </div>
     <table class="table table-bordered table-hover text-nowrap align-middle table-striped" id="TxnReport">
       <thead class="table-dark">
         <tr>
           <th *ngFor="let col of visibleColumns">
             {{ col }}
-            <input *ngIf="showFilter(col)" class="form-control form-control-sm mt-1" [(ngModel)]="filters[col]" (ngModelChange)="applyColumnFilter()" placeholder="Filter {{ col }}" />
+
           </th>
         </tr>
         <tr>
@@ -79,11 +85,12 @@
         <tr *ngFor="let row of filteredRecords; let i = index">
           <td *ngFor="let col of visibleColumns">
             <ng-container [ngSwitch]="col">
-             <ng-container *ngSwitchCase="'Sr No'">{{ (currentPage - 1) * pageSize + i + 1 }}</ng-container>
+              <ng-container *ngSwitchCase="'Sr No'">{{ (currentPage - 1) * pageSize + i + 1 }}</ng-container>
               <ng-container *ngSwitchCase="'Success'">
                 <ng-container *ngIf="row.TransId > 0">
                   <span *ngIf="row.Status === 'Success'">Success</span>
-                  <i *ngIf="row.Status !== 'Success'" class="bi bi-info-circle text-primary" (click)="openSuccessModal(row.TransId)"></i>
+                  <i *ngIf="row.Status !== 'Success'" class="bi bi-info-circle text-primary"
+                    (click)="openSuccessModal(row.TransId)"></i>
                 </ng-container>
               </ng-container>
               <ng-container *ngSwitchCase="'Failed'">
@@ -106,24 +113,24 @@
   </div>
 
   <nav *ngIf="totalPages > 1" class="mt-3">
-  <ul class="pagination justify-content-end">
-    <li class="page-item" [class.disabled]="currentPage === 1">
-      <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
-    </li>
-
-    <ng-container *ngFor="let page of visiblePages">
-      <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
-        <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+    <ul class="pagination justify-content-end">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
       </li>
-      <li class="page-item disabled" *ngIf="page === null">
-        <span class="page-link">...</span>
-      </li>
-    </ng-container>
 
-    <li class="page-item" [class.disabled]="currentPage === totalPages">
-      <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-    </li>
-  </ul>
-</nav>
+      <ng-container *ngFor="let page of visiblePages">
+        <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+          <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+        </li>
+        <li class="page-item disabled" *ngIf="page === null">
+          <span class="page-link">...</span>
+        </li>
+      </ng-container>
+
+      <li class="page-item" [class.disabled]="currentPage === totalPages">
+        <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+      </li>
+    </ul>
+  </nav>
 
 </div>
