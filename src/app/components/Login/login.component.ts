@@ -35,7 +35,7 @@ export class LoginComponent {
       this.toastr.error('Please enter OTP');
       return;
     }
-    if (enteredOtp === this.userotp) {
+    if (enteredOtp == this.userotp) {
       this.usertype = this.authService.getUsertype();
       const payload2: OTPPayload = {
         usertype: this.usertype,

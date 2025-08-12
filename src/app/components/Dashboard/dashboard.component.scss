@@ -220,3 +220,22 @@ $referral-text-color: #6c757d; // Bootstrap's default gray-600 equivalent
       border: none;
     text-decoration: none;
 }
+
+.coming-soon {
+  background-color: #ffe6e6; /* light red */
+  border: 1px solid #ff9999;
+  border-radius: 5px;
+}
+
+/* Blinking animation */
+.blinking {
+  color: red;
+  font-weight: bold;
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}

@@ -36,32 +36,32 @@
       </a>
       <div class="collapse" id="servicesMenu">
         <ul class="list-unstyled submenu-list">
-          <li>
+          <li *ngIf="usertype === 'Retailer' && microATM == 'Active'">
             <a class="nav-link d-flex align-items-center gap-2" routerLink="/payment-request">
-              <i class="bi bi-receipt"></i> Payment Request
+              <i class="bi bi-receipt"></i> Micro ATM
             </a>
           </li>
-          <li *ngIf="usertype === 'Retailer'">
+          <li *ngIf="usertype === 'Retailer' && moneyTransfer == 'Active' ">
             <a class="nav-link d-flex align-items-center gap-2" routerLink="/money-transfer">
               <i class="bi bi-cash-coin"></i> Money Transfer
             </a>
           </li>
-          <li *ngIf="usertype === 'Retailer'">
+          <li *ngIf="usertype === 'Retailer' && billPayment == 'Active' ">
             <a class="nav-link d-flex align-items-center gap-2" routerLink="/bill-payment">
               <i class="bi bi-file-earmark-text"></i> Bill Payment
             </a>
           </li>
-          <li *ngIf="usertype === 'Retailer'">
+          <li *ngIf="usertype === 'Retailer' && Recharge == 'Active'">
             <a class="nav-link d-flex align-items-center gap-2" routerLink="/recharge">
               <i class="bi bi-phone"></i> Recharge
             </a>
           </li>
-          <li *ngIf="usertype === 'Retailer'">
+          <li *ngIf="usertype === 'Retailer' && aeps == 'Active'">
             <a class="nav-link d-flex align-items-center gap-2" routerLink="/aeps">
               <i class="bi bi-fingerprint"></i> AEPS
             </a>
           </li>
-          <li *ngIf="usertype === 'Retailer'">
+          <li hidden *ngIf="usertype === 'Retailer'">
             <a class="nav-link d-flex align-items-center gap-2" routerLink="/d2h">
               <i class="bi bi-tv"></i> D2H Recharges
             </a>

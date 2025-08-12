@@ -6,6 +6,7 @@ import { LoginResponse,OTPSuccessResponse } from '../models/login-response.model
 import { environment } from '../../environments/environment';
 import { EncryptionService } from '../encryption/encryption.service';
 import { jwtDecode } from 'jwt-decode';
+import {ServiceRightsData} from '../models/ServiceRightsData'
 
 
 @Injectable({
@@ -15,6 +16,7 @@ export class AuthService {
   private apiUrl = `${environment.apiBaseUrl}/Login`;
   private otpmatchUrl = `${environment.apiBaseUrl}/Login/verifyotp`;
   private resendotpurl = `${environment.apiBaseUrl}/Login/resendotp`;
+  private serviceinfoURL = `${environment.apiBaseUrl}/Login`;
 
   constructor(private http: HttpClient,private encryptor: EncryptionService) {}
 
@@ -64,6 +66,14 @@ login(payload: LoginPayload): Observable<LoginResponse> {
     })
   );
 }
+
+getUserRightsInfo(id: number): Observable<ServiceRightsData> {
+    return this.http.get<{ data: ServiceRightsData }>(
+      `${this.serviceinfoURL}/get-rightsinfo?Id=${id}`
+    ).pipe(
+      map(response => response.data)
+    );
+  }
 
   logout(): void {
     localStorage.clear();
