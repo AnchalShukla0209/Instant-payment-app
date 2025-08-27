@@ -1,0 +1,635 @@
+<div class="container-fluid px-xl-5 px-lg-4 px-3 py-3">
+
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <!-- Tab Buttons -->
+  <div class="service-btns mb-3">
+    <button *ngFor="let s of services" class="btn service-btn btn-sm me-2" [class.active]="selectedTab() === s.label"
+      (click)="onTabSelect(s.label)">
+      <i class="bi" [ngClass]="s.icon"></i> {{ s.label }}
+    </button>
+
+    <button class="btn btn-outline-info btn-sm" *ngIf="!showRecentTxns" (click)="toggleRecentTxns()"
+      style="float:right;background: #054a58 !important;">
+      <i class="bi bi-clock-history"></i> Show Recent Transactions
+    </button>
+
+    <button class="btn btn-outline-info btn-sm" hidden *ngIf="showRecentTxns" (click)="toggleRecentTxns()"
+      style="float:right;background: #054a58 !important;">
+      <i class="bi bi-clock-history"></i> Hide Recent Transactions
+    </button>
+
+  </div>
+
+
+
+
+
+  <!-- Mobile Tab -->
+  <div>
+
+
+
+    <div class="row">
+      <div [class.col-md-12]="!showRecentTxns" [class.col-md-6]="showRecentTxns">
+        <div class="card shadow-sm">
+          <div class="card-header bg-gradient-indigo text-white">
+            <strong><i class="bi" [ngClass]="selectedicon"></i> {{selectedService}}</strong>
+          </div>
+          <div class="card-body">
+            <div class="row">
+
+
+              <div [ngClass]="colClass" class="form-group">
+                <label class="form-label d-flex align-items-center">
+                  <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
+                </label>
+                <input type="text" class="form-control" [(ngModel)]="mobileNumber" placeholder="Enter Mobile Number" />
+              </div>
+
+              <div class="mt-3 text-left" [ngClass]="colClass" style="margin-top: 2% !important;">
+                <button class="btn btn-chandan btn-sm" (click)="openPreviewModal(previewModal)">
+                  <i class="bi bi-check-circle"></i> Verify Number
+                </button>
+                &nbsp;
+                <button class="btn btn-default btn-sm" (click)="openPreviewModal(previewModal)">
+                  <i class="bi bi-x-circle"></i> Cancel
+                </button>
+              </div>
+
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions Panel -->
+      <div *ngIf="showRecentTxns" class="col-md-6">
+        <div class="card shadow-sm plans-wrapper">
+          <div class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
+            <strong><i class="bi bi-clock-history"></i> Recent Beneficary</strong>
+            <button class="btn btn-sm btn-primary" (click)="AddNewBeneficiary()">
+              <i class="bi bi-plus"></i> Add New Beneficary
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="list-group list-group-flush">
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                  <img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSquouX3qJzp6uZwleCOtTBppHfDKlN6vDHg&s"
+                    width="40" height="40">
+                  <div>
+                    <div class="fw-bold">7988234554</div>
+                    <small class="text-muted">HDFC Bank Credit Card</small>
+                  </div>
+                </div>
+                <button class="btn btn-chandan btn-sm" (click)="Pay()">Pay Now</button>
+              </div>
+
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                  <img
+                    src="	https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4C68ljGeBuGr6znMRkVmPmx8gxnHBxdqBDA&s"
+                    width="40" height="40">
+                  <div>
+                    <div class="fw-bold">7988234554</div>
+                    <small class="text-muted">ICICI Bank Credit Card</small>
+                  </div>
+                </div>
+                <button class="btn btn-chandan btn-sm" (click)="Pay()">Pay Now</button>
+              </div>
+
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                  <img src="https://cdn.worldvectorlogo.com/logos/sbi-state-bank-of-india.svg" width="40" height="40">
+                  <div>
+                    <div class="fw-bold">7988234554</div>
+                    <small class="text-muted">State Bank Of India (SBI) Credit Card</small>
+                  </div>
+                </div>
+                <button class="btn btn-chandan btn-sm" (click)="Pay()" >Pay Now</button>
+              </div>
+
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                  <img src="https://companieslogo.com/img/orig/AXISBANK.BO-8f59e95b.png?t=1720244490" width="40"
+                    height="40">
+                  <div>
+                    <div class="fw-bold">7988234554</div>
+                    <small class="text-muted">Axis Bank Credit Card</small>
+                  </div>
+                </div>
+                <button class="btn btn-chandan btn-sm" (click)="Pay()" >Pay Now</button>
+              </div>
+
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                  <img
+                    src="	https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuMVDZ5H5f4J86-dxn_duwM0hCjcAhSVBuNg&s"
+                    width="40" height="40">
+                  <div>
+                    <div class="fw-bold">7988234554</div>
+                    <small class="text-muted">Kotak Mahindra Credit Card</small>
+                  </div>
+                </div>
+                <button class="btn btn-chandan btn-sm" (click)="Pay()">Pay Now</button>
+              </div>
+              <div class="mt-3 text-center">
+                <button class="btn btn-outline-secondary w-100">Show All</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+
+
+  <ng-template #previewModal let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Money-Transfer Preview - Instant Pay</h5>
+    </div>
+
+    <div class="modal-body">
+      <!-- Stage 1: Basic Details & Fingerprint -->
+      <div>
+        <table class="table table-bordered text-center small">
+          <thead class="bg-purple text-white">
+            <tr>
+              <th>Bank</th>
+              <th>Mobile</th>
+              <th>Account Number</th>
+              <th>Beneficary Number</th>
+              <th>IFSC Code</th>
+              <th>Branch Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td> Axia Bank</td>
+              <td>{{ mobileNumber }}</td>
+              <td>7988234554</td>
+              <td>567676735763578</td>
+              <td>BKID0007824</td>
+              <td>Connought Place</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="finger-section mt-3 text-center" *ngIf="!fingerprintSuccess">
+          <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
+          <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
+            <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
+              (click)="selectDevice(device.id)">
+              <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}"
+                style="height: 50px;width:50px" />
+              <span>{{ device.label }}</span>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <button type="button" class="btn btn-primary w-100 mb-3" (click)="startCapture()"
+              [disabled]="!selectedDevice">
+              <i class="bi bi-fingerprint me-1"></i> Scan Fingerprint
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 2: PIN and OTP -->
+      <div *ngIf="fingerprintSuccess">
+        
+         <div class="form-group mb-2">
+          <label><i class=""></i>Txn Type</label>
+          <select class="form-control" id="txnType">
+            <option>IMPS</option>
+            <option>RTGS</option>
+          </select>
+        </div>
+        <div class="form-group mb-2">
+          <label><i class="bi bi-key"></i> Txn PIN</label>
+          <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
+            placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
+          <div *ngIf="showPinError" class="invalid-feedback d-block">
+            Txn PIN is required
+          </div>
+        </div>
+
+        <div class="form-group mb-2">
+          <label><i class="bi bi-shield-lock"></i> OTP (if required)</label>
+          <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" />
+        </div>
+
+
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between flex-wrap">
+      <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
+      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitRecharge()"
+        [disabled]="!fingerprintSuccess">
+        <i class="bi bi-check-circle"></i> Confirm & Proceed
+      </button>
+    </div>
+  </ng-template>
+
+
+  <!-- RECHARGE INVOICE MODAL -->
+  <ng-template #invoiceModal let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Transection Reciept</h5>
+
+    </div>
+
+    <div class="modal-body invoice-wrapper" id="invoiceContent">
+      <!-- HEADER FOR PDF -->
+      <div class="bg-purple text-white text-center p-3 rounded-top mb-3">
+        <h5 class="m-0">Transection Details</h5>
+      </div>
+
+      <!-- Success Icon -->
+      <div class="text-center my-3">
+        <div class="success-icon-wrapper mx-auto">
+          <i class="bi bi-check-circle-fill text-success success-icon" id="successIcon"></i>
+          <div class="text-success mt-2 fs-5 fw-bold">Transection Successful</div>
+        </div>
+      </div>
+
+      <!-- Invoice Content -->
+      <div class="invoice p-4">
+        <div class="text-center mb-4">
+          <h4 class="mt-2 text-purple">Instant Payment</h4>
+        </div>
+
+        <table class="table table-bordered table-sm mb-2">
+          <tbody>
+            <tr>
+              <th scope="row" class="text-purple">Name</th>
+              <td class="text-end">Anchal Shukla</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Account Number</th>
+              <td class="text-end">7988234554</td>
+            </tr>
+             <tr>
+              <th scope="row" class="text-purple">Beneficary Number	</th>
+              <td class="text-end">567676735763578</td>
+            </tr>
+             <tr>
+              <th scope="row" class="text-purple">IFSC Code	</th>
+              <td class="text-end">BKID0007824</td>
+            </tr>
+             <tr>
+              <th scope="row" class="text-purple">Branch Name</th>
+              <td class="text-end">Connought Place</td>
+            </tr>
+             <tr>
+              <th scope="row" class="text-purple">Transection Amount</th>
+              <td class="text-end">2000</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Balance After Transaction</th>
+              <td class="text-end">100</td>
+            </tr>
+             <tr>
+              <th scope="row" class="text-purple">Transaction Id</th>
+              <td class="text-end">546465453546</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Transaction Date</th>
+              <td class="text-end">12/12/2025</td>
+            </tr>
+           
+          </tbody>
+        </table>
+
+        
+
+        <div class="text-right mt-4">
+          <strong class="fs-5 text-purple">Sign </strong>
+          
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between">
+      <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
+      <button class="btn btn-chandan btn-sm" (click)="downloadInvoice()">
+        <i class="bi bi-download me-1"></i>Download Invoice
+      </button>
+    </div>
+  </ng-template>
+
+
+
+  <!-- RECHARGE INVOICE MODAL -->
+  <ng-template #addNewBeneficary let-modal>
+    <form [formGroup]="beneficiaryForm">
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Add New Beneficary</h5>
+
+    </div>
+
+    <div class="modal-body invoice-wrapper" id="invoiceContent">
+
+      <div class="card-body">
+        <div class="row">
+
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-wallet2 form-icon icon-label"></i> Account Number
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter Account Number" formControlName="accountNumber"/>
+          </div>
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-person-badge form-icon icon-label"></i> Benificiary Number
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter Benificiary Number" formControlName="beneficiaryNumber" />
+          </div>
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-upc-scan form-icon icon-label"></i> IFSC Code
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter IFSC Code" formControlName="ifscCode" />
+          </div>
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-bank form-icon icon-label"></i> Branch Name
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter Branch Name"  formControlName="branchName" />
+          </div>
+
+          <div class="mt-3 text-left">
+            <button class="btn btn-chandan btn-sm" (click)="AddBeneficiary()" >
+              <i class="bi bi-check-circle"></i> Add Account
+            </button>
+            &nbsp;
+            <button class="btn btn-default btn-sm" (click)="modal.dismiss()" >
+              <i class="bi bi-x-circle"></i> Cancel
+            </button>
+          </div>
+
+        </div>
+
+
+      </div>
+    </div>
+
+</form>
+  </ng-template>
+
+
+
+  <!-- RECHARGE INVOICE MODAL -->
+  <ng-template #addNewsender let-modal>
+    <form [formGroup]="senderForm">
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Add New Sender</h5>
+
+    </div>
+
+    <div class="modal-body invoice-wrapper" id="sendercontent">
+
+      <div class="card-body">
+        <div class="row">
+
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-person form-icon icon-label"></i> Sender Name
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter Sender Name" formControlName="senderName"  />
+          </div>
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter Mobile Number" formControlName="mobileNumber" />
+          </div>
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-envelope form-icon icon-label"></i> Email Address
+            </label>
+            <input type="mail" class="form-control"  placeholder="Enter Email Address" formControlName="email"   />
+          </div>
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-geo-alt form-icon icon-label"></i> Address
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter Address"  formControlName="address" />
+          </div>
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-buildings form-icon icon-label"></i> City
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter City" formControlName="city" />
+          </div>
+
+          <div class="form-group col-md-12">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-mailbox form-icon icon-label"></i> Pin Code
+            </label>
+            <input type="text" class="form-control"  placeholder="Enter Pin Code" formControlName="pinCode"  />
+          </div>
+
+          <div class="mt-3 text-left">
+            <button class="btn btn-chandan btn-sm" (click)="AddSenderPr()" >
+              <i class="bi bi-check-circle"></i> Register Sender
+            </button>
+            &nbsp;
+            <button class="btn btn-default btn-sm" (click)="modal.dismiss()" >
+              <i class="bi bi-x-circle"></i> Cancel
+            </button>
+          </div>
+
+        </div>
+
+
+      </div>
+    </div>
+</form>
+
+  </ng-template>
+
+
+  <ng-template #previewModalforSender let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Add-Sender Preview - Instant Pay</h5>
+    </div>
+
+    <div class="modal-body">
+      <!-- Stage 1: Basic Details & Fingerprint -->
+      <div>
+        <table class="table table-bordered text-center small">
+          <thead class="bg-purple text-white">
+            <tr>
+              <th>Sender Name</th>
+              <th>Mobile Number</th>
+              <th>Email Address</th>
+              <th>Address</th>
+              <th>City</th>
+              <th>Pin Code</th>
+            </tr>
+          </thead>
+          <tbody>
+             <tr>
+    <td>{{ senderForm.value.senderName }} </td>
+    <td>{{ senderForm.value.mobileNumber }}</td>
+    <td>{{ senderForm.value.email }}</td>
+    <td>{{ senderForm.value.address }}</td>
+    <td>{{ senderForm.value.city }}</td>
+    <td>{{ senderForm.value.pinCode }}</td>
+  </tr>
+          </tbody>
+        </table>
+
+        <div class="finger-section mt-3 text-center" *ngIf="!fingerprintSuccess">
+          <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
+          <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
+            <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
+              (click)="selectDevice(device.id)">
+              <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}"
+                style="height: 50px;width:50px" />
+              <span>{{ device.label }}</span>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <button type="button" class="btn btn-primary w-100 mb-3" (click)="startCapture()"
+              [disabled]="!selectedDevice">
+              <i class="bi bi-fingerprint me-1"></i> Scan Fingerprint
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 2: PIN and OTP -->
+      <div *ngIf="fingerprintSuccess">
+        
+         
+        <div class="form-group mb-2">
+          <label><i class="bi bi-key"></i> Txn PIN</label>
+          <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
+            placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
+          <div *ngIf="showPinError" class="invalid-feedback d-block">
+            Txn PIN is required
+          </div>
+        </div>
+
+        <div class="form-group mb-2">
+          <label><i class="bi bi-shield-lock"></i> OTP (if required)</label>
+          <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" />
+        </div>
+
+
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between flex-wrap">
+      <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
+      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="FinalSenderCreation()"
+        [disabled]="!fingerprintSuccess">
+        <i class="bi bi-check-circle"></i> Confirm & Proceed
+      </button>
+    </div>
+  </ng-template>
+
+
+  <ng-template #previewModalforBeneficiary let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Add-Beneficiary Preview - Instant Pay</h5>
+    </div>
+
+    <div class="modal-body">
+      <!-- Stage 1: Basic Details & Fingerprint -->
+      <div>
+        <table class="table table-bordered text-center small">
+          <thead class="bg-purple text-white">
+            <tr>
+              <th>Account Number</th>
+              <th>Benificiary Number</th>
+              <th>IFSC Code</th>
+              <th>Branch Name</th>
+              
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+            <td>{{ beneficiaryForm.get('accountNumber')?.value }}</td>
+            <td>{{ beneficiaryForm.get('beneficiaryNumber')?.value }}</td>
+            <td>{{ beneficiaryForm.get('ifscCode')?.value }}</td>
+            <td>{{ beneficiaryForm.get('branchName')?.value }}</td>
+          </tr>
+          </tbody>
+        </table>
+
+        <div class="finger-section mt-3 text-center" *ngIf="!fingerprintSuccess">
+          <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
+          <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
+            <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
+              (click)="selectDevice(device.id)">
+              <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}"
+                style="height: 50px;width:50px" />
+              <span>{{ device.label }}</span>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <button type="button" class="btn btn-primary w-100 mb-3" (click)="startCapture()"
+              [disabled]="!selectedDevice">
+              <i class="bi bi-fingerprint me-1"></i> Scan Fingerprint
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 2: PIN and OTP -->
+      <div *ngIf="fingerprintSuccess">
+        
+         
+        <div class="form-group mb-2">
+          <label><i class="bi bi-key"></i> Txn PIN</label>
+          <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
+            placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
+          <div *ngIf="showPinError" class="invalid-feedback d-block">
+            Txn PIN is required
+          </div>
+        </div>
+
+        <div class="form-group mb-2">
+          <label><i class="bi bi-shield-lock"></i> OTP (if required)</label>
+          <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" />
+        </div>
+
+
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between flex-wrap">
+      <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
+      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="FinalBeneForCreation()"
+        [disabled]="!fingerprintSuccess">
+        <i class="bi bi-check-circle"></i> Confirm & Proceed
+      </button>
+    </div>
+  </ng-template>
+
+
+
+
+
+</div>

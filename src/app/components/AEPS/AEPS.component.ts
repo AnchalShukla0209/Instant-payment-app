@@ -259,7 +259,7 @@ debugger;
 
   openPreviewModal(modalContent: any) {
   
-    this.modalService.open(modalContent, { centered: true, size: 'md' });
+    this.modalService.open(modalContent, { centered: true, size: 'md', backdrop: 'static', keyboard: false  });
   }
 
   generateCustomerRefNo(): string {
@@ -307,7 +307,7 @@ debugger;
       next: (res) => {
         if (res.success) {
           this.toastr.success(`Recharge Submitted for ${this.mobileNumber} ` || 'Recharge successful');
-          this.modalService.open(this.invoiceModal, { size: 'lg' });
+          this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false  });
           this.isLoading=false;
           // Optionally show invoice popup here
         } else {

@@ -8,6 +8,7 @@ import { TxnReportComponent } from './components/TxnReport/txn-report.component'
 import { ClientViewListComponent } from './components/Clients/View-Clients.component';
 import { ClientUserDetailComponent } from './components/Clients-User/Clients-User.component';
 import { MarginList } from './components/Margin/margin.component';
+import { MoneyTransferComponent } from './components/Money-Transfer/Money-Transfer.component';
 import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/auth.guard';
 
@@ -25,7 +26,9 @@ export const routes: Routes = [
       { path: 'TxnReport', component: TxnReportComponent, canActivate: [authGuard] },
       { path: 'ClientReport', component: ClientViewListComponent, canActivate: [authGuard] },
       { path: 'ClientUsersReport/:id', component: ClientUserDetailComponent, canActivate: [authGuard] },
-      { path: 'MarginList', component: MarginList, canActivate: [authGuard] }
+      { path: 'MarginList', component: MarginList, canActivate: [authGuard] },
+      { path: 'money-transfer', component: MoneyTransferComponent, canActivate: [authGuard] }
+      
       // Add more protected routes below
       // { path: 'billpayment', component: BillPaymentComponent, canActivate: [authGuard] }
     ]

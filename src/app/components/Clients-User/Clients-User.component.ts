@@ -35,7 +35,7 @@ export class ClientUserDetailComponent implements OnInit {
   };
 
   modalRef!: NgbModalRef;
-  baseUrl = 'http://ec2-54-175-38-116.compute-1.amazonaws.com/';
+  baseUrl = 'https://testapi-ip.thedemo.co.in/';
   clientForm: FormGroup;
   filePreviews: any = {}; // holds path strings
   isEditMode: boolean = false;
@@ -230,7 +230,7 @@ export class ClientUserDetailComponent implements OnInit {
     this.model[`${controlName}`] = null;
     this.clientForm.get('uploadDocs')?.get(controlName)?.setValue(null);
 
-    this.http.delete(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/delete-file?clientId=${FileId}&fileType=${controlName}`)
+    this.http.delete(`https://testapi-ip.thedemo.co.in/api/ClientUser/delete-file?clientId=${FileId}&fileType=${controlName}`)
       .subscribe({
         next: (res) => {
           if (controlName === 'LogoFile') this.model.LogoFile = null;
@@ -442,9 +442,7 @@ export class ClientUserDetailComponent implements OnInit {
     this.clientId=0;
 
     this.modalRef = this.modalService.open(this.clientModal, {
-      size: 'xl',
-      backdrop: true,
-      keyboard: true,
+      size: 'xl', backdrop: 'static', keyboard: false 
     });
 
     this.modalRef.result.then(
@@ -697,7 +695,7 @@ export class ClientUserDetailComponent implements OnInit {
       }
     });
 
-    this.http.post<any>('http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/CreateOrUpdateClient', formData).subscribe({
+    this.http.post<any>('https://testapi-ip.thedemo.co.in/api/ClientUser/CreateOrUpdateClient', formData).subscribe({
       next: (res) => {
         if (res.flag) {
           this.toastr.success(res.msg, 'Success');
@@ -721,7 +719,7 @@ export class ClientUserDetailComponent implements OnInit {
   editClient(clientId: number): void {
     this.isLoading = true;
     this.activeTab = 'companyInfo';
-    this.http.get<any>(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`https://testapi-ip.thedemo.co.in/api/ClientUser/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
         this.clientForm.get('companyInfo')?.patchValue({
@@ -797,9 +795,7 @@ export class ClientUserDetailComponent implements OnInit {
         this.clientId = res.id; // Store for update
         this.isEditMode = true; // Flag for UI update
         this.modalRef = this.modalService.open(this.clientModal, {
-          size: 'xl',
-          backdrop: true,
-          keyboard: true,
+          size: 'xl', backdrop: 'static', keyboard: false 
         });
 
         this.modalRef.result.then(
@@ -823,7 +819,7 @@ export class ClientUserDetailComponent implements OnInit {
 
   ViewClient(clientId: number): void {
     this.isLoading = true;
-    this.http.get<any>(`http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`https://testapi-ip.thedemo.co.in/api/ClientUser/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
 
@@ -876,9 +872,7 @@ export class ClientUserDetailComponent implements OnInit {
           AadharBackFile: res.aadharBack != null && res.aadharBack != '' ? this.baseUrl + res.aadharBack : ''
         };
         this.modalRef = this.modalService.open(this.ViewclientDetailsModel, {
-          size: 'lg',
-          backdrop: true,
-          keyboard: true,
+          size: 'lg', backdrop: 'static', keyboard: false 
         });
 
         this.modalRef.result.then(
@@ -924,9 +918,7 @@ export class ClientUserDetailComponent implements OnInit {
   PayClient(clientId: number): void {
     this.walletTxn.userId = clientId;
     this.modalRef = this.modalService.open(this.PayClientmodal, {
-      size: 'md',
-      backdrop: true,
-      keyboard: true,
+      size: 'md', backdrop: 'static', keyboard: false 
     });
 
     this.modalRef.result.then(
@@ -968,7 +960,7 @@ export class ClientUserDetailComponent implements OnInit {
       actionById: Number(this.walletTxn.actionById)
     };
 
-    this.http.post<any>('http://ec2-54-175-38-116.compute-1.amazonaws.com/api/ClientUser/wallet-transaction', payload).subscribe({
+    this.http.post<any>('https://testapi-ip.thedemo.co.in/api/ClientUser/wallet-transaction', payload).subscribe({
       next: (response) => {
         if (response.isSuccessful) {
 
@@ -995,9 +987,7 @@ export class ClientUserDetailComponent implements OnInit {
           this.ErrorMessages = response.errorMessage
           this.toastr.success(response.errorMessage);
           this.modalRef = this.modalService.open(this.invoiceModal, {
-            size: 'lg',
-            backdrop: true,
-            keyboard: true,
+            size: 'lg', backdrop: 'static', keyboard: false 
           });
 
         } else {

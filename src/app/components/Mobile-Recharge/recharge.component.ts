@@ -101,9 +101,7 @@ export class RechargeComponent {
 
   openModal() {
     const modalRef: NgbModalRef = this.modalService.open(this.invoiceModal, {
-      size: 'lg',
-      backdrop: true,
-      keyboard: true,
+      size: 'lg', backdrop: 'static', keyboard: false 
     });
 
      modalRef.closed.subscribe(() => window.location.reload());
@@ -247,7 +245,7 @@ loadOperators(serviceName: string): Observable<any[]> {
     }
 
      this.isLoading=false;
-    this.modalService.open(modalContent, { centered: true, size: 'md' });
+    this.modalService.open(modalContent, { centered: true, size: 'md', backdrop: 'static', keyboard: false  });
   }
 
   generateCustomerRefNo(): string {
@@ -314,7 +312,7 @@ loadOperators(serviceName: string): Observable<any[]> {
       }
 
       // 🔁 Open modal and reload page when modal is closed or dismissed
-      const modalRef = this.modalService.open(this.invoiceModal, { size: 'lg' });
+      const modalRef = this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false  });
 
       modalRef.closed.subscribe(() => window.location.reload());
       modalRef.dismissed.subscribe(() => window.location.reload());
