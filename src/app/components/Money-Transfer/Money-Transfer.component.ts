@@ -1,7 +1,7 @@
-import { Component, signal,ViewChild,inject, viewChild  } from '@angular/core';
+import { Component, signal, ViewChild, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Observable, debounceTime, distinctUntilChanged, map, switchMap  } from 'rxjs';
+import { Observable, debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
 import { NgbModal, NgbTypeaheadModule, NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrService } from 'ngx-toastr';
 import html2pdf from 'html2pdf.js';
@@ -18,7 +18,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-Money-Transfer',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, FormsModule, NgbTypeaheadModule, NgbToastModule,LoaderComponent],
+  imports: [ReactiveFormsModule, CommonModule, FormsModule, NgbTypeaheadModule, NgbToastModule, LoaderComponent],
   templateUrl: './Money-Transfer.component.html',
   styleUrls: ['./Money-Transfer.component.scss']
 })
@@ -27,49 +27,63 @@ export class MoneyTransferComponent {
   private authServiceobj = inject(AuthService);
   private router = inject(Router);
   selectedService: string = 'Money-Transfer-1';
-  selectedicon: string ='bi-cash-stack';
+  selectedicon: string = 'bi-cash-stack';
   showRecentTxns = false;
-  amount:any=null;
-  
+  amount: any = null;
+
   services = [
     { key: 'Money-Transfer-1', label: 'Money-Transfer-1', icon: 'bi-cash-stack' },
     { key: 'Money-Transfer-2', label: 'Money-Transfer-2', icon: 'bi-cash-stack' },
     { key: 'Money-Transfer-3', label: 'Money-Transfer-3', icon: 'bi-cash-stack' }
   ];
+
+  banks = [
+    { code: 'SBI', name: 'State Bank Of India' },
+    { code: 'UB', name: 'UCO Bank' },
+    { code: 'BOI', name: 'Bank Of India' },
+    { code: 'PNB', name: 'Punjab National Bank' },
+    { code: 'UBI', name: 'Union Bank Of India' },
+    { code: 'AB', name: 'Axis Bank' },
+    { code: 'HDB', name: 'HDFC Bank' }
+  ];
+
+
   onTabSelect(service: string) {
     this.selectedService = service;
-    this.selectedicon= this.selectedService==='Money-Transfer-1'?'bi-cash-stack':this.selectedService==='Money-Transfer-2'?'bi-cash-stack'
-    :this.selectedService==='Money-Transfer-3'?'bi-cash-stack':'';
+    this.selectedicon = this.selectedService === 'Money-Transfer-1' ? 'bi-cash-stack' : this.selectedService === 'Money-Transfer-2' ? 'bi-cash-stack'
+      : this.selectedService === 'Money-Transfer-3' ? 'bi-cash-stack' : '';
     this.amount = null;
   }
   selectedTab() {
     return this.selectedService;
   }
   get colClass(): string {
-    if(this.showRecentTxns)
-    {
-        return 'form-group';
+    if (this.showRecentTxns) {
+      return 'form-group';
     }
     const hasAmount = ['Cash Withdrawal', 'Cash Deposit', 'Aadhar Pay'].includes(this.selectedTab());
     return hasAmount ? 'col-md-3' : 'col-md-4';
   }
-   toggleRecentTxns() {
+  toggleRecentTxns() {
     this.showRecentTxns = !this.showRecentTxns;
   }
 
-  loadMobilePlans() {}
- 
+  loadMobilePlans() { }
+
   onScanSuccess() {
     this.fingerprintSuccess = true;
   }
 
   mobileNumber = '';
   mobileAadhar = '';
-  bankname= '';
+  bankname = '';
   txnPin = '';
   otp = '';
   showPinError = false;
   fingerprintSuccess = false;
+  fingerprintProcess = true;
+  validateOTPforBenef = false;
+  validateOTPforPayment = false
   isLoading = false;
   toastMessages: string[] = [];
 
@@ -77,7 +91,7 @@ export class MoneyTransferComponent {
   showOperatorError = false;
   showAmountError = false;
   operatorList: any[] = [];
-  
+
 
   errors = {
     mobileNumber: '',
@@ -90,7 +104,7 @@ export class MoneyTransferComponent {
   devices: { id: string; label: string; icon: string }[] = [
     { id: 'Mantra', label: 'Mantra L1', icon: 'myntra.png' },
     { id: 'Morpho', label: 'Morpho L1', icon: 'morpho.jpg' },
-    { id: 'Startek', label: 'Startek L1', icon: 'Startek.jpg'}
+    { id: 'Startek', label: 'Startek L1', icon: 'Startek.jpg' }
   ];
 
   captureDone = signal(false);
@@ -102,29 +116,29 @@ export class MoneyTransferComponent {
 
   @ViewChild('invoiceModal') invoiceModal: any;
   @ViewChild('addNewBeneficary') addNewBeneficaryodal: any;
-  @ViewChild('addNewsender') addNewsendermodel:any;
-  @ViewChild('previewModal') previewModalobj : any;
-  @ViewChild('previewModalforSender') previewModalforSenderobj : any;
-  @ViewChild('previewModalforBeneficiary') previewModalforBeneficiaryobj : any;
+  @ViewChild('addNewsender') addNewsendermodel: any;
+  @ViewChild('previewModal') previewModalobj: any;
+  @ViewChild('previewModalforSender') previewModalforSenderobj: any;
+  @ViewChild('previewModalforBeneficiary') previewModalforBeneficiaryobj: any;
 
-    ngOnInit() {
-        this.beneficiaryForm = this.fb.group({
-        accountNumber: [
-          '',
-          [Validators.required, Validators.pattern('^[0-9]*$')]
-        ],
-        beneficiaryNumber: ['', Validators.required],
-        ifscCode: ['', Validators.required],
-        branchName: ['', Validators.required]
-        });
+  ngOnInit() {
+    this.beneficiaryForm = this.fb.group({
+      accountNumber: [
+        '',
+        [Validators.required, Validators.pattern('^[0-9]*$')]
+      ],
+      beneficiaryNumber: ['', Validators.required],
+      ifscCode: ['', Validators.required],
+      branchName: ['', Validators.required]
+    });
 
-        this.senderForm = this.fb.group({
+    this.senderForm = this.fb.group({
       senderName: ['', Validators.required],
       mobileNumber: [
         '',
         [Validators.required, Validators.pattern('^[6-9][0-9]{9}$')]
       ],
-      email: ['', [Validators.required, Validators.email]],
+      adharNumber: ['', [Validators.required, Validators.pattern('^[0-9]{12}$')]],
       address: ['', Validators.required],
       city: ['', Validators.required],
       pinCode: [
@@ -134,7 +148,7 @@ export class MoneyTransferComponent {
     });
   }
 
-   private showValidationMessages(group: FormGroup) {
+  private showValidationMessages(group: FormGroup) {
     const messages: string[] = [];
     Object.keys(group.controls).forEach(key => {
       const control = group.get(key);
@@ -158,12 +172,11 @@ export class MoneyTransferComponent {
   }
 
   private getValidationMessage(field: string, errors: any): string {
-    if (errors.required) 
-    {
-       switch (field) {
+    if (errors.required) {
+      switch (field) {
         case 'senderName': return 'Sender Name is required.';
         case 'mobileNumber': return 'Mobile Number is required.';
-        case 'email': return 'Email Address is required.';
+        case 'adharNumber': return 'Aadhar Number is required.';
         case 'address': return 'Address is required.';
         case 'city': return 'City is required.';
         case 'pinCode': return 'Pin Code is required.';
@@ -173,20 +186,22 @@ export class MoneyTransferComponent {
     if (errors.email) return 'Email must be valid (e.g., test@example.com).';
     if (errors.pattern) {
       switch (field) {
-        
+
         case 'accountNumber': return 'Account Number must be a valid and should be only numeric values';
         case 'mobileNumber': return 'Mobile Number must be a valid 10-digit number starting with 6-9.';
         case 'pinCode': return 'Pin Code must be a 6-digit number.';
+        case 'adharNumber': return 'Aadhar Number must be a 12-digit number.';
+
         default: return `${field} format is invalid.`;
       }
     }
     return `${field} is invalid.`;
   }
-  
 
-  constructor(private fb: FormBuilder, private modalService: NgbModal, private toastr: ToastrService,private operatorService: OperatorService) {}
 
-  async discoverRdService(deviceType: 'Mantra' | 'Morpho'|'Startek'): Promise<boolean> {
+  constructor(private fb: FormBuilder, private modalService: NgbModal, private toastr: ToastrService, private operatorService: OperatorService) { }
+
+  async discoverRdService(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<boolean> {
     const isHttps = window.location.href.includes('https');
     const primaryUrl = isHttps ? 'https://127.0.0.1:' : 'http://127.0.0.1:';
 
@@ -241,7 +256,7 @@ export class MoneyTransferComponent {
     });
   }
 
-  async captureRdData(deviceType: 'Mantra' | 'Morpho' |'Startek'): Promise<string> {
+  async captureRdData(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<string> {
     this.isLoading = true;
 
     try {
@@ -286,7 +301,7 @@ export class MoneyTransferComponent {
     }
   }
 
-selectDevice(deviceId: string) {
+  selectDevice(deviceId: string) {
     this.selectedDevice = deviceId;
   }
 
@@ -298,8 +313,8 @@ selectDevice(deviceId: string) {
     //   debugger;
     // this.captureRdData(this.selectedDevice as 'Mantra' | 'Morpho' | 'Startek')
     //   .then(xml => {
-        
-        
+
+
     //   })
     //   .catch(err => {
     //     this.fingerprintSuccess = false;
@@ -311,7 +326,7 @@ selectDevice(deviceId: string) {
 
     this.fingerprintSuccess = true;
     this.toastr.success('Capture Success');
-  
+
 
   }
 
@@ -324,7 +339,7 @@ selectDevice(deviceId: string) {
       this.toastr.error('Mobile number is required', 'Error');
     }
 
-    
+
   }
 
   removeToast(msg: string) {
@@ -332,29 +347,41 @@ selectDevice(deviceId: string) {
   }
 
   openPreviewModal(modalContent: any) {
-  
-    if(this.mobileNumber=='6398028236')
-    {
-    //this.modalService.open(modalContent, { centered: true, size: 'md' });
-    this.showRecentTxns= true;
+
+    if (this.mobileNumber == '6398028236') {
+      //this.modalService.open(modalContent, { centered: true, size: 'md' });
+      this.showRecentTxns = true;
     }
-    else
-    {
+    else {
       this.toastr.error('Sender not Registered with this mobile number, Please Register')
-       
-      this.modalService.open(this.addNewsendermodel, { size: 'md' , backdrop: 'static', keyboard: false });
+      this.showRecentTxns = false;
+      this.senderForm = this.fb.group({
+        senderName: ['', Validators.required],
+        mobileNumber: [
+          this.mobileNumber,
+          [Validators.required, Validators.pattern('^[6-9][0-9]{9}$')]
+        ],
+        adharNumber: ['', [Validators.required, Validators.pattern('^[0-9]{12}$')]],
+        address: ['', Validators.required],
+        city: ['', Validators.required],
+        pinCode: [
+          '',
+          [Validators.required, Validators.pattern('^[0-9]{6}$')]
+        ]
+      });
+      this.modalService.open(this.addNewsendermodel, { size: 'md', backdrop: 'static', keyboard: false });
     }
   }
 
   generateCustomerRefNo(): string {
-  const length = 12;
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    const length = 12;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   }
-  return result;
-}
 
 
   submitRecharge() {
@@ -412,83 +439,153 @@ selectDevice(deviceId: string) {
     }
   }
 
-downloadInvoice() {
-    this.isLoading=true;
-  const original = document.getElementById('invoiceContent')!;
-  const clone = original.cloneNode(true) as HTMLElement;
+  downloadInvoice() {
+    this.isLoading = true;
+    const original = document.getElementById('invoiceContent')!;
+    const clone = original.cloneNode(true) as HTMLElement;
 
-  // Remove animation for PDF
-  const icon = clone.querySelector('.success-icon');
-  if (icon) {
-    icon.classList.add('no-animate');
+    // Remove animation for PDF
+    const icon = clone.querySelector('.success-icon');
+    if (icon) {
+      icon.classList.add('no-animate');
+    }
+
+    html2pdf().set({
+      margin: 0.2,
+      filename: 'Recharge_Invoice.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }).from(clone).save();
+    this.isLoading = false;
   }
 
-  html2pdf().set({
-    margin: 0.2,
-    filename: 'Recharge_Invoice.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-  }).from(clone).save();
-  this.isLoading=false;
-}
+  AddNewBeneficiary() {
+    this.modalService.open(this.addNewBeneficaryodal, {
+      size: 'md',
+      backdrop: 'static',   // prevent closing on outside click
+      keyboard: false       // prevent closing on ESC key
+    });
 
-AddNewBeneficiary()
-{
-    this.modalService.open(this.addNewBeneficaryodal, { 
-    size: 'md',
-    backdrop: 'static',   // prevent closing on outside click
-    keyboard: false       // prevent closing on ESC key
-  });
-  
-}
+  }
 
-Pay()
-{
-  this.modalService.open(this.previewModalobj, { size: 'lg' , backdrop: 'static', keyboard: false  });
-}
+  Pay() {
 
-AddBeneficiary()
-{
+    this.validateOTPforPayment = false;
+    this.modalService.open(this.previewModalobj, { size: 'lg', backdrop: 'static', keyboard: false });
+  }
+
+  AddBeneficiary() {
     if (this.beneficiaryForm.invalid) {
       this.beneficiaryForm.markAllAsTouched();
       this.showValidationMessages(this.beneficiaryForm);
       return;
     }
-    this.modalService.open(this.previewModalforBeneficiaryobj, { size: 'lg', backdrop: 'static', keyboard: false  });
-}
+    this.validateOTPforBenef = false;
+    this.modalService.open(this.previewModalforBeneficiaryobj, { size: 'lg', backdrop: 'static', keyboard: false });
+  }
 
-AddSenderPr()
-{
-  if (this.senderForm.invalid) {
+  AddSenderPr() {
+    if (this.senderForm.invalid) {
       this.senderForm.markAllAsTouched();
       this.showValidationMessages(this.senderForm);
       return;
+    }
+    this.fingerprintProcess = true;
+    this.modalService.open(this.previewModalforSenderobj, { size: 'lg', backdrop: 'static', keyboard: false });
   }
-  this.modalService.open(this.previewModalforSenderobj, { size: 'lg', backdrop: 'static', keyboard: false  });
-}
 
-FinalSenderCreation()
-{
-  Swal.fire({
-        icon: 'success',
-        title: 'Sender Created',
-        html: 'Sender Record Created Successfully',
-        confirmButtonText: 'OK'
-      });
-  this.modalService.dismissAll();
-}
+  FinalSenderCreation() {
+    this.ResetSenderForm();
+    this.selectedDevice = '';
+    this.fingerprintProcess = true;
+    this.fingerprintSuccess= false;
+    Swal.fire({
+      icon: 'success',
+      title: 'Sender Created',
+      html: 'Sender Record Created Successfully',
+      confirmButtonText: 'OK'
+    });
+    this.modalService.dismissAll();
+  }
 
-FinalBeneForCreation()
-{
-  
-  this.modalService.dismissAll();
-  Swal.fire({
-        icon: 'success',
-        title: 'Beneficieary Created',
-        html: 'Beneficieary Record Created Successfully',
-        confirmButtonText: 'OK'
-      });
-}
+  FinalBeneForCreation() {
+
+    this.modalService.dismissAll();
+    this.validateOTPforBenef = false;
+    this.ResetBenefForm();
+    Swal.fire({
+      icon: 'success',
+      title: 'Beneficieary Created',
+      html: 'Beneficieary Record Created Successfully',
+      confirmButtonText: 'OK'
+    });
+  }
+
+  ValidateOTP() {
+    this.fingerprintProcess = false;
+    this.toastr.success('OTP Validated Successfully')
+  }
+
+  getBankName(code: string): string {
+    const bank = this.banks.find(b => b.code === code);
+    return bank ? bank.name : '';
+  }
+
+  ValidateOTPForBenef() {
+    this.validateOTPforBenef = true;
+    this.toastr.success('OTP Validated Successfully')
+  }
+
+  ValidateOTPForPayment() {
+    this.validateOTPforPayment = true;
+    this.toastr.success('OTP Validated Successfully')
+  }
+
+  ResetBenefForm() {
+    this.beneficiaryForm = this.fb.group({
+      accountNumber: [
+        '',
+        [Validators.required, Validators.pattern('^[0-9]*$')]
+      ],
+      beneficiaryNumber: ['', Validators.required],
+      ifscCode: ['', Validators.required],
+      branchName: ['', Validators.required]
+    });
+  }
+
+  ResetSenderForm() {
+    this.senderForm = this.fb.group({
+      senderName: ['', Validators.required],
+      mobileNumber: [
+        '',
+        [Validators.required, Validators.pattern('^[6-9][0-9]{9}$')]
+      ],
+      adharNumber: ['', [Validators.required, Validators.pattern('^[0-9]{12}$')]],
+      address: ['', Validators.required],
+      city: ['', Validators.required],
+      pinCode: [
+        '',
+        [Validators.required, Validators.pattern('^[0-9]{6}$')]
+      ]
+    });
+  }
+
+  ResendOTPForPayment() {
+    this.toastr.success('OTP has been sent Successfully');
+  }
+
+  ResendOTPForSender() {
+    this.toastr.success('OTP has been sent Successfully');
+  }
+
+  ResendOTPForBenf() {
+    this.toastr.success('OTP has been sent Successfully');
+  }
+
+  ValidateBankDetails(){
+     this.toastr.success('Bank Details has been verified Successfully');
+  }
+
 
 }
