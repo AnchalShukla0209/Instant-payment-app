@@ -42,24 +42,27 @@
             <label class="form-label d-flex align-items-center">
               <i class="bi bi-bank form-icon icon-label"></i> Select Bank
             </label>
-            <input type="text" class="form-control" 
-                   [(ngModel)]="bankname"
-                   
-                   placeholder="Select Bank" />
+            <select class="form-control" [(ngModel)]="bankname">
+                <option value="">Select</option>
+                <option *ngFor="let bank of banks" [value]="bank.code">
+                  {{ bank.name }}
+                </option>
+              </select>
+           
           </div>
 
           <div [ngClass]="colClass" class="form-group">
             <label class="form-label d-flex align-items-center">
               <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
             </label>
-            <input type="number" class="form-control" [(ngModel)]="mobileNumber" placeholder="Enter Mobile Number" />
+            <input type="text" class="form-control" [(ngModel)]="mobileNumber" (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" maxlength="10" placeholder="Enter Mobile Number" />
           </div>
 
           <div [ngClass]="colClass" class="form-group">
             <label class="form-label d-flex align-items-center">
               <i class="bi bi-person-vcard form-icon icon-label"></i> Aadhar Number
             </label>
-            <input type="number" class="form-control" [(ngModel)]="mobileAadhar" placeholder="Enter Aadhar" />
+            <input type="text" class="form-control" (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" maxlength="12" [(ngModel)]="mobileAadhar" placeholder="Enter Aadhar" />
           </div>
 
           <!-- Conditionally show Amount -->
@@ -68,7 +71,7 @@
             <label class="form-label d-flex align-items-center">
               <i class="bi bi-currency-rupee form-icon icon-label"></i> Amount
             </label>
-            <input type="number" class="form-control" [(ngModel)]="amount" placeholder="Enter Amount" />
+            <input type="text" (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"  class="form-control" [(ngModel)]="amount" placeholder="Enter Amount" />
           </div>
         </div>
 
@@ -119,7 +122,7 @@
         </thead>
         <tbody>
           <tr>
-            <td>{{ bankname }}</td>
+            <td>{{ getBankName(bankname) }}</td>
             <td>{{ mobileNumber }}</td>
             <td>{{ mobileAadhar }}</td>
             <td *ngIf="['Cash Withdrawal', 'Cash Deposit', 'Aadhar Pay'].includes(selectedTab())">₹{{ amount }}</td>
@@ -212,7 +215,7 @@
           </tr>
           <tr>
             <th scope="row" class="text-purple">Operator</th>
-            <td class="text-end">{{ bankname }}</td>
+            <td class="text-end"><td>{{ getBankName(bankname) }}</td>
           </tr>
           <tr>
             <th scope="row" class="text-purple">Amount</th>

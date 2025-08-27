@@ -1,7 +1,7 @@
-import { Component, signal,ViewChild,inject  } from '@angular/core';
+import { Component, signal, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable, debounceTime, distinctUntilChanged, map, switchMap  } from 'rxjs';
+import { Observable, debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
 import { NgbModal, NgbTypeaheadModule, NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrService } from 'ngx-toastr';
 import html2pdf from 'html2pdf.js';
@@ -19,7 +19,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-AEPS',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgbTypeaheadModule, NgbToastModule,LoaderComponent],
+  imports: [CommonModule, FormsModule, NgbTypeaheadModule, NgbToastModule, LoaderComponent],
   templateUrl: './AEPS.component.html',
   styleUrls: ['./AEPS.component.scss']
 })
@@ -28,10 +28,10 @@ export class AEPSComponent {
   private authServiceobj = inject(AuthService);
   private router = inject(Router);
   selectedService: string = 'Balance Enquiry';
-  selectedicon: string ='bi-phone';
+  selectedicon: string = 'bi-phone';
   showRecentTxns = false;
-  amount:any=null;
-  
+  amount: any = null;
+
   services = [
     { key: 'PREPAID', label: 'Balance Enquiry', icon: 'bi-phone' },
     { key: 'WITHDRAW', label: 'Cash Withdrawal', icon: 'bi-cash-stack' },
@@ -39,37 +39,45 @@ export class AEPSComponent {
     { key: 'STATEMENT', label: 'Mini Statement', icon: 'bi-receipt-cutoff' },
     { key: 'AADHAARPAY', label: 'Aadhar Pay', icon: 'bi-fingerprint' }
   ];
+  banks = [
+    { code: 'SBI', name: 'State Bank Of India' },
+    { code: 'UB', name: 'UCO Bank' },
+    { code: 'BOI', name: 'Bank Of India' },
+    { code: 'PNB', name: 'Punjab National Bank' },
+    { code: 'UBI', name: 'Union Bank Of India' },
+    { code: 'AB', name: 'Axis Bank' },
+    { code: 'HDB', name: 'HDFC Bank' }
+  ];
   onTabSelect(service: string) {
     this.selectedService = service;
-    this.selectedicon= this.selectedService==='Balance Enquiry'?'bi-phone':this.selectedService==='Cash Withdrawal'?'bi-cash-stack'
-    :this.selectedService==='Cash Deposit'?'bi-wallet2':this.selectedService==='Mini Statement'?'bi-receipt-cutoff':
-    this.selectedService==='Aadhar Pay'?'bi-fingerprint':'';
+    this.selectedicon = this.selectedService === 'Balance Enquiry' ? 'bi-phone' : this.selectedService === 'Cash Withdrawal' ? 'bi-cash-stack'
+      : this.selectedService === 'Cash Deposit' ? 'bi-wallet2' : this.selectedService === 'Mini Statement' ? 'bi-receipt-cutoff' :
+        this.selectedService === 'Aadhar Pay' ? 'bi-fingerprint' : '';
     this.amount = null;
   }
   selectedTab() {
     return this.selectedService;
   }
   get colClass(): string {
-    if(this.showRecentTxns)
-    {
-        return 'form-group';
+    if (this.showRecentTxns) {
+      return 'form-group';
     }
     const hasAmount = ['Cash Withdrawal', 'Cash Deposit', 'Aadhar Pay'].includes(this.selectedTab());
     return hasAmount ? 'col-md-3' : 'col-md-4';
   }
-   toggleRecentTxns() {
+  toggleRecentTxns() {
     this.showRecentTxns = !this.showRecentTxns;
   }
 
-  loadMobilePlans() {}
- 
+  loadMobilePlans() { }
+
   onScanSuccess() {
     this.fingerprintSuccess = true;
   }
 
   mobileNumber = '';
   mobileAadhar = '';
-  bankname= '';
+  bankname = '';
   txnPin = '';
   otp = '';
   showPinError = false;
@@ -81,7 +89,7 @@ export class AEPSComponent {
   showOperatorError = false;
   showAmountError = false;
   operatorList: any[] = [];
-  
+
 
   errors = {
     mobileNumber: '',
@@ -94,7 +102,7 @@ export class AEPSComponent {
   devices: { id: string; label: string; icon: string }[] = [
     { id: 'Mantra', label: 'Mantra L1', icon: 'myntra.png' },
     { id: 'Morpho', label: 'Morpho L1', icon: 'morpho.jpg' },
-    { id: 'Startek', label: 'Startek L1', icon: 'Startek.jpg'}
+    { id: 'Startek', label: 'Startek L1', icon: 'Startek.jpg' }
   ];
 
   captureDone = signal(false);
@@ -102,7 +110,7 @@ export class AEPSComponent {
   MethodCapture: string = '';
   MethodInfo: string = '';
 
-  async discoverRdService(deviceType: 'Mantra' | 'Morpho'|'Startek'): Promise<boolean> {
+  async discoverRdService(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<boolean> {
     const isHttps = window.location.href.includes('https');
     const primaryUrl = isHttps ? 'https://127.0.0.1:' : 'http://127.0.0.1:';
 
@@ -157,7 +165,7 @@ export class AEPSComponent {
     });
   }
 
-  async captureRdData(deviceType: 'Mantra' | 'Morpho' |'Startek'): Promise<string> {
+  async captureRdData(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<string> {
     this.isLoading = true;
 
     try {
@@ -202,7 +210,7 @@ export class AEPSComponent {
     }
   }
 
-selectDevice(deviceId: string) {
+  selectDevice(deviceId: string) {
     this.selectedDevice = deviceId;
   }
 
@@ -211,12 +219,12 @@ selectDevice(deviceId: string) {
     event?.stopPropagation();
 
     this.isLoading = true;
-debugger;
+    debugger;
     this.captureRdData(this.selectedDevice as 'Mantra' | 'Morpho' | 'Startek')
       .then(xml => {
         this.fingerprintSuccess = true;
         this.toastr.success('Capture Success\n\n' + xml);
-        
+
       })
       .catch(err => {
         this.fingerprintSuccess = false;
@@ -225,7 +233,7 @@ debugger;
       .finally(() => {
         this.isLoading = false;
       });
-  
+
 
   }
 
@@ -234,7 +242,7 @@ debugger;
   @ViewChild('invoiceModal') invoiceModal: any;
 
 
-  constructor(private modalService: NgbModal, private toastr: ToastrService,private operatorService: OperatorService) {}
+  constructor(private modalService: NgbModal, private toastr: ToastrService, private operatorService: OperatorService) { }
 
 
 
@@ -250,7 +258,7 @@ debugger;
       this.toastr.error('Mobile number is required', 'Error');
     }
 
-    
+
   }
 
   removeToast(msg: string) {
@@ -258,26 +266,26 @@ debugger;
   }
 
   openPreviewModal(modalContent: any) {
-  
-    this.modalService.open(modalContent, { centered: true, size: 'md', backdrop: 'static', keyboard: false  });
+
+    this.modalService.open(modalContent, { centered: true, size: 'md', backdrop: 'static', keyboard: false });
   }
 
   generateCustomerRefNo(): string {
-  const length = 12;
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    const length = 12;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   }
-  return result;
-}
 
 
   submitRecharge() {
-    this.isLoading=true;
+    this.isLoading = true;
     if (!this.txnPin || this.txnPin.trim().length === 0) {
       this.showPinError = true;
-      this.isLoading=false;
+      this.isLoading = false;
       return;
     }
 
@@ -295,24 +303,24 @@ debugger;
       UserId: Number(userId),
       userName,
       MobileNumber: this.mobileNumber,
-      Operator:  '',
-      operatorCode:  '',
+      Operator: '',
+      operatorCode: '',
       Amount: 12323,
       TxnPin: this.txnPin,
       Type: 'BLL2',
       CustomerRefNo: this.generateCustomerRefNo()
     };
 
-    this.rechargeService.submitRecharge({payload }).subscribe({
+    this.rechargeService.submitRecharge({ payload }).subscribe({
       next: (res) => {
         if (res.success) {
           this.toastr.success(`Recharge Submitted for ${this.mobileNumber} ` || 'Recharge successful');
-          this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false  });
-          this.isLoading=false;
+          this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false });
+          this.isLoading = false;
           // Optionally show invoice popup here
         } else {
           this.toastr.error(res.message || 'Recharge failed');
-          this.isLoading=false;
+          this.isLoading = false;
         }
       },
       error: () => this.toastr.error('API error. Try again later.'),
@@ -326,25 +334,30 @@ debugger;
     }
   }
 
-downloadInvoice() {
-    this.isLoading=true;
-  const original = document.getElementById('invoiceContent')!;
-  const clone = original.cloneNode(true) as HTMLElement;
+  downloadInvoice() {
+    this.isLoading = true;
+    const original = document.getElementById('invoiceContent')!;
+    const clone = original.cloneNode(true) as HTMLElement;
 
-  // Remove animation for PDF
-  const icon = clone.querySelector('.success-icon');
-  if (icon) {
-    icon.classList.add('no-animate');
+    // Remove animation for PDF
+    const icon = clone.querySelector('.success-icon');
+    if (icon) {
+      icon.classList.add('no-animate');
+    }
+
+    html2pdf().set({
+      margin: 0.2,
+      filename: 'Recharge_Invoice.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }).from(clone).save();
+    this.isLoading = false;
   }
 
-  html2pdf().set({
-    margin: 0.2,
-    filename: 'Recharge_Invoice.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-  }).from(clone).save();
-  this.isLoading=false;
-}
+  getBankName(code: string): string {
+    const bank = this.banks.find(b => b.code === code);
+    return bank ? bank.name : '';
+  }
 
 }
