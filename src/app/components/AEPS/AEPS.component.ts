@@ -106,136 +106,139 @@ export class AEPSComponent {
   ];
 
   captureDone = signal(false);
-  finalUrl: string = '';
-  MethodCapture: string = '';
-  MethodInfo: string = '';
+finalUrl: string = '';
+MethodCapture: string = '';
+MethodInfo: string = '';
+rdServiceInfo: string = '';
 
-  async discoverRdService(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<boolean> {
-    const isHttps = window.location.href.includes('https');
-    const primaryUrl = isHttps ? 'https://127.0.0.1:' : 'http://127.0.0.1:';
+private buildFullUrl(path: string, isHttps: boolean): string {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  const ipPortPattern = /^\/(\d{1,3}\.){3}\d{1,3}:\d+/;
+  if (ipPortPattern.test(path)) {
+    const proto = isHttps ? 'https://' : 'http://';
+    return proto + path.replace(/^\//, '');
+  }
+  return this.finalUrl + (path.startsWith('/') ? path : '/' + path);
+}
 
-    const handleSuccess = (data: string, port: number): boolean => {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data, 'text/xml');
-      const info = xmlDoc.querySelector('RDService')?.getAttribute('info');
+async discoverRdService(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<boolean> {
+  const isHttps = window.location.href.includes('https');
+  const primaryUrl = isHttps ? 'https://127.0.0.1:' : 'http://127.0.0.1:';
 
-      if (!info || !info.toLowerCase().includes(deviceType.toLowerCase())) return false;
+  const handleSuccess = (data: string, port: number): boolean => {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(data, 'text/xml');
+    const rdService = xmlDoc.querySelector('RDService');
+    if (!rdService) return false;
 
-      this.finalUrl = primaryUrl + port;
-      const interfaces = xmlDoc.querySelectorAll('Interface');
-      interfaces.forEach((node) => {
-        const path = node.getAttribute('path');
-        if (path === '/rd/capture') this.MethodCapture = path;
-        if (path === '/rd/info') this.MethodInfo = path;
-      });
+    this.rdServiceInfo = rdService.getAttribute('info') || '';
+    this.finalUrl = primaryUrl + port;
 
-      console.log(`✅ RDService found for ${deviceType} at port ${port}`);
-      return true;
+    const interfaces = xmlDoc.querySelectorAll('Interface');
+    interfaces.forEach((node) => {
+      const id = node.getAttribute('id');
+      const path = node.getAttribute('path') || '';
+      if (id === 'CAPTURE') this.MethodCapture = path;
+      if (id === 'DEVICEINFO') this.MethodInfo = path;
+    });
+
+    console.log(`✅ RDService found (${this.rdServiceInfo}) at port ${port}`);
+    return true;
+  };
+
+  return new Promise((resolve, reject) => {
+    const ports = Array.from({ length: 21 }, (_, i) => 11100 + i);
+
+    const tryNextPort = (index: number) => {
+      if (index >= ports.length) {
+        this.isLoading = false;
+        this.toastr.error('Connection failed. Please try again.');
+        return reject('Device not found');
+      }
+      const port = ports[index];
+      fetch(primaryUrl + port, { method: 'RDSERVICE', mode: 'cors' })
+        .then(res => res.text())
+        .then(data => {
+          if (handleSuccess(data, port)) resolve(true);
+          else tryNextPort(index + 1);
+        })
+        .catch(() => tryNextPort(index + 1));
     };
 
-    return new Promise((resolve, reject) => {
-      const ports = Array.from({ length: 21 }, (_, i) => 11100 + i);
+    tryNextPort(0);
+  });
+}
 
-      const tryNextPort = (index: number) => {
-        if (index >= ports.length) {
-          this.isLoading = false;
-          this.toastr.error('Connection failed. Please try again.');
-          return reject('Device not found');
-        }
+async captureRdData(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<string> {
+  this.isLoading = true;
+  try {
+    await this.discoverRdService(deviceType);
+    const isHttps = window.location.href.includes('https');
+    if (this.MethodInfo) {
+      const deviceInfoUrl = this.buildFullUrl(this.MethodInfo, isHttps);
+      console.log('📡 Calling DEVICEINFO →', deviceInfoUrl);
 
-        const port = ports[index];
-        fetch(primaryUrl + port, {
-          method: 'RDSERVICE',
-          mode: 'cors',
-        })
-          .then((res) => res.text())
-          .then((data) => {
-            if (handleSuccess(data, port)) {
-              resolve(true);
-            } else {
-              tryNextPort(index + 1);
-            }
-          })
-          .catch(() => {
-            tryNextPort(index + 1);
-          });
-      };
-
-      tryNextPort(0);
-    });
-  }
-
-  async captureRdData(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<string> {
-    this.isLoading = true;
-
-    try {
-      await this.discoverRdService(deviceType);
-
-      const pidXml = `
-        <PidOptions ver="1.0">
-          <Opts fCount="1" fType="2" iCount="0" pCount="0" format="0" pidVer="2.0" timeout="10000" posh="UNKNOWN" env="P" />
-        </PidOptions>`;
-
-      const response = await fetch(this.finalUrl + this.MethodCapture, {
-        method: 'CAPTURE',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-        },
-        body: pidXml,
+      const deviceInfoRes = await fetch(deviceInfoUrl, {
+        method: 'DEVICEINFO',
+        mode: 'cors'
       });
-
-      const data = await response.text();
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data, 'text/xml');
-      const errCode = xmlDoc.querySelector('Resp')?.getAttribute('errCode') || '';
-      const errInfo = xmlDoc.querySelector('Resp')?.getAttribute('errInfo') || '';
-
-      const errorCodes = [
-        '700', '720', '1001', '2100', '740', '214', '10', '28', '4001',
-        '207', '6', '216', '571', '4003', '215', '52',
-      ];
-
-      this.isLoading = false;
-
-      if (errorCodes.includes(errCode)) {
-        this.toastr.error(`${errInfo} capture failed or RD not connected.`);
-        throw new Error(`${errInfo} capture failed or RD not connected.`);
-      }
-
-      return data;
-    } catch (err: any) {
-      this.isLoading = false;
-      throw err;
+      const deviceInfoXml = await deviceInfoRes.text();
+      console.log('ℹ️ DeviceInfo Response:', deviceInfoXml);
     }
+    const pidXml = `<PidOptions ver="1.0"><Opts env="P" fCount="1" fType="0" iCount="" iType="" pCount="" pType="" format="0" pidVer="2.0" timeout="10000" otp="" wadh="" posh=""/></PidOptions>`;
+    const captureUrl = this.buildFullUrl(this.MethodCapture, isHttps);
+    console.log('📡 Calling CAPTURE →', captureUrl);
+    const response = await fetch(captureUrl, {
+      method: 'CAPTURE',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/xml; charset=utf-8' },
+      body: pidXml
+    });
+
+    const data = await response.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(data, 'text/xml');
+    const errCode = xmlDoc.querySelector('Resp')?.getAttribute('errCode') || '';
+    const errInfo = xmlDoc.querySelector('Resp')?.getAttribute('errInfo') || '';
+
+    const errorCodes = [
+      '700','720','1001','2100','740','214','10','28','4001',
+      '207','6','216','571','4003','215','52'
+    ];
+
+    this.isLoading = false;
+
+    if (errorCodes.includes(errCode)) {
+      this.toastr.error(`${errInfo} capture failed or RD not connected.`);
+      throw new Error(`${errInfo} capture failed or RD not connected.`);
+    }
+
+    return data;
+  } catch (err: any) {
+    this.isLoading = false;
+    throw err;
   }
+}
 
-  selectDevice(deviceId: string) {
-    this.selectedDevice = deviceId;
-  }
+selectDevice(deviceId: string) { this.selectedDevice = deviceId; }
 
-  startCapture(event?: Event): void {
-    event?.preventDefault();
-    event?.stopPropagation();
+startCapture(event?: Event): void {
+  event?.preventDefault();
+  event?.stopPropagation();
+  this.isLoading = true;
 
-    this.isLoading = true;
-    debugger;
-    this.captureRdData(this.selectedDevice as 'Mantra' | 'Morpho' | 'Startek')
-      .then(xml => {
-        this.fingerprintSuccess = true;
-        this.toastr.success('Capture Success\n\n' + xml);
-
-      })
-      .catch(err => {
-        this.fingerprintSuccess = false;
-        this.toastr.error(err.message || 'Capture failed');
-      })
-      .finally(() => {
-        this.isLoading = false;
-      });
-
-
-  }
+  this.captureRdData(this.selectedDevice as 'Mantra' | 'Morpho' | 'Startek')
+    .then(xml => {
+      this.fingerprintSuccess = true;
+      this.toastr.success('Capture Success\n\n' + xml);
+    })
+    .catch(err => {
+      this.fingerprintSuccess = false;
+      this.toastr.error(err.message || 'Capture failed');
+    })
+    .finally(() => { this.isLoading = false; });
+}
 
 
 
