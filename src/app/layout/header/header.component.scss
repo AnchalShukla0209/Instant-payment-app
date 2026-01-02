@@ -25,3 +25,182 @@ button.btn {
 button.btn i {
   font-size: 16px;
 }
+
+.themed-notification {
+  background: linear-gradient(135deg, #5f2c82, #49a09d);
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 20px;
+  margin: 10px auto;
+  max-width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: fadeInDown 0.4s ease;
+
+  .notification-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .icon {
+    font-size: 1.2rem;
+    color: #fff;
+  }
+
+  .message {
+    flex: 1;
+    font-size: 0.90rem;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0px;
+
+    
+  }
+  
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-box {
+  h6 {
+    margin-bottom: 0.2rem; // reduce gap under heading
+    .greet {
+      font-style: italic;
+      font-size: 15px ;
+    }
+    .username {
+      font-weight: 700;
+      font-size: 15px ;
+      font-style: italic;
+    }
+  }
+
+  .subtext {
+    margin: 0;              // remove default p margin
+    font-size: 0.875rem;    // smaller font
+    font-style: italic;
+    color: #555;
+    font-size: 13px;            // subtle color
+  }
+}
+
+.header-wrap {
+  height: 130px;
+  display: flex;
+  flex-direction: column;   // stack greeting + subtext
+  justify-content: center;  // vertical center
+  padding: 0 1rem;
+  box-sizing: border-box;
+
+  h6, p, .subtext {
+    margin: 0;              // remove default margins
+  }
+
+  @media (max-width: 768px) {
+    height: auto;           // allow natural growth on smaller screens
+    padding: 0.5rem 1rem;
+    text-align: center;
+  }
+}
+
+
+.balance-btn {
+  background: linear-gradient(to right, #6a1b9a, #8e24aa);
+  border: none;
+  border-radius: 12px;
+  min-width: 160px; // keeps consistent width
+  height: 32px; // ensures exact same height as Update button
+  padding: 18px 16px !important;
+
+  .label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    opacity: 0.85;
+    line-height: 1;
+  }
+
+  .value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  i {
+    font-size: 1.1rem;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(106, 27, 154, 0.25);
+  }
+}
+
+.contact-dropdown .dropdown-menu {
+  white-space: nowrap;
+  width: max-content;   /* fit content */
+  min-width: 290px;
+  left: auto;           /* reset default */
+  right: 0;             /* stick to button's right edge */
+}
+
+
+
+.contact-dropdown {
+  .dropdown-toggle::after {
+    display: none; // remove default arrow
+  }
+
+  &:hover .dropdown-menu {
+    display: block;
+    margin-top: 0.3rem;
+    animation: fadeIn 0.2s ease-in-out;
+     width: 340px;
+  }
+
+  .dropdown-menu {
+    width: 340px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: #f3e5f5;
+        color: #6a1b9a;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+
+

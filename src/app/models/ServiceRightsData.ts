@@ -2,7 +2,7 @@ export interface ServiceRightsData {
   microatm: string;
   moneytransfer: string;
   billpayment: string;
-  recharge: string;
+  mobilerecharge: string;
   aeps: string;
 }
 

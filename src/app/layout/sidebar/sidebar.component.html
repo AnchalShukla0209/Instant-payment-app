@@ -4,12 +4,8 @@
   <div class="d-flex align-items-center mb-2 logo-info px-3 py-2">
     <a routerLink="/" class="brand-icon d-flex align-items-center text-decoration-none">
       <div class="ms-2 sidebarmenuleft">
-       <img
-            src="../../../assets/images/logo__.png"
-            alt="InstantPayment logo"
-            style="height: 85px"
-            class="brand-logo mb-4"
-          />
+        <img src="../../../assets/images/logo__.png" alt="InstantPayment logo" style="height: 85px"
+          class="brand-logo mb-4" />
       </div>
     </a>
   </div>
@@ -18,12 +14,12 @@
 
   <!-- Menu -->
   <ul class="nav flex-column sidebar-menu menu-list px-2">
-    <li class="nav-item"  *ngIf="usertype === 'Retailer'">
+    <li class="nav-item" *ngIf="usertype === 'Retailer'">
       <a class="nav-link d-flex align-items-center gap-2" routerLink="/dashboard">
         <i class="bi bi-house"></i><span class="mx-3">Dashboard</span>
       </a>
     </li>
-    <li class="nav-item"  *ngIf="usertype === 'SuperAdmin'">
+    <li class="nav-item" *ngIf="usertype === 'SuperAdmin'">
       <a class="nav-link d-flex align-items-center gap-2" routerLink="/dashboard.superadmin">
         <i class="bi bi-house"></i><span class="mx-3">Dashboard</span>
       </a>
@@ -36,41 +32,65 @@
       </a>
       <div class="collapse" id="servicesMenu">
         <ul class="list-unstyled submenu-list">
-          <li *ngIf="usertype === 'Retailer' && microATM == 'Active'">
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/payment-request">
-              <i class="bi bi-receipt"></i> Micro ATM
-            </a>
-          </li>
-          <li *ngIf="usertype === 'Retailer' && moneyTransfer == 'Active' ">
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/money-transfer">
-              <i class="bi bi-cash-coin"></i> Money Transfer
-            </a>
-          </li>
-          <li *ngIf="usertype === 'Retailer' && billPayment == 'Active' ">
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/bill-payment">
-              <i class="bi bi-file-earmark-text"></i> Bill Payment
-            </a>
-          </li>
-          <li *ngIf="usertype === 'Retailer' && Recharge == 'Active'">
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/recharge">
-              <i class="bi bi-phone"></i> Recharge
-            </a>
-          </li>
-          <li *ngIf="usertype === 'Retailer' && aeps == 'Active'">
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/aeps">
-              <i class="bi bi-fingerprint"></i> AEPS
-            </a>
-          </li>
-          <li hidden *ngIf="usertype === 'Retailer'">
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/d2h">
-              <i class="bi bi-tv"></i> D2H Recharges
+
+          <li *ngFor="let service of services">
+            <a class="nav-link d-flex align-items-center gap-2"  (click)="CheckServiceStatus(service.routeKey, service.ActiveStatus, service.ServiceName)" >
+              <img [src]="service.ServiceImagePath" alt="{{service.ServiceName}}" width="24" height="24" />
+              {{ service.ServiceName }}
             </a>
           </li>
         </ul>
       </div>
     </li>
 
-     <li class="nav-item" *ngIf="usertype === 'SuperAdmin'">
+     <li class="nav-item" *ngIf="usertype === 'Retailer'">
+      <a class="nav-link d-flex gap-2 dropdown-toggle" data-bs-toggle="collapse" href="#payments">
+        <i class="bi bi-cash me-2"></i><span>Payments</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <div class="collapse" id="payments">
+        <ul class="list-unstyled submenu-list">
+
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/Payment-Request">
+              <i class="bi bi-bank"></i> Payment Request
+            </a>
+          </li>
+
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/Payment-Request-User-Report">
+             <i class="bi bi-file-earmark-text"></i>Payment Report
+            </a>
+          </li>
+
+        </ul>
+      </div>
+    </li>
+
+    <li class="nav-item" *ngIf="usertype === 'Retailer'">
+      <a class="nav-link d-flex gap-2 dropdown-toggle" data-bs-toggle="collapse" href="#UserReports">
+        <i class="bi bi-file-earmark-text me-2"></i><span>Reports</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <div class="collapse" id="UserReports">
+        <ul class="list-unstyled submenu-list">
+
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/UserTxnReports">
+              <i class="bi bi-file-bar-graph"></i> Txn Report
+            </a>
+          </li>
+
+        </ul>
+      </div>
+    </li>
+
+
+    
+
+
+
+    <li class="nav-item" *ngIf="usertype === 'SuperAdmin'">
       <a class="nav-link d-flex gap-2 dropdown-toggle" data-bs-toggle="collapse" href="#servicesMenu">
         <i class="bi bi-tools me-2"></i><span>Configurations</span>
         <i class="bi bi-chevron-down ms-auto"></i>
@@ -83,10 +103,27 @@
             </a>
           </li>
           <li>
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/MarginList"  >
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/MarginList">
               <i class="bi bi-graph-up"></i> Margin
             </a>
           </li>
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/notification-hub">
+              <i class="bi bi-bell"></i>Notification Hub
+            </a>
+          </li>
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/service-list">
+              <i class="bi bi-tools"></i> Service Mgmt
+            </a>
+          </li>
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/bank-mgmt">
+              <i class="bi bi-bank"></i> Bank Mgmt
+            </a>
+          </li>
+          
+
         </ul>
       </div>
     </li>
@@ -109,10 +146,17 @@
               <i class="bi bi-file-bar-graph"></i> Txn Report
             </a>
           </li>
-         
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/Payment-Request-Admin">
+              <i class="bi bi-file-bar-graph"></i> Payment Request
+            </a>
+          </li>
+
+
         </ul>
       </div>
     </li>
+    
     <!-- Settings -->
     <li class="nav-item">
       <a class="nav-link d-flex gap-2 dropdown-toggle" data-bs-toggle="collapse" href="#settingsMenu">
@@ -122,12 +166,17 @@
       <div class="collapse" id="settingsMenu">
         <ul class="list-unstyled submenu-list">
           <li>
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/forgot-password">
-              <i class="bi bi-unlock"></i> Forgot Password
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/changepassword">
+              <i class="bi bi-unlock"></i> Change Password
             </a>
           </li>
           <li>
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/logout">
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/change-pin">
+              <i class="bi bi-unlock"></i> Change Pin
+            </a>
+          </li>
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" href="#" (click)="logout()">
               <i class="bi bi-box-arrow-left"></i> Log Out
             </a>
           </li>
@@ -147,7 +196,7 @@
       <i class="bi bi-person-circle fs-3 text-primary"></i>
       <div>
         <div class="fw-bold">{{username}}</div>
-        
+
       </div>
     </div>
   </div>

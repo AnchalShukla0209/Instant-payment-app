@@ -1,1 +1,10 @@
+<!-- Warning message -->
+<!-- Warning message 30 sec before lock -->
+<div *ngIf="warningSeconds && !showUnlock" class="warning-modal">
+  ⚠️ Screen will lock in {{ warningSeconds }} seconds due to inactivity.
+</div>
+
+<!-- Unlock popup -->
+<app-unlock *ngIf="showUnlock" (unlocked)="onUnlocked()"></app-unlock>
+
 <router-outlet></router-outlet>

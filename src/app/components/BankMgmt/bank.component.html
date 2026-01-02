@@ -1,0 +1,173 @@
+<div class="container-fluid">
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <!-- Header -->
+        <div class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-bank"></i> Banks (Total: {{ totalRecords }})</strong>
+          <button class="btn btn-light btn-sm text-primary" (click)="openModal(bankModal)">
+            <i class="bi bi-plus"></i> Add New Bank
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="card-body table-responsive">
+          <table class="table table-bordered table-hover text-center" id="tblBankData">
+            <thead>
+              <tr>
+                <th>Sr No</th>
+                <th>Bank Name</th>
+                <th>Account No</th>
+                <th>IFSC</th>
+                <th>Phone</th>
+                <th>Txn Charge</th>
+                <th>Active</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="banks.length === 0">
+                <td colspan="8" class="text-muted">No banks found.</td>
+              </tr>
+              <tr *ngFor="let bank of banks; let i = index">
+                <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
+                <td>{{ bank.bankName }}</td>
+                <td>{{ bank.accountNumber }}</td>
+                <td>{{ bank.ifscCode }}</td>
+                <td>{{ bank.phoneNo }}</td>
+                <td>{{ bank.txnCharge }}</td>
+                <td>
+                  <span [class.text-success]="bank.isActive" [class.text-danger]="!bank.isActive">
+                    {{ bank.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-primary me-1" (click)="openModal(bankModal, bank)">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteBank(bank.bankId)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          <nav *ngIf="totalPages > 1" class="mt-2">
+            <ul class="pagination justify-content-end">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+              </li>
+              <ng-container *ngFor="let page of visiblePages">
+                <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+                  <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                </li>
+                <li class="page-item disabled" *ngIf="page === null">
+                  <span class="page-link">...</span>
+                </li>
+              </ng-container>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bank Modal -->
+<ng-template #bankModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">
+      <i class="bi bi-bank me-2 "></i>
+      {{ selectedBank.bankId ? 'Update Bank' : 'Add New Bank' }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body">
+    <div class="row g-3">
+      <!-- Bank Name -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-building me-1 icon-label"></i> Bank Name
+        </label>
+        <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedBank.bankName" required />
+      </div>
+
+      <!-- Account Number -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-credit-card-2-front me-1 icon-label"></i> Account Number
+        </label>
+        <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedBank.accountNumber" required />
+      </div>
+
+      <!-- IFSC Code -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-code-slash me-1 icon-label"></i> IFSC Code
+        </label>
+        <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedBank.ifscCode" required />
+      </div>
+
+      <!-- Phone Number -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-telephone me-1 icon-label"></i> Phone No
+        </label>
+        <input
+          type="text"
+          class="form-control shadow-sm"
+          [(ngModel)]="selectedBank.phoneNo"
+          required
+          pattern="^[0-9]+$"
+          title="Only numeric values allowed"
+          (keypress)="validateNumber($event)"
+        />
+      </div>
+
+      <!-- Txn Amount -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-currency-dollar me-1 icon-label"></i> Txn Amount
+        </label>
+        <input
+          type="text"
+          class="form-control shadow-sm"
+          [(ngModel)]="selectedBank.txnCharge"
+          name="txnAmount"
+          required
+          pattern="^[0-9]+(\.[0-9]{1,2})?$"
+          title="Enter valid positive amount"
+          (keypress)="validateNumber($event)"
+        />
+      </div>
+
+      <!-- Status -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-toggle-on me-1 icon-label"></i> Status
+        </label>
+        <select class="form-select shadow-sm" [(ngModel)]="selectedBank.isActive">
+          <option [ngValue]="true">Active</option>
+          <option [ngValue]="false">Inactive</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" (click)="modal.dismiss()">
+      <i class="bi bi-x-circle me-1"></i> Close
+    </button>
+    <button class="btn btn-primary btn-sm text-white rounded-pill px-4" (click)="saveBank(modal)">
+      <i class="bi bi-check-circle me-1"></i> Save/Update
+    </button>
+  </div>
+</ng-template>

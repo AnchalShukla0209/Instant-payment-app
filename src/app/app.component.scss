@@ -1,0 +1,15 @@
+.warning-modal {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffc107;
+  color: #000;
+  padding: 10px 20px;
+  border-radius: 6px;
+  z-index: 3000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+}

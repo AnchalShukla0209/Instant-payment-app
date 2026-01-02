@@ -35,7 +35,7 @@ export class ClientUserDetailComponent implements OnInit {
   };
 
   modalRef!: NgbModalRef;
-  baseUrl = 'https://testapi-ip.thedemo.co.in/';
+  baseUrl = 'https://api.instantpayment.co.in/';
   clientForm: FormGroup;
   filePreviews: any = {}; // holds path strings
   isEditMode: boolean = false;
@@ -60,6 +60,7 @@ export class ClientUserDetailComponent implements OnInit {
     Password: '',
     PanCard: '',
     AadharCard: '',
+    MPin: '',
     CustomerName: '',
     UserType: '',
 
@@ -160,6 +161,7 @@ export class ClientUserDetailComponent implements OnInit {
         Password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/)]],
         PanCard: ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
         AadharCard: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
+        MPin: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
 
       }),
       addressInfo: this.fb.group({
@@ -230,7 +232,7 @@ export class ClientUserDetailComponent implements OnInit {
     this.model[`${controlName}`] = null;
     this.clientForm.get('uploadDocs')?.get(controlName)?.setValue(null);
 
-    this.http.delete(`https://testapi-ip.thedemo.co.in/api/ClientUser/delete-file?clientId=${FileId}&fileType=${controlName}`)
+    this.http.delete(`https://api.instantpayment.co.in/api/ClientUser/delete-file?clientId=${FileId}&fileType=${controlName}`)
       .subscribe({
         next: (res) => {
           if (controlName === 'LogoFile') this.model.LogoFile = null;
@@ -361,6 +363,7 @@ export class ClientUserDetailComponent implements OnInit {
       Password: '',
       PanCard: '',
       AadharCard: '',
+      MPin: '',
       DomainName: '',
       Logo: '',
       AddressLine1: '',
@@ -403,7 +406,7 @@ export class ClientUserDetailComponent implements OnInit {
         Password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/)]],
         PanCard: ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
         AadharCard: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
-
+        MPin: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
       }),
       addressInfo: this.fb.group({
         AddressLine1: ['', Validators.required],
@@ -439,10 +442,10 @@ export class ClientUserDetailComponent implements OnInit {
     this.filePreviews = {};
     this.isEditMode = false;
 
-    this.clientId=0;
+    this.clientId = 0;
 
     this.modalRef = this.modalService.open(this.clientModal, {
-      size: 'xl', backdrop: 'static', keyboard: false 
+      size: 'xl', backdrop: 'static', keyboard: false
     });
 
     this.modalRef.result.then(
@@ -497,6 +500,7 @@ export class ClientUserDetailComponent implements OnInit {
       Password: companyInfo.Password,
       PanCard: companyInfo.PanCard,
       AadharCard: companyInfo.AadharCard,
+      MPin: companyInfo.MPin,
       UserType: companyInfo.UserType,
 
       ShopAddress: shopInfo.ShopAddress,
@@ -598,6 +602,7 @@ export class ClientUserDetailComponent implements OnInit {
         case 'Phone': return 'Phone must be a valid 10-digit number starting with 6-9.';
         case 'PanCard': return 'PAN must be valid (e.g. ABCDE1234F).';
         case 'AadharCard': return 'Aadhar must be 12-digit number.';
+        case 'MPin': return 'MPin must be 4 digit number';
         case 'Password': return 'Password must be 10+ chars, include letters, number & special char.';
         case 'Pincode': return 'Pincode must be 6-digit number.';
         case 'ShopZipCode': return 'ShopZipCode must be 6-digit number.';
@@ -653,9 +658,12 @@ export class ClientUserDetailComponent implements OnInit {
     formData.append('UserName', companyInfo.UserName);
     formData.append('EmailId', companyInfo.EmailId);
     formData.append('Phone', companyInfo.Phone);
-    formData.append('Password', this.encryptor.encrypt(companyInfo.Password));
+    //formData.append('Password', this.encryptor.encrypt(companyInfo.Password));
+    formData.append('Password', companyInfo.Password);
     formData.append('PanCard', companyInfo.PanCard);
     formData.append('AadharCard', companyInfo.AadharCard);
+    //formData.append('MPin', this.encryptor.encrypt(companyInfo.MPin));
+    formData.append('MPin', companyInfo.MPin);
     formData.append('UserType', companyInfo.UserType);
     formData.append('CustomerName', companyInfo.CustomerName);
 
@@ -695,7 +703,7 @@ export class ClientUserDetailComponent implements OnInit {
       }
     });
 
-    this.http.post<any>('https://testapi-ip.thedemo.co.in/api/ClientUser/CreateOrUpdateClient', formData).subscribe({
+    this.http.post<any>('https://api.instantpayment.co.in/api/ClientUser/CreateOrUpdateClient', formData).subscribe({
       next: (res) => {
         if (res.flag) {
           this.toastr.success(res.msg, 'Success');
@@ -719,7 +727,7 @@ export class ClientUserDetailComponent implements OnInit {
   editClient(clientId: number): void {
     this.isLoading = true;
     this.activeTab = 'companyInfo';
-    this.http.get<any>(`https://testapi-ip.thedemo.co.in/api/ClientUser/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`https://api.instantpayment.co.in/api/ClientUser/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
         this.clientForm.get('companyInfo')?.patchValue({
@@ -729,9 +737,12 @@ export class ClientUserDetailComponent implements OnInit {
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
-          Password: this.encryptor.decrypt(res.password),
+          // Password: this.encryptor.decrypt(res.password),
+          Password: res.password,
           PanCard: res.panCard,
-          AadharCard: res.aadharCard
+          AadharCard: res.aadharCard,
+          //MPin: this.encryptor.decrypt(res.mPin)
+          MPin: res.mPin
         });
 
         this.clientForm.get('addressInfo')?.patchValue({
@@ -750,7 +761,7 @@ export class ClientUserDetailComponent implements OnInit {
         });
 
         this.clientForm.get('serviceRights')?.patchValue({
-          Recharge: res.recharge,
+          Recharge: res.mobileRecharge,
           MoneyTransfer: res.moneyTransfer,
           AEPS: res.aeps,
           BillPayment: res.billPayment,
@@ -795,7 +806,7 @@ export class ClientUserDetailComponent implements OnInit {
         this.clientId = res.id; // Store for update
         this.isEditMode = true; // Flag for UI update
         this.modalRef = this.modalService.open(this.clientModal, {
-          size: 'xl', backdrop: 'static', keyboard: false 
+          size: 'xl', backdrop: 'static', keyboard: false
         });
 
         this.modalRef.result.then(
@@ -819,7 +830,7 @@ export class ClientUserDetailComponent implements OnInit {
 
   ViewClient(clientId: number): void {
     this.isLoading = true;
-    this.http.get<any>(`https://testapi-ip.thedemo.co.in/api/ClientUser/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`https://api.instantpayment.co.in/api/ClientUser/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
 
@@ -830,29 +841,26 @@ export class ClientUserDetailComponent implements OnInit {
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
-          Password: this.encryptor.decrypt(res.password),
+          //Password: this.encryptor.decrypt(res.password),
+          Password: res.password,
           PanCard: res.panCard,
           AadharCard: res.aadharCard,
+          //MPin: this.encryptor.decrypt(res.mPin),
+          MPin: res.mPin,
           UserType: res.userType,
-
-
           ShopAddress: res.shopAddress,
           ShopState: res.shopState,
           ShopCity: res.shopCity,
           ShopZipCode: res.shopZipCode,
-
           MDName: res.mdName,
           ADName: res.adName,
           ADMINName: res.adminName,
-
-
           AddressLine1: res.addressLine1,
           AddressLine2: res.addressLine2,
           State: res.state,
           City: res.city,
           Pincode: res.pincode,
-
-          Recharge: res.recharge,
+          Recharge: res.mobileRecharge,
           MoneyTransfer: res.moneyTransfer,
           AEPS: res.aeps,
           BillPayment: res.billPayment,
@@ -872,7 +880,7 @@ export class ClientUserDetailComponent implements OnInit {
           AadharBackFile: res.aadharBack != null && res.aadharBack != '' ? this.baseUrl + res.aadharBack : ''
         };
         this.modalRef = this.modalService.open(this.ViewclientDetailsModel, {
-          size: 'lg', backdrop: 'static', keyboard: false 
+          size: 'lg', backdrop: 'static', keyboard: false
         });
 
         this.modalRef.result.then(
@@ -918,7 +926,7 @@ export class ClientUserDetailComponent implements OnInit {
   PayClient(clientId: number): void {
     this.walletTxn.userId = clientId;
     this.modalRef = this.modalService.open(this.PayClientmodal, {
-      size: 'md', backdrop: 'static', keyboard: false 
+      size: 'md', backdrop: 'static', keyboard: false
     });
 
     this.modalRef.result.then(
@@ -940,7 +948,8 @@ export class ClientUserDetailComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.walletTxn.actionById = this.authServiceobj.getUserId();
+    this.walletTxn.actionById = Number(this.authServiceobj.getUserId());
+
 
     if (this.walletTxn.amount == null || this.walletTxn.amount == '' || this.walletTxn.amount == 0) {
       this.toastr.error('Amount should be greater than 0', 'error');
@@ -960,7 +969,7 @@ export class ClientUserDetailComponent implements OnInit {
       actionById: Number(this.walletTxn.actionById)
     };
 
-    this.http.post<any>('https://testapi-ip.thedemo.co.in/api/ClientUser/wallet-transaction', payload).subscribe({
+    this.http.post<any>('https://api.instantpayment.co.in/api/ClientUser/wallet-transaction', payload).subscribe({
       next: (response) => {
         if (response.isSuccessful) {
 
@@ -987,7 +996,7 @@ export class ClientUserDetailComponent implements OnInit {
           this.ErrorMessages = response.errorMessage
           this.toastr.success(response.errorMessage);
           this.modalRef = this.modalService.open(this.invoiceModal, {
-            size: 'lg', backdrop: 'static', keyboard: false 
+            size: 'lg', backdrop: 'static', keyboard: false
           });
 
         } else {
@@ -1032,26 +1041,42 @@ export class ClientUserDetailComponent implements OnInit {
 
   }
 
-  downloadInvoice() {
-    this.isLoading = true;
-    const original = document.getElementById('invoiceContent')!;
-    const clone = original.cloneNode(true) as HTMLElement;
+downloadInvoice() {
+  this.isLoading = true;
+  const original = document.getElementById('invoiceContent')!;
 
-    // Remove animation for PDF
-    const icon = clone.querySelector('.success-icon');
-    if (icon) {
-      icon.classList.add('no-animate');
+  // 🔹 Inject temporary styles to avoid clipping
+  const style = document.createElement('style');
+  style.innerHTML = `
+    #invoiceContent, .invoice, .modal-body {
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
+    table, tr, td, th {
+      page-break-inside: avoid !important;
+    }
+    .html2pdf__page-break {
+      page-break-before: always;
+    }
+  `;
+  document.head.appendChild(style);
 
-    html2pdf().set({
-      margin: 0.2,
-      filename: 'ClientPay_Invoice.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    }).from(clone).save();
+  html2pdf().set({
+    margin: 0.2,
+    filename: 'ClientPay_Invoice.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css','legacy'] }
+  }).from(original).save().finally(() => {
+    // 🔹 Remove temp styles after export
+    document.head.removeChild(style);
     this.isLoading = false;
-  }
+  });
+}
+
+
 
 }
 

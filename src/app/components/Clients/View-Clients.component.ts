@@ -34,7 +34,7 @@ export class ClientViewListComponent implements OnInit {
   };
 
   modalRef!: NgbModalRef;
-  baseUrl = 'https://testapi-ip.thedemo.co.in/';
+  baseUrl = 'https://api.instantpayment.co.in/';
   clientForm: FormGroup;
   filePreviews: any = {}; // holds path strings
   isEditMode: boolean = false;
@@ -217,7 +217,7 @@ export class ClientViewListComponent implements OnInit {
     this.model[`${controlName}`] = null;
     this.clientForm.get('uploadDocs')?.get(controlName)?.setValue(null);
 
-    this.http.delete(`https://testapi-ip.thedemo.co.in/api/Client/delete-file?clientId=${FileId}&fileType=${controlName}`)
+    this.http.delete(`https://api.instantpayment.co.in/api/Client/delete-file?clientId=${FileId}&fileType=${controlName}`)
       .subscribe({
         next: (res) => {
           if (controlName === 'LogoFile') this.model.LogoFile = null;
@@ -250,7 +250,7 @@ export class ClientViewListComponent implements OnInit {
       toDate: this.toDate,
       pageIndex,
       pageSize,
-      ClientId:0
+      ClientId: 0
     };
 
 
@@ -412,9 +412,9 @@ export class ClientViewListComponent implements OnInit {
 
     this.filePreviews = {};
     this.isEditMode = false;
-    this.clientId=0;
+    this.clientId = 0;
     this.modalRef = this.modalService.open(this.clientModal, {
-      size: 'lg', backdrop: 'static', keyboard: false 
+      size: 'lg', backdrop: 'static', keyboard: false
     });
 
     this.modalRef.result.then(
@@ -580,7 +580,8 @@ export class ClientViewListComponent implements OnInit {
     formData.append('UserName', companyInfo.UserName);
     formData.append('EmailId', companyInfo.EmailId);
     formData.append('Phone', companyInfo.Phone);
-    formData.append('Password', this.encryptor.encrypt(companyInfo.Password));
+    //formData.append('Password', this.encryptor.encrypt(companyInfo.Password));
+    formData.append('Password', companyInfo.Password);
     formData.append('PanCard', companyInfo.PanCard);
     formData.append('AadharCard', companyInfo.AadharCard);
     formData.append('DomainName', companyInfo.DomainName);
@@ -618,7 +619,7 @@ export class ClientViewListComponent implements OnInit {
       }
     });
 
-    this.http.post<any>('https://testapi-ip.thedemo.co.in/api/Client/CreateOrUpdateClient', formData).subscribe({
+    this.http.post<any>('https://api.instantpayment.co.in/api/Client/CreateOrUpdateClient', formData).subscribe({
       next: (res) => {
         if (res.flag) {
           this.toastr.success(res.msg, 'Success');
@@ -642,7 +643,7 @@ export class ClientViewListComponent implements OnInit {
   editClient(clientId: number): void {
     this.isLoading = true;
     this.activeTab = 'companyInfo';
-    this.http.get<any>(`https://testapi-ip.thedemo.co.in/api/Client/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`https://api.instantpayment.co.in/api/Client/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
         this.clientForm.get('companyInfo')?.patchValue({
@@ -650,7 +651,8 @@ export class ClientViewListComponent implements OnInit {
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
-          Password: this.encryptor.decrypt(res.password),
+          //Password: this.encryptor.decrypt(res.password),
+          Password: res.password,
           PanCard: res.panCard,
           AadharCard: res.aadharCard,
           DomainName: res.domainName
@@ -717,7 +719,7 @@ export class ClientViewListComponent implements OnInit {
         this.clientId = res.id; // Store for update
         this.isEditMode = true; // Flag for UI update
         this.modalRef = this.modalService.open(this.clientModal, {
-          size: 'lg', backdrop: 'static', keyboard: false 
+          size: 'lg', backdrop: 'static', keyboard: false
         });
 
         this.modalRef.result.then(
@@ -741,7 +743,7 @@ export class ClientViewListComponent implements OnInit {
 
   ViewClient(clientId: number): void {
     this.isLoading = true;
-    this.http.get<any>(`https://testapi-ip.thedemo.co.in/api/Client/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`https://api.instantpayment.co.in/api/Client/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
 
@@ -750,7 +752,8 @@ export class ClientViewListComponent implements OnInit {
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
-          Password: this.encryptor.decrypt(res.password),
+          //Password: this.encryptor.decrypt(res.password),
+          Password: res.password,
           PanCard: res.panCard,
           AadharCard: res.aadharCard,
           DomainName: res.domainName,
@@ -781,7 +784,7 @@ export class ClientViewListComponent implements OnInit {
           AadharBackFile: res.aadharBack != null && res.aadharBack != '' ? this.baseUrl + res.aadharBack : ''
         };
         this.modalRef = this.modalService.open(this.ViewclientDetailsModel, {
-          size: 'lg', backdrop: 'static', keyboard: false 
+          size: 'lg', backdrop: 'static', keyboard: false
         });
 
         this.modalRef.result.then(
@@ -803,31 +806,74 @@ export class ClientViewListComponent implements OnInit {
   }
 
   export(type: string): void {
-    this.isLoading = true;
-    if (type === 'pdf') {
-      const el = document.querySelector('.table-responsive') as HTMLElement;
-      if (!el) return;
-      import('html2pdf.js').then(html2pdf => {
-        html2pdf.default().from(el).save('Client_Report.pdf');
-        this.isLoading = false;
+  this.isLoading = true;
+
+  if (type === 'pdf') {
+    const el = document.querySelector('.table-responsive') as HTMLElement;
+    if (!el) return;
+
+    // Clone the table so we don’t modify the real one
+    const clonedTable = el.cloneNode(true) as HTMLElement;
+
+    // Columns you want to keep
+    const keepCols = ["User Name", "Email ID", "Company Name", "Domain", "City", "Balance", "Status"];
+
+    // Get header cells
+    const headerCells = clonedTable.querySelectorAll("thead th");
+
+    // Determine which indexes to keep
+    const keepIndexes: number[] = [];
+    headerCells.forEach((th, index) => {
+      const headerText = th.textContent?.trim().toLowerCase();
+      if (keepCols.map(col => col.toLowerCase()).includes(headerText || '')) {
+        keepIndexes.push(index);
+      }
+    });
+
+    // Remove columns that are NOT in keepIndexes
+    clonedTable.querySelectorAll('tr').forEach(row => {
+      const cells = row.querySelectorAll('th, td');
+      cells.forEach((cell, index) => {
+        if (!keepIndexes.includes(index)) {
+          cell.remove();
+        }
       });
-    } else {
-      import('xlsx').then(xlsx => {
-        const worksheet = xlsx.utils.json_to_sheet(this.paginatedUsers);
-        const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-        const ext = type === 'doc' ? 'xls' : type;
-        xlsx.writeFile(workbook, `Client_Report.${ext}`);
-        this.isLoading = false;
-      });
-    }
-    this.isLoading = false;
+    });
+
+    // Export the filtered table
+    import('html2pdf.js').then(html2pdf => {
+      const options = {
+        margin: 10,
+        filename: 'Client_Report.pdf',
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: 'avoid-all', before: '.no-break' }
+      };
+      html2pdf.default().from(clonedTable).set(options).save();
+      this.isLoading = false;
+    });
+
+  } else {
+    // Excel/CSV/Doc → keep exporting full data
+    import('xlsx').then(xlsx => {
+      const worksheet = xlsx.utils.json_to_sheet(this.paginatedUsers);
+      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+      const ext = type === 'doc' ? 'xls' : type;
+      xlsx.writeFile(workbook, `Client_Report.${ext}`);
+      this.isLoading = false;
+    });
   }
+}
+
+
+
+
 
   //PayClient
   PayClient(clientId: number): void {
     this.walletTxn.userId = clientId;
     this.modalRef = this.modalService.open(this.PayClientmodal, {
-      size: 'md', backdrop: 'static', keyboard: false 
+      size: 'md', backdrop: 'static', keyboard: false
     });
 
     this.modalRef.result.then(
@@ -849,7 +895,7 @@ export class ClientViewListComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.walletTxn.actionById = this.authServiceobj.getUserId();
+    this.walletTxn.actionById = Number(this.authServiceobj.getUserId());
 
     if (this.walletTxn.amount == null || this.walletTxn.amount == '' || this.walletTxn.amount == 0) {
       this.toastr.error('Amount should be greater than 0', 'error');
@@ -869,7 +915,7 @@ export class ClientViewListComponent implements OnInit {
       actionById: Number(this.walletTxn.actionById)
     };
 
-    this.http.post<any>('https://testapi-ip.thedemo.co.in/api/Client/wallet-transaction', payload).subscribe({
+    this.http.post<any>('https://api.instantpayment.co.in/api/Client/wallet-transaction', payload).subscribe({
       next: (response) => {
         if (response.isSuccessful) {
 
@@ -896,9 +942,9 @@ export class ClientViewListComponent implements OnInit {
           this.ErrorMessages = response.errorMessage
           this.toastr.success(response.errorMessage);
           this.modalRef = this.modalService.open(this.invoiceModal, {
-            size: 'lg', backdrop: 'static', keyboard: false 
+            size: 'lg', backdrop: 'static', keyboard: false
           });
-          
+
         } else {
           this.toastr.error(response.errorMessage || 'Transaction failed');
           this.isLoading = false;
@@ -931,21 +977,21 @@ export class ClientViewListComponent implements OnInit {
     this.modalService.dismissAll();
   }
 
-  ResetPayPopup(){
+  ResetPayPopup() {
 
-    this.walletTxn.status='';
-    this.walletTxn.txnPin='';
-    this.walletTxn.amount=null;
-    this.walletTxn.userId=0;
-    this.walletTxn.actionById=0;
-    
+    this.walletTxn.status = '';
+    this.walletTxn.txnPin = '';
+    this.walletTxn.amount = null;
+    this.walletTxn.userId = 0;
+    this.walletTxn.actionById = 0;
+
   }
 
-   viewClientUser(clientId: number): void {
+  viewClientUser(clientId: number): void {
     const url = this.router.serializeUrl(
-    this.router.createUrlTree(['/ClientUsersReport', clientId])
-  );
-  window.open(url, '_blank');
+      this.router.createUrlTree(['/ClientUsersReport', clientId])
+    );
+    window.open(url, '_blank');
   }
 
   downloadInvoice() {
@@ -969,7 +1015,7 @@ export class ClientViewListComponent implements OnInit {
     this.isLoading = false;
   }
 
- 
+
 
 }
 

@@ -19,8 +19,8 @@
               <input type="date" [(ngModel)]="toDate" class="form-control" placeholder="To Date" />
             </div>
 
-            <div class="col-md-3 d-flex align-items-center gap-2">
-              <br />
+            <div class="col-md-6 d-flex align-items-center gap-2">
+
               <button class="btn btn-secondary" (click)="loadClients(1,2)">
                 <i class="bi bi-funnel"></i> Apply Filter
               </button>
@@ -48,17 +48,30 @@
               <div class="card shadow-sm">
                 <div
                   class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
+
+                  <!-- Left side -->
                   <div>
-                    <strong><i class="bi bi-funnel"></i>&nbsp;&nbsp;Manage Client (Total User: {{ totalRecords
-                      }})</strong>
-                    &nbsp;&nbsp;
-                    <a href="javascript:void(0)" style="color: white;" (click)="getTotalBalance()"><span
-                        *ngIf="ShowTotalBalance"> {{TotalBalance}} </span> Click To Know Total</a>
+                    <strong>
+                      <i class="bi bi-funnel"></i>&nbsp;&nbsp;Manage Client (Total User: {{ totalRecords }})
+                    </strong>
+                    <button class="btn btn-sm btn-primary" *ngIf="ShowTotalBalance">
+                      <i class="bi bi-calculator"></i> Balance: {{ TotalBalance }}
+                    </button>
+
                   </div>
-                  <button class="btn btn-sm btn-primary" (click)="openAddClientForm()">
-                    <i class="bi bi-plus"></i> Add New
-                  </button>
+
+                  <!-- Right side (buttons) -->
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" (click)="getTotalBalance()">
+                      <i class="bi bi-calculator"></i> Click To Know Total
+                    </button>
+                    <button class="btn btn-sm btn-primary" (click)="openAddClientForm()">
+                      <i class="bi bi-plus"></i> Add New
+                    </button>
+                  </div>
+
                 </div>
+
                 <div class="card-body">
                   <div class="row align-items-end g-2">
                     <div class="col-md-2">
@@ -66,9 +79,8 @@
                         placeholder="Type a keyword..." />
                     </div>
 
-                    <div class="col-md-12">
-                      <table id="tblClientData"
-                        class="table table-bordered mb-4 text-center table-responsive table-hover">
+                    <div class="col-md-12 table-responsive">
+                      <table id="tblClientData" class="table table-bordered mb-4 text-center table-hover">
                         <thead class="bg-purple text-white">
                           <tr>
                             <th>User Name</th>

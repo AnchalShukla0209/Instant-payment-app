@@ -1,0 +1,149 @@
+<div class="container-fluid">
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <!-- Header -->
+        <div class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-hdd-network"></i> Services (Total: {{ totalRecords }})</strong>
+          <button class="btn btn-light btn-sm text-primary" (click)="openModal(serviceModal)">
+            <i class="bi bi-plus"></i> Add New Service
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="card-body table-responsive">
+          <table class="table table-bordered table-hover text-center" id="tblClientData">
+            <thead>
+              <tr>
+                <th>Sr No</th>
+                <th>Service Name</th>
+                <th>Image</th>
+                <th>Active</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="services.length === 0">
+                <td colspan="5" class="text-muted">No services found.</td>
+              </tr>
+              <tr *ngFor="let service of services; let i = index">
+                <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
+                <td>{{ service.serviceName }}</td>
+                <td>
+                  <img [src]="service.servicePath" alt="Service Image" width="50" height="50"
+                    *ngIf="service.servicePath">
+                </td>
+                <td>
+                  <span [class.text-success]="service.isActive" [class.text-danger]="!service.isActive">
+                    {{ service.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-primary me-1" (click)="openModal(serviceModal, service)">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteService(service.id!)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          <nav *ngIf="totalPages > 1" class="mt-2">
+            <ul class="pagination justify-content-end">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+              </li>
+              <ng-container *ngFor="let page of visiblePages">
+                <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+                  <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                </li>
+                <li class="page-item disabled" *ngIf="page === null">
+                  <span class="page-link">...</span>
+                </li>
+              </ng-container>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Service Modal -->
+<ng-template #serviceModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">
+      <i class="bi bi-hdd-network me-2"></i>
+      {{ selectedService?.id ? 'Update Service' : 'Add New Service' }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Service Name -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-card-text me-1 text-purple icon-label"></i> Service Name
+      </label>
+      <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedService.serviceName"
+        placeholder="Enter service name" required />
+    </div>
+
+    <!-- Service Path (Image URL) -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-image me-1 text-purple icon-label"></i> Service Image
+      </label>
+
+      <div class="row g-2 align-items-center">
+        <!-- Input Full Width when no URL -->
+        <div class="col-12" *ngIf="!selectedService.servicePath">
+          <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedService.servicePath"
+            placeholder="Paste image URL here" />
+        </div>
+
+        <!-- Input (9/12) + Preview (3/12) when URL exists -->
+        <ng-container *ngIf="selectedService.servicePath">
+          <div class="col-md-9">
+            <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedService.servicePath"
+              placeholder="Paste image URL here" />
+          </div>
+          <div class="col-md-3 text-center">
+            <img [src]="selectedService.servicePath" alt="Preview" class="img-fluid rounded shadow-sm border"
+              style="max-height: 80px; cursor: pointer;" />
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+
+
+    <!-- Is Active -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-toggle-on me-1 text-purple icon-label"></i> Status
+      </label>
+      <select class="form-select shadow-sm" [(ngModel)]="selectedService.isActive">
+        <option [ngValue]="true">Active</option>
+        <option [ngValue]="false">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" (click)="modal.dismiss()">
+      <i class="bi bi-x-circle me-1"></i> Close
+    </button>
+    <button class="btn btn-primary btn-sm text-white rounded-pill px-4" (click)="saveService(modal)">
+      <i class="bi bi-check-circle me-1"></i> Save/Update
+    </button>
+  </div>
+</ng-template>

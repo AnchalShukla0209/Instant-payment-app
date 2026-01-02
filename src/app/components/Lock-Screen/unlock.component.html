@@ -1,0 +1,62 @@
+<div class="unlock-modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-container">
+    <div class="modal-header">
+      <img src="../../../assets/images/logo__.png" alt="Instant Payment Logo" class="brand-logo" />
+
+      <h2 class="greeting">
+        Hey <span class="username">{{ username | uppercase }}</span>!
+      </h2>
+
+      <p class="description">
+        Your screen was locked due to inactivity<br />
+        to protect your account.
+      </p>
+    </div>
+
+    <div class="modal-body">
+      <!-- <label for="mpinInput">Enter Your MPIN</label> -->
+      <!-- <input
+        id="mpinInput"
+        type="{{ mode === 'mpin' ? 'password' : 'text' }}"
+        [(ngModel)]="value"
+        [placeholder]="mode === 'mpin' ? 'Enter MPIN' : 'Enter Password'"
+        class="unlock-input"
+      /> -->
+
+      <div *ngIf="mode === 'mpin'" class="mpin-input-container">
+        <input type="password" maxlength="1" pattern="\d*" inputmode="numeric" [(ngModel)]="digits[0]"
+          (input)="onDigitInput($event, 0)" (keydown)="onKeyDown($event, 0)" #box0 />
+        <input type="password" maxlength="1" pattern="\d*" inputmode="numeric" [(ngModel)]="digits[1]"
+          (input)="onDigitInput($event, 1)" (keydown)="onKeyDown($event, 1)" #box1 />
+        <input type="password" maxlength="1" pattern="\d*" inputmode="numeric" [(ngModel)]="digits[2]"
+          (input)="onDigitInput($event, 2)" (keydown)="onKeyDown($event, 2)" #box2 />
+        <input type="password" maxlength="1" pattern="\d*" inputmode="numeric" [(ngModel)]="digits[3]"
+          (input)="onDigitInput($event, 3)" (keydown)="onKeyDown($event, 3)" #box3 />
+      </div>
+
+      <input *ngIf="mode === 'password'" id="passwordInput" type="password" [(ngModel)]="value"
+        placeholder="Enter Password" class="unlock-input" />
+
+      <button (click)="unlock()" [disabled]="isLoading" class="btn unlock-btn">
+        Unlock
+      </button>
+
+      <hr class="separator" />
+
+      <button (click)="switchMode()" class="switch-btn-link">
+        {{ mode === 'mpin' ? 'Unlock Using Password' : 'Unlock Using MPIN' }}
+      </button>
+
+      <div *ngIf="error" class="error-message">{{ error }}</div>
+    </div>
+  </div>
+</div>
+
+
+<div class="confirmation-popup" *ngIf="showConfirmation">
+  <div class="popup-content">
+    <p>Dear {{ username | uppercase }}, You have successfully verified yourself.<br />Please click on OK to continue your session.</p>
+    <button class="btn ok-btn" (click)="onConfirm()">OK</button>
+  </div>
+</div>

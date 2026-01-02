@@ -330,3 +330,37 @@ $referral-text-color: #6c757d; // Bootstrap's default gray-600 equivalent
     }
   }
 }
+.slider-card {
+  flex: 1 1 280px;
+  max-width: 436px;   /* optional */
+  width: 100%;
+  aspect-ratio: 16 / 9; /* container always 16:9 */
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.slider-inner {
+  display: flex;
+  width: 100%;
+  height: 100%;   /* make inner fill container */
+  transition: transform 0.5s ease;
+}
+
+.slider-item {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;   /* fill slider */
+  position: relative;
+}
+
+.slider-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 20px;
+}
+

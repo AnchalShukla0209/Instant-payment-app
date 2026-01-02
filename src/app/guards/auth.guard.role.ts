@@ -10,13 +10,13 @@ export class RoleGuard implements CanActivate {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
 
-    if (!token) {
-      this.router.navigate(['/login']);
-      return false;
-    }
+    // if (!token) {
+    //   this.router.navigate(['/login']);
+    //   return false;
+    // }
 
     // Check role
-    if (role === 'SuperAdmin' || role === 'Retailer') {
+    if (role === 'SuperAdmin' || role === 'Retailer' || role==='RT') {
       return true;
     }
 

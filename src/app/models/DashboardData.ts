@@ -7,3 +7,9 @@ export interface DashboardData {
   totalTransection: number;
   userJoined: number;
 }
+
+export interface WalletBalance {
+  userId: number;
+  userName: string;
+  balance: number;
+}

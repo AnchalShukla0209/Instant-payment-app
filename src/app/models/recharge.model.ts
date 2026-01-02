@@ -8,4 +8,5 @@ export interface RechargeRequest {
   TxnPin: string;
   Type: string;
   CustomerRefNo: string;
+  optional: string;
 }

@@ -71,9 +71,9 @@
   border-radius: 10px;
   border: 2px solid #f1f1f1;
 }
-.des-plan
-{
-    font-size: 13px !important;
+
+.des-plan {
+  font-size: 13px !important;
 }
 
 .modal-content {
@@ -113,22 +113,19 @@
   background-color: #5e2f82 !important;
 }
 
-h5
-{
-    font-size: 1.0rem !important;
+h5 {
+  font-size: 1.0rem !important;
 }
 
-#tblRechargePreview thead th
-{
-    background: #5e2f82 !important;
-    color: white !important;
-    font-weight: 500;
-    font-size: 13px;
+#tblRechargePreview thead th {
+  background: #5e2f82 !important;
+  color: white !important;
+  font-weight: 500;
+  font-size: 13px;
 }
 
-td
-{
-    font-size: 13px;
+td {
+  font-size: 13px;
 }
 
 .error-box {
@@ -141,17 +138,30 @@ td
   border: 1px solid #f5c2c7;
 }
 
-.error-box2
-{
-    display: block;
-    margin-top: -4px;
-    font-size: 0.68rem;
-    color: #fff;
-    background: red;
-    border-radius: 0 0 5px 5px;
-    padding: 0px 8px;
-    animation: fadeIn 0.5s ease-in-out !important;
+.error-box2 {
+  display: block;
+  margin-top: -4px;
+  font-size: 0.68rem;
+  color: #fff;
+  background: red;
+  border-radius: 0 0 5px 5px;
+  padding: 0px 8px;
+  animation: fadeIn 0.5s ease-in-out !important;
 }
+
+.delete-icon {
+  font-size: 1.25rem;
+  color: #dc3545;
+  /* Bootstrap danger red */
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.delete-icon:hover {
+  color: #bb2d3b;
+  transform: scale(1.15);
+}
+
 
 input.is-invalid {
   border-color: #dc3545 !important;
@@ -198,8 +208,17 @@ input.is-invalid {
 }
 
 @keyframes blinkIcon {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.5; transform: scale(1.1); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
 }
 
 
@@ -208,10 +227,12 @@ input.is-invalid {
     transform: scale(0.2);
     opacity: 0;
   }
+
   50% {
     transform: scale(1.2);
     opacity: 1;
   }
+
   100% {
     transform: scale(1);
   }
@@ -227,7 +248,8 @@ input.is-invalid {
 .table-bordered {
   border: 1px solid #ccc;
 
-  th, td {
+  th,
+  td {
     border: 1px solid #ccc;
   }
 }

@@ -8,6 +8,18 @@ export interface TxnReportPayload {
   pageSize?: number;
 }
 
+export interface TxnReportUserPayload {
+  serviceType?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  userId?: number;
+  userName?: string;
+  pageIndex?: number;
+  pageSize?: number;
+}
+
+
 export interface TxnReportData {
   id: number;
   txn_ID?: string;

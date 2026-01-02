@@ -1,0 +1,112 @@
+<div class="container-fluid">
+    <app-loader *ngIf="isLoading"></app-loader>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <!-- Header -->
+                <div class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
+                    <strong><i class="bi bi-bell"></i> Notifications (Total: {{ totalRecords }})</strong>
+                    <button class="btn btn-primary btn-sm text-white" (click)="openModal(notificationModal)">
+                        <i class="bi bi-plus"></i> Add New Notification
+                    </button>
+                </div>
+
+                <!-- Table -->
+                <div class="card-body table-responsive">
+                    <table class="table table-bordered table-hover text-center" id="tblClientData">
+                        <thead>
+                            <tr>
+                                <th>Sr No</th>
+                                <th>Notification Content</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="notifications.length === 0">
+                                <td colspan="4" class="text-muted">No notifications found.</td>
+                            </tr>
+                            <tr *ngFor="let notification of notifications; let i = index">
+                                <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
+                                <td>{{ notification.content }}</td>
+                                <td>{{ notification.status }}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" (click)="openModal(notificationModal, notification)">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    <nav *ngIf="totalPages > 1" class="mt-2">
+                        <ul class="pagination justify-content-end">
+                            <li class="page-item" [class.disabled]="currentPage === 1">
+                                <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+                            </li>
+                            <ng-container *ngFor="let page of visiblePages">
+                                <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+                                    <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                                </li>
+                                <li class="page-item disabled" *ngIf="page === null">
+                                    <span class="page-link">...</span>
+                                </li>
+                            </ng-container>
+                            <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Modal -->
+<ng-template #notificationModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">
+      <i class="bi bi-bell me-2"></i>
+      {{ selectedNotification?.id ? 'Update Notification' : 'Add New Notification' }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Notification Content -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-card-text me-1 form-label icon-label"></i> Notification Content
+      </label>
+      <textarea class="form-control shadow-sm"
+                [(ngModel)]="selectedNotification.content"
+                rows="3"
+                placeholder="Enter notification content"
+                required>
+      </textarea>
+    </div>
+
+    <!-- Status -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-info-circle me-1 form-label icon-label"></i> Status
+      </label>
+      <select class="form-select shadow-sm" [(ngModel)]="selectedNotification.status">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" (click)="modal.dismiss()">
+      <i class="bi bi-x-circle"></i> Close
+    </button>
+    <button class="btn btn-primary btn-sm text-white rounded-pill px-4" (click)="saveNotification(modal)">
+      <i class="bi bi-check-circle"></i> Save/Update
+    </button>
+  </div>
+</ng-template>

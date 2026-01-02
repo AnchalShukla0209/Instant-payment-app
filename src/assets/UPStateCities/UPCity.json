@@ -1,0 +1,687 @@
+[   
+    {
+        "SNo": 642,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 125,
+        "DistrictName(InEnglish)": "Bahraich-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BHR"
+    },
+    {
+        "SNo": 682,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 118,
+        "DistrictName(InEnglish)": "Agra-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "AGR"
+    },
+    {
+        "SNo": 683,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 119,
+        "DistrictName(InEnglish)": "Aligarh-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "ALG"
+    },
+    {
+        "SNo": 684,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 121,
+        "DistrictName(InEnglish)": "Ambedkar Nagar-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "AMN"
+    },
+    {
+        "SNo": 685,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 640,
+        "DistrictName(InEnglish)": "Amethi-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "AME"
+    },
+    {
+        "SNo": 686,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 154,
+        "DistrictName(InEnglish)": "Amroha-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "AMR"
+    },
+    {
+        "SNo": 687,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 122,
+        "DistrictName(InEnglish)": "Auraiya-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "ARY"
+    },
+    {
+        "SNo": 688,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 140,
+        "DistrictName(InEnglish)": "Ayodhya-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "FZB"
+    },
+    {
+        "SNo": 689,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 123,
+        "DistrictName(InEnglish)": "Azamgarh-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "AZM"
+    },
+    {
+        "SNo": 689,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 123,
+        "DistrictName(InEnglish)": "Bagpat-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "AZM"
+    },
+    {
+        "SNo": 690,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 126,
+        "DistrictName(InEnglish)": "Ballia-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BAL"
+    },
+    {
+        "SNo": 691,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 127,
+        "DistrictName(InEnglish)": "Balrampur-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BRP"
+    },
+    {
+        "SNo": 692,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 128,
+        "DistrictName(InEnglish)": "Banda-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BAN"
+    },
+    {
+        "SNo": 692,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 128,
+        "DistrictName(InEnglish)": "Barabanki-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BAN"
+    },
+    {
+        "SNo": 694,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 130,
+        "DistrictName(InEnglish)": "Bareilly-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BRL"
+    },
+    {
+        "SNo": 695,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 131,
+        "DistrictName(InEnglish)": "Basti-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BST"
+    },
+    {
+        "SNo": 697,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 132,
+        "DistrictName(InEnglish)": "Bijnor-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BJN"
+    },
+    {
+        "SNo": 698,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 133,
+        "DistrictName(InEnglish)": "Budaun-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BDN"
+    },
+    {
+        "SNo": 699,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 134,
+        "DistrictName(InEnglish)": "Bulandshahr-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "BLR"
+    },
+    {
+        "SNo": 700,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 135,
+        "DistrictName(InEnglish)": "Chandauli-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "CHN"
+    },
+    {
+        "SNo": 701,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 136,
+        "DistrictName(InEnglish)": "Chitrakoot-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "CHK"
+    },
+    {
+        "SNo": 702,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 137,
+        "DistrictName(InEnglish)": "Deoria-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "DER"
+    },
+    {
+        "SNo": 703,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 138,
+        "DistrictName(InEnglish)": "Etah-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "ETA"
+    },
+    {
+        "SNo": 704,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 139,
+        "DistrictName(InEnglish)": "Etawah-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "ETW"
+    },
+    {
+        "SNo": 705,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 141,
+        "DistrictName(InEnglish)": "Farrukhabad-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "FKB"
+    },
+    {
+        "SNo": 706,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 142,
+        "DistrictName(InEnglish)": "Fatehpur-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "FTP"
+    },
+    {
+        "SNo": 707,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 143,
+        "DistrictName(InEnglish)": "Firozabad-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "FIR"
+    },
+    {
+        "SNo": 708,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 144,
+        "DistrictName(InEnglish)": "Gautam Buddha Nagar-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "GBN"
+    },
+    {
+        "SNo": 709,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 145,
+        "DistrictName(InEnglish)": "Ghaziabad-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "GZB"
+    },
+    {
+        "SNo": 710,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 146,
+        "DistrictName(InEnglish)": "Ghazipur-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "GZP"
+    },
+    {
+        "SNo": 711,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 147,
+        "DistrictName(InEnglish)": "Gonda-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "GND"
+    },
+    {
+        "SNo": 712,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 148,
+        "DistrictName(InEnglish)": "Gorakhpur-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "GKP"
+    },
+    {
+        "SNo": 713,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 149,
+        "DistrictName(InEnglish)": "Hamirpur-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "HRP"
+    },
+    {
+        "SNo": 714,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 661,
+        "DistrictName(InEnglish)": "Hapur District-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "HAP"
+    },
+    {
+        "SNo": 715,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 150,
+        "DistrictName(InEnglish)": "Hardoi-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "HAR"
+    },
+    {
+        "SNo": 716,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 163,
+        "DistrictName(InEnglish)": "Hathras-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "HTR"
+    },
+    {
+        "SNo": 717,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 151,
+        "DistrictName(InEnglish)": "Jalaun-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "JLU"
+    },
+    {
+        "SNo": 718,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 152,
+        "DistrictName(InEnglish)": "Jaunpur-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "JNP"
+    },
+    {
+        "SNo": 719,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 153,
+        "DistrictName(InEnglish)": "Jhansi-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "JHS"
+    },
+    {
+        "SNo": 720,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 155,
+        "DistrictName(InEnglish)": "Kannauj-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "KNJ"
+    },
+    {
+        "SNo": 721,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 156,
+        "DistrictName(InEnglish)": "Kanpur Dehat-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "KPD"
+    },
+    {
+        "SNo": 722,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 157,
+        "DistrictName(InEnglish)": "Kanpur Nagar-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "KPN"
+    },
+    {
+        "SNo": 722,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 157,
+        "DistrictName(InEnglish)": "Kanpur Nagar-KESCO",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "KPN"
+    },
+    {
+        "SNo": 723,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 633,
+        "DistrictName(InEnglish)": "Kasganj-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "KAS"
+    },
+    {
+        "SNo": 724,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 158,
+        "DistrictName(InEnglish)": "Kaushambi-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "KSB"
+    },
+    {
+        "SNo": 724,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 158,
+        "DistrictName(InEnglish)": "Kushinagar-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "KSB"
+    },
+    
+    {
+        "SNo": 725,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 159,
+        "DistrictName(InEnglish)": "Lakhimpur Kheri-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "KHR"
+    },
+    {
+        "SNo": 727,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 161,
+        "DistrictName(InEnglish)": "Lalitpur-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "LLP"
+    },
+    {
+        "SNo": 728,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 162,
+        "DistrictName(InEnglish)": "Lucknow-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "LCK"
+    },
+    {
+        "SNo": 729,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 165,
+        "DistrictName(InEnglish)": "Mahoba-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MHB"
+    },
+    {
+        "SNo": 730,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 164,
+        "DistrictName(InEnglish)": "Maharajganj-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MRG"
+    },
+    {
+        "SNo": 731,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 166,
+        "DistrictName(InEnglish)": "Mainpuri-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MPR"
+    },
+    {
+        "SNo": 732,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 167,
+        "DistrictName(InEnglish)": "Mathura-DVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MTH"
+    },
+    {
+        "SNo": 733,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 168,
+        "DistrictName(InEnglish)": "Mau-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MAU"
+    },
+    {
+        "SNo": 734,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 169,
+        "DistrictName(InEnglish)": "Meerut-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MRT"
+    },
+    {
+        "SNo": 735,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 170,
+        "DistrictName(InEnglish)": "Mirzapur-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MZP"
+    },
+    {
+        "SNo": 736,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 171,
+        "DistrictName(InEnglish)": "Moradabad-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MRB"
+    },
+    {
+        "SNo": 737,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 172,
+        "DistrictName(InEnglish)": "Muzaffarnagar-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "MZN"
+    },
+    {
+        "SNo": 738,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 173,
+        "DistrictName(InEnglish)": "Pilibhit-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "PLB"
+    },
+    {
+        "SNo": 739,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 174,
+        "DistrictName(InEnglish)": "Pratapgarh-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "PRG"
+    },
+    {
+        "SNo": 740,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 120,
+        "DistrictName(InEnglish)": "PrayagRaj-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "ALB"
+    },
+    {
+        "SNo": 741,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 175,
+        "DistrictName(InEnglish)": "Raebareli-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "RBL"
+    },
+    {
+        "SNo": 742,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 176,
+        "DistrictName(InEnglish)": "Rampur-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "RMP"
+    },
+    {
+        "SNo": 743,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 177,
+        "DistrictName(InEnglish)": "Saharanpur-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SHR"
+    },
+    {
+        "SNo": 744,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 659,
+        "DistrictName(InEnglish)": "Sambhal-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SBL"
+    },
+    {
+        "SNo": 745,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 178,
+        "DistrictName(InEnglish)": "Sant Kabir Nagar-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SKN"
+    },
+    {
+        "SNo": 745,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 178,
+        "DistrictName(InEnglish)": "Sant Ravidas Nagar-Bhadohi-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SKN"
+    },
+    {
+        "SNo": 746,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 180,
+        "DistrictName(InEnglish)": "Shahjahanpur-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SJN"
+    },
+    {
+        "SNo": 747,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 660,
+        "DistrictName(InEnglish)": "Shamli-PVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SML"
+    },
+    {
+        "SNo": 748,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 181,
+        "DistrictName(InEnglish)": "Shravasti-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SHV"
+    },
+    {
+        "SNo": 749,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 182,
+        "DistrictName(InEnglish)": "Siddharthnagar-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SDN"
+    },
+    {
+        "SNo": 750,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 183,
+        "DistrictName(InEnglish)": "Sitapur-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "STP"
+    },
+    {
+        "SNo": 751,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 184,
+        "DistrictName(InEnglish)": "Sonbhadra-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SBD"
+    },
+    {
+        "SNo": 752,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 185,
+        "DistrictName(InEnglish)": "Sultanpur-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "SLP"
+    },
+    {
+        "SNo": 753,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 186,
+        "DistrictName(InEnglish)": "Unnao-MVVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "UNO"
+    },
+    {
+        "SNo": 754,
+        "StateCode": 9,
+        "StateName": "Uttar Pradesh",
+        "DistrictLGDCode": 187,
+        "DistrictName(InEnglish)": "Varanasi-PUVNL",
+        "Hierarchy": "Uttar Pradesh",
+        "ShortNameOfDistrict": "VRN"
+    }
+]

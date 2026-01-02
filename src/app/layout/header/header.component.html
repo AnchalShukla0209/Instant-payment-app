@@ -1,19 +1,103 @@
-<div class="px-xl-5 px-lg-4 px-3 py-3 page-body">
-    <div class="row dashboard-header">
-        <div class="col-sm-8">
-
-            <h6>Welcome <br /></h6>
-             <span>{{ username }}</span>
-
-        </div>
-        <div class="col-sm-4 top-buttons text-md-end mt-3 mt-md-0">
-           <button class="btn btn-outline-secondary btn-sm me-2">
-        <i class="bi bi-telephone me-1"></i> Contact
-      </button>
-      <button class="btn btn-primary btn-sm text-white" style="background: linear-gradient(to right, #6a1b9a, #8e24aa); border: none;">
-        <i class="bi bi-arrow-repeat me-1"></i> Update
-      </button>
-        </div>
+<div class="px-xl-3 px-lg-3 px-1 py-2 page-body">
+  <div class="row dashboard-header align-items-center">
+    <div class="col-sm-6 welcome-box">
+      <h6>
+        <span class="greet">Hey,</span>
+        <span class="username">{{ username | uppercase }} !</span>
+      </h6>
+      <p class="subtext">
+        Position Your Business For Agility With A Proactive Cash Reserve.
+      </p>
     </div>
+
+    <div class="col-sm-6 top-buttons text-md-end mt-3 mt-md-0 d-flex justify-content-end align-items-center gap-2">
+
+      <button *ngIf="usertype === 'Retailer' "   class="btn btn-primary btn-sm balance-btn d-flex align-items-center justify-content-between"
+        (click)="toggleBalance()">
+  <div class="text-start">
+    <div class="label">Balance</div>
+    <div class="value">
+      <span *ngIf="showBalance; else hiddenBalance">
+        ₹ {{ walletBalance?.balance }}
+      </span>
+      <ng-template #hiddenBalance>
+        ••••••
+      </ng-template>
+    </div>
+  </div>
+  <i class="bi ms-2" [ngClass]="showBalance ? 'bi-eye-slash' : 'bi-eye'"></i>
+</button>
+
+
+      <!-- Contact -->
+     <!-- Contact Dropdown -->
+<div class="dropdown contact-dropdown d-inline-block">
+  <button 
+    class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+    type="button"
+    id="contactDropdown"
+    data-bs-toggle="dropdown" 
+    aria-expanded="false">
+    <i class="bi bi-telephone me-1"></i> Contact
+  </button>
+
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="contactDropdown">
+
+    <!-- Email -->
+    <li>
+      <a class="dropdown-item" href="mailto:instantpayment@gmail.com">
+        <i class="bi bi-envelope me-2"></i> Email: instantpayment@gmail.com
+      </a>
+    </li>
+
+    <!-- Admin -->
+    <li>
+      <a class="dropdown-item" href="tel:+91-8684020633">
+        <i class="bi bi-person me-2"></i> Admin: +91-8684020633
+      </a>
+    </li>
+
+    <!-- SuperAdmin -->
+    <li>
+      <a class="dropdown-item" href="tel:+91-8684020633">
+        <i class="bi bi-shield-lock me-2"></i> SuperAdmin: +91-8684020633
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+
+
+
+      <!-- Update -->
+      <button class="btn btn-primary btn-sm text-white" (click)="logout()"
+        style="background: linear-gradient(to right, #6a1b9a, #8e24aa); border: none;">
+         Logout &nbsp; <i class="bi bi-box-arrow-right me-1"></i>
+      </button>
+    </div>
+  </div>
+
+
+
+
+  <!-- Modern Notification Bar -->
+  <!-- Modern Themed Notification Bar -->
+  <div *ngIf="activeNotification && isVisible &&  usertype!='SuperAdmin'" class="themed-notification">
+    <div class="notification-body">
+      <i class="bi bi-info-circle-fill icon"></i>
+      <span class="message">
+        <strong>System Update:</strong> {{ activeNotification.content }}
+      </span>
+      <div class="actions">
+        <!-- <button class="btn btn-primary" (click)="viewDetails()">View</button> -->
+        <button class="btn btn-primary" (click)="dismissNotification()" aria-label="Dismiss">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
 
 </div>

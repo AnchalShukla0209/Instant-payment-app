@@ -19,8 +19,8 @@
               <input type="date" [(ngModel)]="toDate" class="form-control" placeholder="To Date" />
             </div>
 
-            <div class="col-md-3 d-flex align-items-center gap-2">
-              <br />
+            <div class="col-md-6 d-flex align-items-center gap-2">
+
               <button class="btn btn-secondary" (click)="loadClients(1,2)">
                 <i class="bi bi-funnel"></i> Apply Filter
               </button>
@@ -51,13 +51,20 @@
                   <div>
                     <strong><i class="bi bi-funnel"></i>&nbsp;&nbsp;Manage Client (Total User: {{ totalRecords
                       }})</strong>
-                    &nbsp;&nbsp;
-                    <a href="javascript:void(0)" style="color: white;" (click)="getTotalBalance()"><span
-                        *ngIf="ShowTotalBalance"> {{TotalBalance}} </span> Click To Know Total</a>
+                    &nbsp;
+                    <button class="btn btn-sm btn-primary" *ngIf="ShowTotalBalance">
+                      <i class="bi bi-calculator"></i> Balance: {{ TotalBalance }}
+                    </button>
+
                   </div>
-                  <button class="btn btn-sm btn-primary" (click)="openAddClientForm()">
-                    <i class="bi bi-plus"></i> Add New
-                  </button>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" (click)="getTotalBalance()">
+                      <i class="bi bi-calculator"></i> Click To Know Total
+                    </button>
+                    <button class="btn btn-sm btn-primary" (click)="openAddClientForm()">
+                      <i class="bi bi-plus"></i> Add New
+                    </button>
+                  </div>
                 </div>
                 <div class="card-body">
                   <div class="row align-items-end g-2">
@@ -124,27 +131,29 @@
                       </table>
 
 
-                      <nav *ngIf="totalPages > 1" class="mt-3">
-                        <ul class="pagination justify-content-end">
-                          <li class="page-item" [class.disabled]="currentPage === 1">
-                            <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
-                          </li>
 
-                          <ng-container *ngFor="let page of visiblePages">
-                            <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
-                              <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-                            </li>
-                            <li class="page-item disabled" *ngIf="page === null">
-                              <span class="page-link">...</span>
-                            </li>
-                          </ng-container>
-
-                          <li class="page-item" [class.disabled]="currentPage === totalPages">
-                            <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-                          </li>
-                        </ul>
-                      </nav>
                     </div>
+
+                    <nav *ngIf="totalPages > 1" class="mt-3">
+                      <ul class="pagination justify-content-end">
+                        <li class="page-item" [class.disabled]="currentPage === 1">
+                          <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+                        </li>
+
+                        <ng-container *ngFor="let page of visiblePages">
+                          <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+                            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                          </li>
+                          <li class="page-item disabled" *ngIf="page === null">
+                            <span class="page-link">...</span>
+                          </li>
+                        </ng-container>
+
+                        <li class="page-item" [class.disabled]="currentPage === totalPages">
+                          <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+                        </li>
+                      </ul>
+                    </nav>
 
                   </div>
 
@@ -239,6 +248,10 @@
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-credit-card me-2 icon-label"></i>Aadhar Card</label>
               <input type="text" class="form-control" placeholder="Aadhar Card" formControlName="AadharCard" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-credit-card me-2 icon-label"></i>MPin</label>
+              <input type="text" class="form-control" placeholder="MPin" maxlength="4" formControlName="MPin" />
             </div>
           </div>
         </div>
@@ -516,6 +529,13 @@
                         <label>Adhar Card Number</label>
                         <span class="colonspacentry"> : </span>
                         <span id="lblAdhar">{{ model.AadharCard }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>MPin</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblAdhar">{{ model.MPin }}</span>
                       </div>
                     </div>
 
@@ -915,6 +935,14 @@
                     <label>Adhar Card Number</label>
                     <span class="colonspacentry"> : </span>
                     <span id="lblAdhar">{{ model.AadharCard }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>MPin</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblAdhar">{{ model.MPin }}</span>
                   </div>
                 </div>
 

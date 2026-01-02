@@ -148,3 +148,65 @@ fieldset {
     background: #5e2f82 !important;
 }
 
+.badge {
+    padding: 0.25rem 0.45rem;
+    font-weight: 600;
+    border-radius: 0.4rem;
+}
+
+.bg-primary-gradient {
+    background: #5e2f82 !important;
+    color: #fff;
+}
+
+.bg-purple {
+  background-color: #5e2f82 !important;
+}
+
+
+#tblAcionPreview thead th
+{
+    background: #5e2f82 !important;
+    color: white !important;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+#updateinfotable thead th
+{
+    background: #5e2f82 !important;
+    color: white !important;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+td
+{
+    font-size: 13px;
+}
+
+
+/* Horizontal scrollbar styling (Chrome, Edge, Safari) */
+::-webkit-scrollbar:horizontal {
+  height: 6px !important;
+  display: block !important;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+  background: #5e2f82 !important;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-track:horizontal {
+  background: #e9ecef;
+}
+
+/* Hide vertical scrollbar */
+::-webkit-scrollbar:vertical {
+  width: 0px;
+  background: transparent; /* hides vertical scrollbar */
+}
+
+
+
+

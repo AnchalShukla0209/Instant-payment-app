@@ -1,6 +1,12 @@
 export interface LoginPayload {
-  username: string;
-  password: string;
+  UserName: string;
+  Password: string;
+  lat: string;
+  long: string;
+  ApiKey: string;
+  DeviceID: string;
+  TokenKey: string;
+  DeviceInfo: string
 }
 export interface JwtPayload {
   userid: string;

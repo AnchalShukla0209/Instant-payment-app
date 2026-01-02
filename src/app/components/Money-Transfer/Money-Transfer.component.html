@@ -1,11 +1,11 @@
-<div class="container-fluid px-xl-5 px-lg-4 px-3 py-3">
+<div class="container-fluid">
 
   <app-loader *ngIf="isLoading"></app-loader>
 
   <!-- Tab Buttons -->
   <div class="service-btns mb-3">
-    <button *ngFor="let s of services" class="btn service-btn btn-sm me-2" [class.active]="selectedTab() === s.label"
-      (click)="onTabSelect(s.label)">
+    <button *ngFor="let s of services" class="btn service-btn btn-sm me-2" [class.active]="selectedTab() === s.key"
+      (click)="onTabSelect(s.key)">
       <i class="bi" [ngClass]="s.icon"></i> {{ s.label }}
     </button>
 
@@ -18,23 +18,16 @@
       style="float:right;background: #054a58 !important;">
       <i class="bi bi-clock-history"></i> Hide Recent Transactions
     </button>
-
   </div>
-
-
-
-
 
   <!-- Mobile Tab -->
   <div>
-
-
-
     <div class="row">
       <div [class.col-md-12]="!showRecentTxns" [class.col-md-6]="showRecentTxns">
         <div class="card shadow-sm">
           <div class="card-header bg-gradient-indigo text-white">
-            <strong><i class="bi" [ngClass]="selectedicon"></i> {{selectedService}}</strong>
+            <strong><i class="bi" [ngClass]="selectedicon"></i> {{selectedServiceIcon}}</strong>
+            <strong style="text-align: right;float: right;" *ngIf="isSenderRegistered">{{ senderName }}</strong>
           </div>
           <div class="card-body">
             <div class="row">
@@ -44,20 +37,34 @@
                 <label class="form-label d-flex align-items-center">
                   <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
                 </label>
-                <input type="text" class="form-control" [(ngModel)]="mobileNumber" maxlength="10"
+                <input type="text" [readonly]="isSenderRegistered" class="form-control" [(ngModel)]="mobileNumber"
+                  maxlength="10"
                   (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
                   placeholder="Enter Mobile Number" />
               </div>
 
-              <div class="mt-3 text-left" [ngClass]="colClass" style="margin-top: 2% !important;">
-                <button class="btn btn-chandan btn-sm" (click)="openPreviewModal(previewModal)">
+              <div [ngClass]="colClass" class="form-group" *ngIf="PPI_EnteredOTPFlag">
+                <label class="form-label d-flex align-items-center">
+                  <i class="bi bi-shield-lock form-icon icon-label"></i> OTP
+                </label>
+                <input type="text" class="form-control" [(ngModel)]="PPI_EnteredOTP" maxlength="06"
+                  (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                  placeholder="Enter OTP" />
+              </div>
+
+              <div [ngClass]="colClass" class="form-group mt-4 d-flex gap-2">
+                <button class="btn btn-chandan btn-sm" *ngIf="showVerifyButton && !PPI_EnteredOTPFlag"
+                  (click)="openPreviewModal(previewModal)">
                   <i class="bi bi-check-circle"></i> Verify Number
                 </button>
-                &nbsp;
-                <button class="btn btn-default btn-sm" (click)="openPreviewModal(previewModal)">
+                <button class="btn btn-chandan btn-sm" *ngIf="PPI_EnteredOTPFlag" (click)="validatePPIOtp()">
+                  <i class="bi bi-shield-lock"></i> Verify OTP
+                </button>
+                <button class="btn btn-default btn-sm" (click)="onCancel()">
                   <i class="bi bi-x-circle"></i> Cancel
                 </button>
               </div>
+
 
             </div>
 
@@ -70,87 +77,50 @@
       <div *ngIf="showRecentTxns" class="col-md-6">
         <div class="card shadow-sm plans-wrapper">
           <div class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
-            <strong><i class="bi bi-clock-history"></i> Recent Beneficary</strong>
+            <strong><i class="bi bi-clock-history"></i> Recent Beneficiary</strong>
             <button class="btn btn-sm btn-primary" (click)="AddNewBeneficiary()">
-              <i class="bi bi-plus"></i> Add New Beneficary
+              <i class="bi bi-plus"></i> Add New Beneficiary
             </button>
           </div>
+
           <div class="card-body">
-            <div class="list-group list-group-flush">
-              <div class="list-group-item d-flex justify-content-between align-items-center">
+
+            <!-- 🔍 Search Box -->
+            <input type="text" class="form-control mb-3" placeholder="Search beneficiary..." [(ngModel)]="searchText">
+
+            <!-- Scrollable List -->
+            <div class="list-group list-group-flush" [ngStyle]="{'max-height': '350px', 'overflow-y': 'auto'}">
+
+              <div *ngFor="let bene of filteredBeneficiaries()"
+                class="list-group-item d-flex justify-content-between align-items-center">
+
                 <div class="d-flex align-items-center gap-3">
-                  <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSquouX3qJzp6uZwleCOtTBppHfDKlN6vDHg&s"
+                  <img [src]="bankLogos[bene.BankName?.toUpperCase()] || 'https://www.svgrepo.com/show/482939/bank.svg'"
                     width="40" height="40">
-                  <div>
-                    <div class="fw-bold">7988234554</div>
-                    <small class="text-muted">HDFC Bank Credit Card</small>
-                  </div>
-                </div>
-                <button class="btn btn-chandan btn-sm" (click)="Pay()">Pay Now</button>
-              </div>
 
-              <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
-                  <img
-                    src="	https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4C68ljGeBuGr6znMRkVmPmx8gxnHBxdqBDA&s"
-                    width="40" height="40">
                   <div>
-                    <div class="fw-bold">7988234554</div>
-                    <small class="text-muted">ICICI Bank Credit Card</small>
+                    <div class="fw-bold">{{ bene.AccountNo }} || {{ bene.BeneName }}</div>
+                    <small class="text-muted">{{ bene.BankName }} || {{ bene.IFSCCode }}</small>
                   </div>
                 </div>
-                <button class="btn btn-chandan btn-sm" (click)="Pay()">Pay Now</button>
-              </div>
 
-              <div class="list-group-item d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
-                  <img src="https://cdn.worldvectorlogo.com/logos/sbi-state-bank-of-india.svg" width="40" height="40">
-                  <div>
-                    <div class="fw-bold">7988234554</div>
-                    <small class="text-muted">State Bank Of India (SBI) Credit Card</small>
-                  </div>
+                  <button class="btn btn-chandan btn-sm" (click)="Pay(bene)">Pay Now</button>
+                  <i class="bi bi-trash-fill delete-icon" (click)="DeleteBene(bene)" title="Delete Beneficiary"></i>
                 </div>
-                <button class="btn btn-chandan btn-sm" (click)="Pay()">Pay Now</button>
               </div>
+              <br />
 
-              <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
-                  <img src="https://companieslogo.com/img/orig/AXISBANK.BO-8f59e95b.png?t=1720244490" width="40"
-                    height="40">
-                  <div>
-                    <div class="fw-bold">7988234554</div>
-                    <small class="text-muted">Axis Bank Credit Card</small>
-                  </div>
-                </div>
-                <button class="btn btn-chandan btn-sm" (click)="Pay()">Pay Now</button>
-              </div>
-
-              <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
-                  <img
-                    src="	https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuMVDZ5H5f4J86-dxn_duwM0hCjcAhSVBuNg&s"
-                    width="40" height="40">
-                  <div>
-                    <div class="fw-bold">7988234554</div>
-                    <small class="text-muted">Kotak Mahindra Credit Card</small>
-                  </div>
-                </div>
-                <button class="btn btn-chandan btn-sm" (click)="Pay()">Pay Now</button>
-              </div>
-              <div class="mt-3 text-center">
-                <button class="btn btn-outline-secondary w-100">Show All</button>
-              </div>
             </div>
+
           </div>
         </div>
-
       </div>
+
+
 
     </div>
   </div>
-
-
 
   <ng-template #previewModal let-modal>
     <div class="modal-header bg-purple text-white">
@@ -164,21 +134,20 @@
           <thead class="bg-purple text-white">
             <tr>
               <th>Bank</th>
-              <th>Mobile</th>
+
               <th>Account Number</th>
-              <th>Beneficary Number</th>
+              <th>Beneficary Name</th>
               <th>IFSC Code</th>
-              <th>Branch Name</th>
+
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td> Axia Bank</td>
-              <td>{{ mobileNumber }}</td>
-              <td>7988234554</td>
-              <td>567676735763578</td>
-              <td>BKID0007824</td>
-              <td>Connought Place</td>
+              <td> {{benedet.BankName}}</td>
+              <td> {{benedet.AccountNo}}</td>
+              <td> {{benedet.BeneName}}</td>
+              <td>{{benedet.IFSCCode}}</td>
+
             </tr>
           </tbody>
         </table>
@@ -188,35 +157,48 @@
 
       <!-- Stage 2: PIN and OTP -->
       <div class="row">
-        
 
-        <div class="col-md-6 form-group mb-2">
+
+        <div class="col-md-3 form-group mb-2">
           <label><i class=""></i>Txn Type</label>
           <select class="form-control" id="txnType">
             <option>IMPS</option>
-            <option>RTGS</option>
+            <option>NEFT</option>
           </select>
         </div>
-        <!-- <div class="form-group mb-2">
-          <label><i class="bi bi-key"></i> Txn PIN</label>
-          <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
-            placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
-          <div *ngIf="showPinError" class="invalid-feedback d-block">
-            Txn PIN is required
-          </div>
-        </div> -->
 
-        <div class="col-md-6 form-group mb-2">
+        <div class="col-md-3 form-group mb-2">
+          <label><i class=""></i>Amount</label>
+          <input type="text" maxlength="6"  (keyup)="onAmountEntered()"
+            (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" id="amount"
+            class="form-control" placeholder="Amount">
+        </div>
+
+        <!-- FINO = OTP Required -->
+        <div *ngIf="selectedService == 'FINO'" class="col-md-6 form-group mb-2">
           <label><i class="bi bi-shield-lock"></i> OTP</label>
           <div class="input-group">
-            <input type="text" maxlength="6" style="max-width: 40% !important;" placeholder="Enter OTP"
-              class="form-control">
-  &nbsp;&nbsp;
-              <button type="button" class="btn btn-success btn-sm" (click)="ResendOTPForPayment()">Resend
-              OTP</button>
-            &nbsp;&nbsp;<button type="button" class="btn btn-chandan btn-sm" (click)="ValidateOTPForPayment()">Validate
-              OTP</button>
+            <input type="text" [(ngModel)]="enteredPaymentOTP" maxlength="4" style="max-width: 40% !important;"
+              class="form-control" placeholder="Enter OTP">
+            &nbsp;&nbsp;
+            <button class="btn btn-success btn-sm" (click)="ResendOTPForPayment()">Resend OTP</button>
           </div>
+        </div>
+
+        <div *ngIf="selectedService == 'PPI' && showPPIPaymentOtpBlock" class="col-md-6 form-group mb-2">
+          <label><i class="bi bi-shield-lock"></i> OTP</label>
+          <div class="input-group">
+            <input type="text" [(ngModel)]="enteredPaymentOTPForPPI" maxlength="6" style="max-width: 40% !important;"
+              class="form-control" placeholder="Enter OTP">
+            &nbsp;&nbsp;
+            <button class="btn btn-success btn-sm" (click)="sendOtpForPaymentForPPI()">Resend OTP</button>
+          </div>
+        </div>
+
+        <div *ngIf="selectedService == 'TRAMO'" class="col-md-6 form-group mb-2">
+          <label><i class="bi bi-key"></i> Transaction PIN</label>
+          <input type="password" [(ngModel)]="enteredMPIN" maxlength="4" class="form-control"
+            placeholder="Enter Txn PIN">
         </div>
 
 
@@ -224,14 +206,15 @@
     </div>
 
     <div class="modal-footer d-flex justify-content-between flex-wrap">
-      <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
-      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitRecharge()"
-        [disabled]="!validateOTPforPayment">
+      <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2"
+        (click)="CancelMoneyTransfer()">Cancel</button>
+      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitMoneyTransfer()">
         <i class="bi bi-check-circle"></i> Confirm & Proceed
       </button>
     </div>
   </ng-template>
 
+  <div id="printArea" style="display:none;"></div>
 
   <!-- RECHARGE INVOICE MODAL -->
   <ng-template #invoiceModal let-modal>
@@ -263,51 +246,48 @@
         <table class="table table-bordered table-sm mb-2">
           <tbody>
             <tr>
-              <th scope="row" class="text-purple">Name</th>
-              <td class="text-end">Anchal Shukla</td>
+              <th scope="row" class="text-purple">Beneficiary Name</th>
+              <td class="text-end">{{ invoiceData?.BeneName }}</td>
             </tr>
             <tr>
               <th scope="row" class="text-purple">Account Number</th>
-              <td class="text-end">7988234554</td>
+              <td class="text-end">{{ invoiceData?.AccountNo }}</td>
             </tr>
             <tr>
-              <th scope="row" class="text-purple">Beneficary Number </th>
-              <td class="text-end">567676735763578</td>
+              <th scope="row" class="text-purple">Mobile Number</th>
+              <td class="text-end">{{ invoicemobno }}</td>
             </tr>
             <tr>
-              <th scope="row" class="text-purple">IFSC Code </th>
-              <td class="text-end">BKID0007824</td>
+              <th scope="row" class="text-purple">BR Id </th>
+              <td class="text-end">{{ invoiceData?.BR_Id }}</td>
             </tr>
             <tr>
-              <th scope="row" class="text-purple">Branch Name</th>
-              <td class="text-end">Connought Place</td>
+              <th scope="row" class="text-purple">Transaction ID</th>
+              <td class="text-end">{{ invoiceData?.TxnID }}</td>
             </tr>
             <tr>
-              <th scope="row" class="text-purple">Transection Amount</th>
-              <td class="text-end">2000</td>
+              <th scope="row" class="text-purple">Txn Date</th>
+              <td class="text-end">{{ invoiceData?.TxnDate }}</td>
             </tr>
             <tr>
-              <th scope="row" class="text-purple">Balance After Transaction</th>
-              <td class="text-end">100</td>
+              <th scope="row" class="text-purple">Status</th>
+              <td class="text-end">{{ invoiceData?.Status }}</td>
             </tr>
             <tr>
-              <th scope="row" class="text-purple">Transaction Id</th>
-              <td class="text-end">546465453546</td>
-            </tr>
-            <tr>
-              <th scope="row" class="text-purple">Transaction Date</th>
-              <td class="text-end">12/12/2025</td>
+              <th scope="row" class="text-purple">Amount</th>
+              <td class="text-end">{{ invoiceData?.Amount }}</td>
             </tr>
 
           </tbody>
         </table>
+      </div>
 
-
-
-        <div class="text-right mt-4">
-          <strong class="fs-5 text-purple">Sign </strong>
-
-        </div>
+      <div id="printFooter" class="text-center mt-4">
+        <small class="text-muted">
+          This is a digital document. No signature is required.
+          <br>
+          © InstantPayment
+        </small>
       </div>
     </div>
 
@@ -315,6 +295,9 @@
       <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
       <button class="btn btn-chandan btn-sm" (click)="downloadInvoice()">
         <i class="bi bi-download me-1"></i>Download Invoice
+      </button>
+      <button class="btn btn-chandan btn-sm" (click)="printInvoice()">
+        <i class="bi bi-printer me-1"></i> Print Invoice
       </button>
     </div>
   </ng-template>
@@ -334,6 +317,15 @@
         <div class="card-body">
           <div class="row">
 
+            <div class="form-group col-md-12">
+              <label class="form-label d-flex align-items-center">
+                <i class="bi bi-bank form-icon icon-label"></i> Bank Name
+              </label>
+
+              <ng-select [items]="banks" bindLabel="Bankname" bindValue="BankId" placeholder="Select Bank"
+                formControlName="branchName" [searchable]="true" (change)="onBankSelect($event)">
+              </ng-select>
+            </div>
 
             <div class="form-group col-md-12">
               <label class="form-label d-flex align-items-center">
@@ -349,41 +341,33 @@
               </label>
               <input type="text" class="form-control" placeholder="Enter Benificiary Name"
                 formControlName="beneficiaryNumber" />
-            </div>
-
-
-
-            <div class="form-group col-md-12">
-              <label class="form-label d-flex align-items-center">
-                <i class="bi bi-bank form-icon icon-label"></i> Bank Name
-              </label>
-              <select class="form-control" formControlName="branchName">
-                <option value="">Select</option>
-                <option *ngFor="let bank of banks" [value]="bank.code">
-                  {{ bank.name }}
-                </option>
-              </select>
-
+              <div *ngIf="validatebankdetails" class="mt-2 text-success">
+                Verified Name: <strong>{{ beneficiaryForm.get('beneficiaryNumber')?.value }}</strong>
+              </div>
 
             </div>
+
+
+
+
 
             <div class="form-group col-md-12">
               <label class="form-label d-flex align-items-center">
                 <i class="bi bi-upc-scan form-icon icon-label"></i> IFSC Code
               </label>
               <div class="input-group">
-              <input type="text" class="form-control" placeholder="Enter IFSC Code" formControlName="ifscCode" />
-               &nbsp;&nbsp;
-              <button  *ngIf="
+                <input type="text" class="form-control" placeholder="Enter IFSC Code" formControlName="ifscCode" />
+                &nbsp;&nbsp;
+                <button *ngIf="
         beneficiaryForm.get('accountNumber')?.value &&
         beneficiaryForm.get('beneficiaryNumber')?.value &&
         beneficiaryForm.get('branchName')?.value &&
         beneficiaryForm.get('ifscCode')?.value
       " type="button" class="btn btn-chandan btn-sm" (click)="ValidateBankDetails()">Validate Bank Details
-              </button>
-            
-          </div>
-              
+                </button>
+
+              </div>
+
             </div>
 
             <div class="mt-3 text-left">
@@ -467,6 +451,26 @@
               <input type="text" class="form-control" placeholder="Enter Pin Code" formControlName="pinCode" />
             </div>
 
+            <!-- ⭐ PPI KYC TYPE SELECTION -->
+            <div *ngIf="selectedService === 'PPI'" class="form-group col-md-12 mt-3">
+              <label class="form-label d-flex align-items-center">
+                <i class="bi bi-shield-lock form-icon icon-label"></i> KYC Type
+              </label>
+
+              <div class="d-flex gap-3">
+                <label class="d-flex align-items-center">
+                  <input type="radio" name="ppiKyc" value="OTP" [(ngModel)]="selectedKycType"
+                    [ngModelOptions]="{standalone: true}" (change)="selectedKycTypeChanged()"> &nbsp; Via Aadhar-OTP
+                </label>
+
+                <label class="d-flex align-items-center">
+                  <input type="radio" name="ppiKyc" value="BIOMETRIC" [(ngModel)]="selectedKycType"
+                    [ngModelOptions]="{standalone: true}" (change)="selectedKycTypeChanged()"> &nbsp;Aadhar-Biometric
+                </label>
+              </div>
+            </div>
+
+
             <div class="mt-3 text-left">
               <button class="btn btn-chandan btn-sm" (click)="AddSenderPr()">
                 <i class="bi bi-check-circle"></i> Register Sender
@@ -498,27 +502,98 @@
         <table class="table table-bordered text-center small">
           <thead class="bg-purple text-white">
             <tr>
-              <th>Sender Name</th>
-              <th>Mobile Number</th>
-              <th>Aadhar Number</th>
-              <th>Address</th>
-              <th>City</th>
-              <th>Pin Code</th>
+              <th style="white-space: nowrap;">Sender Name</th>
+              <th style="white-space: nowrap;">Mobile Number</th>
+              <th style="white-space: nowrap;">Aadhar Number</th>
+              <th style="white-space: nowrap;">Address</th>
+              <th style="white-space: nowrap;">City</th>
+              <th style="white-space: nowrap;">Pin Code</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>{{ senderForm.value.senderName }} </td>
-              <td>{{ senderForm.value.mobileNumber }}</td>
-              <td>{{ senderForm.value.adharNumber }}</td>
-              <td>{{ senderForm.value.address }}</td>
-              <td>{{ senderForm.value.city }}</td>
-              <td>{{ senderForm.value.pinCode }}</td>
+              <td style="white-space: nowrap;">{{ senderForm.value.senderName }} </td>
+              <td style="white-space: nowrap;">{{ senderForm.value.mobileNumber }}</td>
+              <td style="white-space: nowrap;">{{ senderForm.value.adharNumber }}</td>
+              <td style="white-space: nowrap;">{{ senderForm.value.address }}</td>
+              <td style="white-space: nowrap;">{{ senderForm.value.city }}</td>
+              <td style="white-space: nowrap;">{{ senderForm.value.pinCode }}</td>
             </tr>
           </tbody>
         </table>
 
-        <div class="finger-section mt-3 text-center" *ngIf="!fingerprintProcess">
+        <div *ngIf="selectedService === 'PPI' && selectedKycType === 'OTP'">
+
+          <!-- Step 1: Send OTP -->
+          <!-- <div *ngIf="!otpverification">
+            <button class="btn btn-primary w-100" (click)="sendPpiAadharOtp()">
+              <i class="bi bi-send-check"></i> Send Aadhar OTP
+            </button>
+          </div> -->
+
+          <!-- Step 2: Enter OTP -->
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group mt-3">
+                <label><i class="bi bi-shield-lock"></i>PAN Number</label>
+                <div class="input-group">
+                  <input type="text" maxlength="10" [(ngModel)]="panCardNo" class="form-control"
+                    placeholder="Enter PAN Number">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div *ngIf="otpverification" class="form-group mt-3">
+                <label><i class="bi bi-shield-lock"></i> Enter OTP</label>
+                <div class="input-group">
+                  <input type="text" maxlength="6" [(ngModel)]="aadharOtpInput" class="form-control"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                    placeholder="Enter OTP">
+
+                  <button class="btn btn-chandan btn-sm" (click)="sendPpiAadharOtp()">Resend</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+        </div>
+
+        <!-- ⭐ NEW: PPI BIOMETRIC KYC FLOW -->
+        <div class="finger-section mt-3 text-center"
+          *ngIf="selectedService === 'PPI' && selectedKycType === 'BIOMETRIC'">
+
+          <div *ngIf="!fingerprintProcess" class="text-center">
+            <p><strong>Select Fingerprint Device</strong></p>
+
+            <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
+              <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
+                (click)="selectDevice(device.id)">
+                <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}"
+                  style="height: 50px;width:50px" />
+                <span>{{ device.label }}</span>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <button type="button" class="btn btn-primary w-100 mb-3" (click)="startCapture()"
+                [disabled]="!selectedDevice">
+                <i class="bi bi-fingerprint me-1"></i> Scan Fingerprint
+              </button>
+            </div>
+
+
+          </div>
+
+          <div *ngIf="fingerprintProcess && !fingerprintSuccess" class="text-center mt-3">
+            Processing fingerprint...
+          </div>
+
+        </div>
+
+
+        <div class="finger-section mt-3 text-center" *ngIf="!fingerprintProcess && selectedService === 'FINO'">
           <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
           <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
             <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
@@ -536,43 +611,41 @@
             </button>
           </div>
         </div>
+
+        <div *ngIf="otpverification && selectedService!='PPI' && selectedService!='FINO'">
+          <div class="form-group mb-2">
+            <label><i class="bi bi-shield-lock"></i> OTP</label>
+            <div class="input-group">
+              <input type="text" [(ngModel)]="tramoOTP" maxlength="04"
+                (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                placeholder="Enter OTP" class="form-control">
+              &nbsp;&nbsp;
+              <button type="button" class="btn btn-chandan btn-sm" (click)="ResendOTPForSender()">Resend
+                OTP</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Stage 2: PIN and OTP -->
-      <div *ngIf="fingerprintProcess">
-
-
-        <!-- <div class="form-group mb-2">
-          <label><i class="bi bi-key"></i> Txn PIN</label>
-          <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
-            placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
-          <div *ngIf="showPinError" class="invalid-feedback d-block">
-            Txn PIN is required
-          </div>
-        </div> -->
-
+      <div *ngIf="fingerprintProcess && !otpverification">
         <div class="form-group mb-2">
           <label><i class="bi bi-shield-lock"></i> OTP</label>
           <div class="input-group">
             <input type="text" maxlength="6" style="max-width: 50% !important;" placeholder="Enter OTP"
               class="form-control">
-              &nbsp;&nbsp;
-              <button type="button" class="btn btn-success btn-sm" (click)="ResendOTPForSender()">Resend
-              OTP</button>
-            &nbsp;&nbsp;<button type="button" class="btn btn-chandan btn-sm" (click)="ValidateOTP()">Validate
+            &nbsp;&nbsp;
+            <button type="button" class="btn btn-chandan btn-sm" (click)="ResendOTPForSender()">Resend
               OTP</button>
           </div>
         </div>
-
-
-
       </div>
     </div>
 
     <div class="modal-footer d-flex justify-content-between flex-wrap">
       <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
       <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="FinalSenderCreation()"
-        [disabled]="!fingerprintSuccess">
+        [disabled]="!fingerprintSuccess && !otpverification">
         <i class="bi bi-check-circle"></i> Confirm & Proceed
       </button>
     </div>
@@ -602,7 +675,7 @@
               <td>{{ beneficiaryForm.get('accountNumber')?.value }}</td>
               <td>{{ beneficiaryForm.get('beneficiaryNumber')?.value }}</td>
               <td>{{ beneficiaryForm.get('ifscCode')?.value }}</td>
-             <td>{{ getBankName(beneficiaryForm.get('branchName')?.value) }}</td>
+              <td>{{ getBankName(beneficiaryForm.get('branchName')?.value) }}</td>
 
 
             </tr>
@@ -614,7 +687,7 @@
       <!-- Stage 2: PIN and OTP -->
       <div>
 
-<!-- 
+        <!-- 
         <div class="form-group mb-2">
           <label><i class="bi bi-key"></i> Txn PIN</label>
           <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
@@ -624,16 +697,15 @@
           </div>
         </div> -->
 
-        <div class="form-group mb-2">
+        <div class="form-group mb-2" style="display: none;">
           <label><i class="bi bi-shield-lock"></i> OTP</label>
           <div class="input-group">
             <input type="text" maxlength="6" style="max-width: 50% !important;" placeholder="Enter OTP"
               class="form-control">
-               &nbsp;&nbsp;
-              <button type="button" class="btn btn-success btn-sm" (click)="ResendOTPForBenf()">Resend
+            &nbsp;&nbsp;
+            <button type="button" class="btn btn-chandan btn-sm" (click)="ResendOTPForBenf()">Resend
               OTP</button>
-            &nbsp;&nbsp;<button type="button" class="btn btn-chandan btn-sm" (click)="ValidateOTPForBenef()">Validate
-              OTP</button>
+
           </div>
         </div>
 
@@ -644,7 +716,7 @@
     <div class="modal-footer d-flex justify-content-between flex-wrap">
       <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
       <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="FinalBeneForCreation()"
-       [disabled]="!validateOTPforBenef" >
+        [disabled]=" selectedService !== 'PPI' && selectedService !== 'FINO' &&  !validateOTPforBenef">
         <i class="bi bi-check-circle"></i> Confirm & Proceed
       </button>
     </div>

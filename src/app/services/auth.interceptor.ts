@@ -1,5 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpEvent,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest,
+  HttpErrorResponse
+} from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -13,23 +19,49 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = localStorage.getItem('token');
-
+    const token = this.encryptor.decrypt(localStorage.getItem('token') || '') || '';
     let authReq = req;
-    if (token) {
-      authReq = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${this.encryptor.decrypt(token)}`
-        }
-      });
+     const skipUrls = [
+      '/DMTSenderinfo',
+      '/DMTKYCProcess',
+      '/DMTSendOTP',
+      '/DMTAddSender',
+      '/HAddBene',
+      '/HBeneInfo'
+    ];
+
+    let userid = '';
+    let username = '';
+
+    try {
+      userid = String(this.encryptor.decrypt(localStorage.getItem('userid') || '') || '');
+      username = String(this.encryptor.decrypt(localStorage.getItem('username') || '') || '');
+    } catch (e) {
+      userid = '';
+      username = '';
     }
 
-    return next.handle(authReq).pipe(
+    const modifiedReq = req.clone({
+      setHeaders: {
+        userid: userid || '',
+        username: username || ''
+      }
+    });
+
+    if (skipUrls.some(url => req.url.includes(url))) {
+      return next.handle(req);
+    }
+
+
+    return next.handle(modifiedReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        const isLoggedIn = !!localStorage.getItem('token');
+        
         if (error.status === 401) {
-          localStorage.clear(); 
+          localStorage.clear();
           this.router.navigate(['/login']);
         }
+
         return throwError(() => error);
       })
     );
