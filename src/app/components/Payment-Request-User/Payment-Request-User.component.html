@@ -89,71 +89,81 @@
     </div>
   </div>
 
-      <div class="table-responsive mt-4">
-        <table id="tblClientData" class="table table-bordered table-hover text-nowrap align-middle table-striped">
-          <thead>
-            <tr>
-              <th>Sr No</th>
-              <th>User Name</th>
-              <th>User Type</th>
-              <th>Bank Details</th>
-              <th>Amount</th>
-              <th>Txn Id</th>
-              <th>Deposite Mode</th>
-              <th>Txn Slip</th>
-              <th>Status</th>
-              <th>Admin Remarks</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="paginatedPayments.length === 0">
-              <td colspan="10" class="text-muted">No payment requests found.</td>
-            </tr>
-            <tr *ngFor="let payment of paginatedPayments; let i = index">
-              <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
-              <td>{{ payment.userName }}</td>
-              <td>{{ payment.userType }}</td>
-              <td>
-                <div>{{ payment.bankName }}</div>
-                <div>{{ payment.accountNo }}</div>
-              </td>
-              <td>₹ {{ payment.amount }}</td>
-              <td>{{ payment.txnId }}</td>
-              <td>{{ payment.depositeMode }}</td>
-              <td>
-                <button class="btn btn-outline-secondary btn-sm" (click)="downloadTxnSlip(payment)">
-                  <i class="bi bi-download"></i>
-                </button>
-              </td>
-              <td>
-                <span [class.text-success]="payment.status=='Approved'" [class.text-danger]="payment.status=='Rejected'" [class.text-warning]="payment.status=='Pending'">
-                    {{ payment.status }}
-                  </span>
-                </td>
-              <td>{{ payment.adminRemarks }}</td>
-            </tr>
-          </tbody>
-        </table>
+  <div class="table-responsive mt-4">
+    <table id="tblClientData" class="table table-bordered table-hover text-nowrap align-middle table-striped">
+      <thead>
+        <tr>
+          <th>Sr No</th>
+          <th>Opening Balance</th>
+          <th>Amount</th>
+          <th>Closing Balance</th>
+          <th>Bank Details</th>
+          <th>Txn Id</th>
+          <th>Deposite Mode</th>
+          <th>Txn Slip</th>
+          <th>Status</th>
+          <th>Admin Remarks</th>
+          <th>Remarks</th>
+          <th>Requested Date</th>
+          <th>Approved Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="paginatedPayments.length === 0">
+          <td colspan="13" class="text-muted">No payment requests found.</td>
+        </tr>
+        <tr *ngFor="let payment of paginatedPayments; let i = index" (click)="selectRow(i)"
+            [ngClass]="{'selected-row': i === selectedRowIndex}" style="cursor: pointer;">
+          <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
+          <td>₹ {{ payment.openingBalance }}</td>
+          <td>₹ {{ payment.amount }}</td>
+          <td>₹ {{ payment.closingBalance }}</td>
+          <td>
+            <div>{{ payment.bankName }}</div>
+            <div>{{ payment.accountNo }}</div>
+          </td>
 
-        <!-- Pagination -->
-        <nav *ngIf="totalPages > 1" class="mt-2">
-          <ul class="pagination justify-content-end">
-            <li class="page-item" [class.disabled]="currentPage === 1">
-              <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
-            </li>
-            <ng-container *ngFor="let page of visiblePages">
-              <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
-                <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-              </li>
-              <li class="page-item disabled" *ngIf="page === null">
-                <span class="page-link">...</span>
-              </li>
-            </ng-container>
-            <li class="page-item" [class.disabled]="currentPage === totalPages">
-              <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-   
+          <td>{{ payment.paymentTxnId }}</td>
+          <td>{{ payment.depositeMode }}</td>
+          <td>
+            <a *ngIf="payment?.txnSlipPath?.trim()" class="btn btn-outline-secondary btn-sm"
+              [href]="'https://api.instantpayment.co.in/' + (payment?.txnSlipPath || '').trim()" target="_blank">
+              <i class="bi bi-download"></i>
+            </a>
+          </td>
+          <td>
+            <span [class.text-success]="payment.status=='Approved'" [class.text-danger]="payment.status=='Rejected'"
+              [class.text-warning]="payment.status=='Pending'">
+              {{ payment.status }}
+            </span>
+          </td>
+          <td>{{ payment.adminRemarks }}</td>
+          <td>{{ payment.userRemarks }}</td>
+          <td>{{ payment.txnDate }}</td>
+          <td>{{ payment.txnApprovedDate }}</td>
+        </tr>
+      </tbody>
+    </table>
 
+    
+  </div>
+
+  <!-- Pagination -->
+    <nav *ngIf="totalPages > 1" class="mt-2">
+      <ul class="pagination justify-content-end">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+        </li>
+        <ng-container *ngFor="let page of visiblePages">
+          <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+          </li>
+          <li class="page-item disabled" *ngIf="page === null">
+            <span class="page-link">...</span>
+          </li>
+        </ng-container>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+        </li>
+      </ul>
+    </nav>

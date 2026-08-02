@@ -1,8 +1,8 @@
 {
   "/api": {
     "target": "https://instantpayment.co.in",
-    "secure": false,
+    "secure": true,
     "changeOrigin": true,
-    "logLevel": "debug"
+    "logLevel": "error"
   }
 }

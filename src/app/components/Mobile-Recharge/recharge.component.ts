@@ -214,11 +214,19 @@ export class RechargeComponent {
       this.isLoadingPlans = true;
       this.masterService.PlanForMobile(payload).subscribe({
         next: (res) => {
-          if (res?.status === 1) {
-            this.mobilePlans = res.records;
-            this.showMobilePlans = true;
-            this.isMobilePlanVisible = true;
-            this.isLoading = false;
+          if (res?.code === 200) {
+            this.mobilePlans = res.data.data.records;
+            if (res.data.data.records == undefined) {
+              this.mobilePlans = [];
+              this.showMobilePlans = false;
+              this.isMobilePlanVisible = false;
+              this.isLoading = false;
+            }
+            else {
+              this.showMobilePlans = true;
+              this.isMobilePlanVisible = true;
+              this.isLoading = false;
+            }
           } else {
             this.mobilePlans = [];
             this.isLoading = false;
@@ -344,7 +352,7 @@ export class RechargeComponent {
       TxnPin: this.txnPin,
       Type: this.selectedTab() === 'PREPAID' ? 'BLL2' : 'DTH2',
       CustomerRefNo: this.generateCustomerRefNo(),
-      optional:""
+      optional: ""
     };
 
     this.rechargeService.submitRecharge({ payload }).subscribe({

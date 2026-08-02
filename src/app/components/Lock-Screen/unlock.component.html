@@ -26,17 +26,17 @@
 
       <div *ngIf="mode === 'mpin'" class="mpin-input-container">
         <input type="password" maxlength="1" pattern="\d*" inputmode="numeric" [(ngModel)]="digits[0]"
-          (input)="onDigitInput($event, 0)" (keydown)="onKeyDown($event, 0)" #box0 />
+          (input)="onDigitInput($event, 0)" (keydown)="onKeyDown($event, 0)" autocomplete="off" #box0 />
         <input type="password" maxlength="1" pattern="\d*" inputmode="numeric" [(ngModel)]="digits[1]"
-          (input)="onDigitInput($event, 1)" (keydown)="onKeyDown($event, 1)" #box1 />
+          (input)="onDigitInput($event, 1)" (keydown)="onKeyDown($event, 1)" autocomplete="off" #box1 />
         <input type="password" maxlength="1" pattern="\d*" inputmode="numeric" [(ngModel)]="digits[2]"
-          (input)="onDigitInput($event, 2)" (keydown)="onKeyDown($event, 2)" #box2 />
+          (input)="onDigitInput($event, 2)" (keydown)="onKeyDown($event, 2)" autocomplete="off" #box2 />
         <input type="password" maxlength="1" pattern="\d*" inputmode="numeric" [(ngModel)]="digits[3]"
-          (input)="onDigitInput($event, 3)" (keydown)="onKeyDown($event, 3)" #box3 />
+          (input)="onDigitInput($event, 3)" (keydown)="onKeyDown($event, 3)" autocomplete="off" #box3 />
       </div>
 
       <input *ngIf="mode === 'password'" id="passwordInput" type="password" [(ngModel)]="value"
-        placeholder="Enter Password" class="unlock-input" />
+        placeholder="Enter Password" class="unlock-input" autocomplete="off" />
 
       <button (click)="unlock()" [disabled]="isLoading" class="btn unlock-btn">
         Unlock

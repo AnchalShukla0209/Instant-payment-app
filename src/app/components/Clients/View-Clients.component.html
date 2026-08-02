@@ -62,6 +62,8 @@
 
                   <!-- Right side (buttons) -->
                   <div class="d-flex gap-2">
+                    <input type="text" style="width: 46% !important;" [(ngModel)]="searchKeyword" class="form-control"
+                      (input)="onSearchChange()" placeholder="Type a keyword..." />
                     <button class="btn btn-sm btn-primary" (click)="getTotalBalance()">
                       <i class="bi bi-calculator"></i> Click To Know Total
                     </button>
@@ -74,10 +76,7 @@
 
                 <div class="card-body">
                   <div class="row align-items-end g-2">
-                    <div class="col-md-2">
-                      <input type="text" [(ngModel)]="searchKeyword" class="form-control mb-3" (input)="applyFilter()"
-                        placeholder="Type a keyword..." />
-                    </div>
+
 
                     <div class="col-md-12 table-responsive">
                       <table id="tblClientData" class="table table-bordered mb-4 text-center table-hover">
@@ -89,24 +88,34 @@
                             <th>Domain</th>
                             <th>City</th>
                             <th>Balance</th>
+                            <th>Pay</th>
+                            <th>Downline</th>
                             <th>Status</th>
                             <th>View</th>
                             <th>Edit</th>
-                            <th>Downline</th>
-                            <th>Pay</th>
+                            
+
                           </tr>
                         </thead>
                         <tbody>
                           <tr *ngIf="paginatedUsers.length === 0">
                             <td colspan="11" class="text-center text-muted">No Record Found</td>
                           </tr>
-                          <tr *ngFor="let user of paginatedUsers">
+                          <tr *ngFor="let user of paginatedUsers; let i = index" (click)="selectRow(i)"
+                            [ngClass]="{'selected-row': i === selectedRowIndex}" style="cursor: pointer;">
                             <td>{{ user.UserName }}</td>
                             <td>{{ user.EmailId }}</td>
                             <td>{{ user.CompanyName }}</td>
                             <td>{{ user.Domain }}</td>
                             <td>{{ user.City }}</td>
                             <td>{{ user.MainBalance }}</td>
+                            <td style="cursor: pointer !important;">
+                              <button class="btn btn-sm btn-outline-primary" type="button" (click)="PayClient(user.Id)">
+                                <i class="bi bi-currency-rupee"></i> Pay
+                              </button>
+                            </td>
+                            <td style="cursor: pointer !important;"><i class="bi bi-people-fill"
+                                (click)="viewClientUser(user.Id)"></i></td>
                             <td>
                               <span class="badge bg-success">
                                 <i class="bi bi-check-circle"></i> {{ user.Status }}
@@ -115,13 +124,8 @@
                             <td style="cursor: pointer;"><i class="bi bi-eye" (click)="ViewClient(user.Id)"></i></td>
                             <td style="cursor: pointer !important;"><i class="bi bi-pencil-square"
                                 (click)="editClient(user.Id)"></i></td>
-                            <td style="cursor: pointer !important;"><i class="bi bi-people-fill"
-                                (click)="viewClientUser(user.Id)"></i></td>
-                            <td style="cursor: pointer !important;">
-                              <button class="btn btn-sm btn-outline-primary" type="button" (click)="PayClient(user.Id)">
-                                <i class="bi bi-currency-rupee"></i> Pay
-                              </button>
-                            </td>
+
+
                           </tr>
                         </tbody>
                       </table>
@@ -221,7 +225,7 @@
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-lock me-2 icon-label"></i>Password</label>
-              <input type="password" class="form-control" formControlName="Password" />
+              <input type="password" class="form-control" formControlName="Password" autocomplete="off" />
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-globe me-2 icon-label"></i>Domain Name</label>
@@ -1175,7 +1179,7 @@
               <i class="bi bi-key form-icon icon-label"></i> <label>Txn Pin</label>
               <input type="password" maxlength="4" pattern="^[0-9]{4}$"
                 oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control"
-                [(ngModel)]="walletTxn.txnPin" name="txnPin" required />
+                [(ngModel)]="walletTxn.txnPin" name="txnPin" required autocomplete="off" />
             </div>
           </div>
         </form>

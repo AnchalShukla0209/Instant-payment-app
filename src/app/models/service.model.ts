@@ -3,6 +3,7 @@ export interface ServiceDto {
   serviceName: string;
   servicePath: string;
   isActive: boolean;
+  isActiveOnApk: boolean;
 }
 
 export interface PagedResult<T> {

@@ -23,37 +23,33 @@ export class AppComponent {
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe((event: any) => {
-        if (event.urlAfterRedirects.includes('/login')) {
-          console.log('[AppComponent] On login page → stop idleService');
+        if (event.urlAfterRedirects.includes('/login') || event.urlAfterRedirects.includes('/reset-password')) {
+          
           this.idleService.stop();
           this.showUnlock = false;
           this.warningSeconds = undefined;
         } else {
-          console.log('[AppComponent] On protected page → start idleService');
+          
           this.idleService.start();
         }
       });
 
     this.idleService.locked$.subscribe(() => {
-      if (this.router.url.includes('/login')) {
-        console.log('[AppComponent] Skipped for Login');
+      if (this.router.url.includes('/login') || this.router.url.includes('/reset-password')) {
         return;
       }
-      console.log('[AppComponent] Popup opened');
       this.showUnlock = true;
       this.warningSeconds = undefined;
     });
 
     this.idleService.warning$.subscribe((sec) => {
-      console.log('[AppComponent] Warning seonds start' + sec);
-      if (!this.showUnlock && !this.router.url.includes('/login')) {
+      if (!this.showUnlock && !this.router.url.includes('/login') && !this.router.url.includes('/reset-password')) {
         this.warningSeconds = sec;
       }
     });
   }
 
   onUnlocked() {
-    console.log('[AppComponent] onUnlocked called');
     this.showUnlock = false;
     this.warningSeconds = undefined;
     this.idleService.unlockDone();

@@ -4,9 +4,21 @@ export interface RechargePlan {
 }
 
 export interface RechargePlanResponse {
+  code: Number;
+  data: RecplanData
+}
+
+export interface RecplanData
+{
+  message: string;
+  data: Rcplan2;
+}
+
+export interface Rcplan2
+{
   tel: string;
   operator: string;
+  message: string;
   records: RechargePlan[];
   status: number;
-  time: number;
 }

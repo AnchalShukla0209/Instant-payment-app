@@ -22,8 +22,6 @@ export class IdleService {
     private warningRunning = false;
 
     constructor(private ngZone: NgZone) {
-        console.log('[IdleService] Constructor');
-
         const savedLast = localStorage.getItem('lastActivity');
         const wasLocked = localStorage.getItem('isLocked') === 'true';
         const now = Date.now();
@@ -36,10 +34,7 @@ export class IdleService {
         }
 
         const idleTime = now - this.lastActivity;
-        console.log('[IdleService] idleTime on load:', idleTime);
-
         if (wasLocked || idleTime >= this.IDLE_MS) {
-            console.log('[IdleService] Locking immediately on page load');
             this.isLocked = true;
             this.ngZone.run(() => {
                 setTimeout(() => this.locked$.next(), 0);
@@ -55,7 +50,6 @@ export class IdleService {
     }
 
     unlockDone() {
-        console.log('[IdleService] unlockDone called');
         this.isLocked = false;
         this.warningRunning = false;
         this.warningCountdown = undefined;
@@ -70,16 +64,12 @@ export class IdleService {
         const idleTime = now - this.lastActivity;
         const warnAt = this.IDLE_MS - this.WARNING_MS;
 
-        console.log('[IdleService] checkIdle: idleTime=', idleTime);
-
         if (idleTime >= warnAt && idleTime < this.IDLE_MS && !this.warningRunning) {
-            console.log('[IdleService] Starting warning countdown');
             this.warningRunning = true;
             this.startWarningCountdown(this.IDLE_MS - idleTime);
         }
 
         if (idleTime >= this.IDLE_MS) {
-            console.log('[IdleService] Locking due to inactivity');
             this.isLocked = true;
             this.warningRunning = false;
             this.warningCountdown = undefined;
@@ -106,9 +96,7 @@ export class IdleService {
     }
 
     public start() {
-        console.log('[IdleService] start called');
         this.stop(); // prevent duplicate subscriptions
-
         this.ngZone.runOutsideAngular(() => {
             const activity$ = merge(
                 fromEvent(document, 'mousemove'),
@@ -121,7 +109,6 @@ export class IdleService {
                 if (!this.isLocked) {
                     this.lastActivity = Date.now();
                     localStorage.setItem('lastActivity', this.lastActivity.toString());
-                    console.log('[IdleService] Activity detected, lastActivity updated');
                 }
             });
         });
@@ -132,7 +119,6 @@ export class IdleService {
     }
 
     public stop() {
-        console.log('[IdleService] stop called');
         this.activitySub?.unsubscribe();
         this.checkSub?.unsubscribe();
     }

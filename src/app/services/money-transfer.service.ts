@@ -2,12 +2,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MoneyTransferService {
   private baseUrl = 'https://instantpayment.co.in/api';
+  private ppiBaseUrl = 'https://api.instantpayment.co.in/api/PPI';
   //private baseUrl = '/api';
 
 
@@ -23,11 +25,11 @@ export class MoneyTransferService {
     });
   }
 
-  getTRAMOSenderInfo(senderMobile: string, sessionKey: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/CheckSender`, {
-      SessionKey: sessionKey,
-      APIKey: "CheckSender001",
-      SenderMobile: senderMobile
+  getTRAMOSenderInfo(userId: string, senderMobile: string): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Sender/login`, {
+      userId: userId,
+      apiKey: "CheckSender001",
+      senderMobile: senderMobile
     });
   }
 
@@ -128,6 +130,14 @@ export class MoneyTransferService {
     return this.http.post(`${this.baseUrl}/HDeleteBene`, payload);
   }
 
+  PPIDeleteBeneficiary(payload: any): Observable<any> {
+    return this.http.post(`${this.ppiBaseUrl}/PPIBeneficiary/DeleteGetOtp`, payload);
+  }
+
+  PPIFinalDeleteBeneficiary(payload: any): Observable<any> {
+    return this.http.post(`${this.ppiBaseUrl}/PPIBeneficiary/DeleteVerifyOtp`, payload);
+  }
+
   getBankList(payload: any): Observable<any> {
 
     return this.http.post(`${this.baseUrl}/GetBank`, payload);
@@ -149,24 +159,24 @@ export class MoneyTransferService {
     });
   }
 
-  registerTramoSender(senderMobile: string, firstName: string, lastName: string, address: string, pincode: string, sessionKey: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/SenderRegistraion`, {
-      SessionKey: sessionKey,
-      APIKey: "SenderReg001",
-      SenderMobile: senderMobile,
-      FirstName: firstName,
-      LastName: lastName,
-      Address: address,
-      Pincode: pincode
+  registerTramoSender(userId: string, senderMobile: string, firstName: string, lastName: string, address: string, pincode: string): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Sender/registration`, {
+      userId: userId,
+      apiKey: "SenderReg001",
+      senderMobile: senderMobile,
+      firstName: firstName,
+      lastName: lastName,
+      address: address,
+      pincode: pincode
     });
   }
 
-  validateTramoSenderOtp(senderMobile: string, otp: string, state: string, sessionKey: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/SenderValidateOTP`, {
-      SessionKey: sessionKey,
-      APIKey: "SenderValidate001",
-      SenderMobile: senderMobile,
-      OTP: otp,
+  validateTramoSenderOtp(userId: string, senderMobile: string, otp: string, state: string): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Sender/ekyc`, {
+      userId: userId,
+      apiKey: "SenderValidate001",
+      senderMobile: senderMobile,
+      otp: otp,
       state: state
     });
   }
@@ -198,83 +208,139 @@ export class MoneyTransferService {
     return this.http.post(`${this.baseUrl}/MoneyTransfer`, request);
   }
 
-  checkPPISender(SessionKey: string, senderMobile: string, pincode: string, rtName: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/PPIsenderCheck`, {
-      SessionKey: SessionKey,
-      SenderMobile: senderMobile,
-      APIKey: "PPI01",
-      Pincode: pincode,
-      RTName: rtName
+  CastleMoneyTransfer(request: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/MoneyTransfer`, request);
+  }
+
+  checkPPISender(userId: string, senderMobile: string, pincode: string, rtName: string): Observable<any> {
+    return this.http.post(`${this.ppiBaseUrl}/PPIOtp/GenerateOtp`, {
+      userId: userId,
+      senderMobile: senderMobile,
+      apiKey: "PPI01",
+      pincode: pincode,
+      rtName: rtName
     });
   }
 
-  validatePPIOtp(SessionKey: string, otpToken: string, otp: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/PPIValidateOTP`, {
-      SessionKey: SessionKey,
-      OTPToken: otpToken,
-      APIKey: "PPI01",
-      OTP: otp
+  validatePPIOtp(userId: string, otpToken: string, otp: string): Observable<any> {
+    return this.http.post(`${this.ppiBaseUrl}/PPIOtp/VerifyOtp`, {
+      userId: userId,
+      otpToken: otpToken,
+      apiKey: "PPI01",
+      otp: otp
     });
   }
 
-  getPPIBeneficiaries(SessionKey: string, senderMobile: string, tokeyKey: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/PPIBeneList`, {
-      SessionKey: SessionKey,
-      SenderMobile: senderMobile,
-      APIKey: "PPI01",
-      TokeyKey: tokeyKey
+  getPPIBeneficiaries(userId: string, senderMobile: string, tokeyKey: string): Observable<any> {
+    return this.http.post(`${this.ppiBaseUrl}/PPIBeneficiary/GetBeneficiaryList`, {
+      userId: userId,
+      senderMobile: senderMobile,
+      apiKey: "PPI01",
+      tokeyKey: tokeyKey
     });
   }
 
   PPISendAadharOTP(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/PPISendAadharOTP`, payload);
+    return this.http.post(`${this.ppiBaseUrl}/PPIAadhar/GenerateAadharOtp`, payload);
   }
 
   PPIValidateAadharOTP(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/PPIValidateAadharOTP`, payload);
+    return this.http.post(`${this.ppiBaseUrl}/PPIAadhar/ValidateAadharOtp`, payload);
   }
 
   PPIValidateAadharBiometric(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/PPIValidateAadharBiometric`, payload);
+    return this.http.post(`${this.ppiBaseUrl}/PPIAadhar/AadharBiometric`, payload);
   }
 
   PPIValidatePan(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/PPIValidatePan`, payload);
+    return this.http.post(`${this.ppiBaseUrl}/PPIAadhar/ValidatePan`, payload);
   }
 
   PPIAddBeneficiary(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/PPIAddBene`, payload);
+    return this.http.post<any>(`${this.ppiBaseUrl}/PPIBeneficiary/AddBeneficiary`, payload);
+  }
+
+  PPIAddBeneficiaryResendOTP(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.ppiBaseUrl}/PPIBeneficiary/ResendOtp`, payload);
+  }
+
+  PPIAddBeneficiaryValidateOTP(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.ppiBaseUrl}/PPIBeneficiary/ValidateOtp`, payload);
   }
 
 
-  PPISendPaymentOTP(
-    sessionKey: string,
-    apiKey: string,
-    tokeyKey: string,
-    senderMobile: string,
-    beneId: string,
-    amount: string,
-    accountNo: string,
-    ifscCode: string
-  ): Observable<any> {
-    const payload = {
-      SessionKey: sessionKey,
-      APIKey: apiKey,
-      TokeyKey: tokeyKey,
-      SenderMobile: senderMobile,
-      BeneId: beneId,
-      Amount: amount,
-      AccountNo: accountNo,
-      Ifsccode: ifscCode
-    };
-
-    return this.http.post<any>(`${this.baseUrl}/PPISendPaymentOTP`, payload);
+  PPISendPaymentOTP(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.ppiBaseUrl}/PPIFundTransfer/GetOtp`, payload);
   }
 
   PPIMoneyTransfer(payload: any) {
-    return this.http.post<any>(`${this.baseUrl}/PPIMoneyTransfer`, payload);
+    return this.http.post<any>(`${this.ppiBaseUrl}/PPIMoneyTransfer/Transfer`, payload);
   }
 
+  CastelMoneyTransfer(payload:any)
+  {
+    return this.http.post<any>(`${environment.apiBaseUrl}/MoneyTransfer/transfer`, payload);
+  }
 
+  CheckStatusCastelMoneyTransfer(txnId:string)
+  {
+    return this.http.get<any>(`${environment.apiBaseUrl}/MoneyTransfer/status/${txnId}`);
+  }
 
+  NifiMoneyTransfer(payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/MoneyTransfer/nifi/transfer`, payload);
+  }
+
+  CheckStatusNifiMoneyTransfer(txnId: string) {
+    return this.http.get<any>(`${environment.apiBaseUrl}/MoneyTransfer/nifi/status/${txnId}`);
+  }
+
+  FZPMoneyTransfer(payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/MoneyTransfer/fzp/transfer`, payload);
+  }
+
+  CheckStatusFZPMoneyTransfer(txnId: string) {
+    return this.http.get<any>(`${environment.apiBaseUrl}/MoneyTransfer/fzp/status/${txnId}`);
+  }
+
+  ARPMoneyTransfer(payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/MoneyTransfer/arp/transfer`, payload);
+  }
+
+  CheckStatusARPMoneyTransfer(txnId: string) {
+    return this.http.get<any>(`${environment.apiBaseUrl}/MoneyTransfer/arp/status/${txnId}`);
+  }
+
+  RKITMoneyTransfer(payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/MoneyTransfer/rkit/transfer`, payload);
+  }
+
+  CheckStatusRKITMoneyTransfer(txnId: string) {
+    return this.http.get<any>(`${environment.apiBaseUrl}/MoneyTransfer/rkit/status/${txnId}`);
+  }
+
+  // New Beneficiary APIs
+  SaveBeneficiary(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Beneficiary/Save`, payload);
+  }
+
+  GetBeneficiaryList(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Beneficiary/GetBeneficiaryList`, payload);
+  }
+
+  SendBeneficiaryOtp(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Beneficiary/SendOtp`, payload);
+  }
+
+  ResendBeneficiaryOtp(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Beneficiary/ResendOtp`, payload);
+  }
+
+  DeleteBeneficiaryWithOtp(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Beneficiary/Delete`, payload);
+  }
+
+  PPILoadWallet(payload: any): Observable<any> {
+    return this.http.post(`${this.ppiBaseUrl}/PPIWallet/LoadWallet`, payload);
+  }
 }

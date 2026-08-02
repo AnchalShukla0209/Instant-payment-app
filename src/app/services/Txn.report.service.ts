@@ -27,8 +27,8 @@ getTxnReport(payload: TxnReportPayload): Observable<PaginatedTxnResultDto> {
   );
 }
 
-  getTxnSuccessDetails(transId: number): Observable<any> {
-    return this.http.post<any>(`${environment.apiBaseUrl}/Report/Get-TxnDetails`, { TxnId: transId });
+  getTxnSuccessDetails(transId: number, servicename: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/Report/Get-TxnDetails`, { TxnId: transId, ServiceName: servicename });
   }
 
   getUpdateTxnStatus(payload: any): Observable<any> {

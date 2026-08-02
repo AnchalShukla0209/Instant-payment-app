@@ -31,7 +31,10 @@ export class ClientUserDetailComponent implements OnInit {
     txnPin: '',
     amount: null,
     userId: 0,
-    actionById: 0
+    actionById: 0,
+    userName: '',
+    PhoneNo: '',
+    txnRemarks: ''
   };
 
   modalRef!: NgbModalRef;
@@ -51,6 +54,7 @@ export class ClientUserDetailComponent implements OnInit {
   ErrorMessage: string = '';
   IsSuccessful: string = '';
   ErrorMessages: string = '';
+  selectedRowIndex: number | null = null;
   model: any = {
 
     CompanyName: '',
@@ -141,8 +145,9 @@ export class ClientUserDetailComponent implements OnInit {
   totalRecords = 0;
   totalPages = 0;
   currentPage = 1;
-  pageSize = 7;
+  pageSize = 10;
   visiblePages: (number | null)[] = [];
+  name: string = '';
 
   @ViewChild('clientModel', { static: true }) clientModal!: TemplateRef<any>;
   @ViewChild('ViewclientDetailsModel', { static: true }) ViewclientDetailsModel!: TemplateRef<any>;
@@ -250,6 +255,10 @@ export class ClientUserDetailComponent implements OnInit {
       });
   }
 
+  selectRow(index: number): void {
+    this.selectedRowIndex = index;
+  }
+
   get uploadDocsForm() {
     return this.clientForm.get('uploadDocs') as FormGroup;
   }
@@ -268,13 +277,13 @@ export class ClientUserDetailComponent implements OnInit {
       toDate: this.toDate,
       pageIndex,
       pageSize,
-      ClientId: this.MainclientId
+      ClientId: this.MainclientId,
+      commonsearch: this.searchKeyword
     };
-
 
     this._clientservice.getClientUserReport(payload).subscribe({
       next: (res: any) => {
-        debugger
+        
         this.users = res.Users || [];
         this.totalRecords = res.TotalRecords || 0;
         this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
@@ -327,16 +336,8 @@ export class ClientUserDetailComponent implements OnInit {
   applyFilter(): void {
     this.isLoading = true;
     const keyword = this.searchKeyword.toLowerCase();
-    this.paginatedUsers = this.users.filter(user =>
-      user.UserName?.toLowerCase().includes(keyword) ||
-      user.CompanyName?.toLowerCase().includes(keyword) ||
-      user.Domain?.toLowerCase().includes(keyword) ||
-      user.City?.toLowerCase().includes(keyword) ||
-      user.Status?.toLowerCase().includes(keyword) ||
-      user.EmailId?.toLowerCase().includes(keyword)//||
-      //user.MainBalance.includes(keyword)
-
-    );
+    
+    this.paginatedUsers = this.users;
     this.isLoading = false;
   }
 
@@ -923,8 +924,10 @@ export class ClientUserDetailComponent implements OnInit {
   }
 
   //PayClient
-  PayClient(clientId: number): void {
+  PayClient(clientId: number, name: string, phoneno: string): void {
     this.walletTxn.userId = clientId;
+    this.walletTxn.userName = name;
+    this.walletTxn.PhoneNo = phoneno;
     this.modalRef = this.modalService.open(this.PayClientmodal, {
       size: 'md', backdrop: 'static', keyboard: false
     });
@@ -940,7 +943,7 @@ export class ClientUserDetailComponent implements OnInit {
   }
 
   submitWalletTxn() {
-    debugger
+    
     this.isLoading = true;
 
     if (!this.authServiceobj.getUserId() || !this.authServiceobj.getUserId()) {
@@ -961,12 +964,18 @@ export class ClientUserDetailComponent implements OnInit {
       this.isLoading = false;
       return;
     }
+    if (this.walletTxn.txnRemarks.trim() === "") {
+      this.toastr.error('Please Enter Txn Remarks', 'error');
+      this.isLoading = false;
+      return;
+    }
     const payload = {
       status: this.walletTxn.status,
       txnPin: this.walletTxn.txnPin,
       amount: Number(this.walletTxn.amount),
       userId: Number(this.walletTxn.userId),
-      actionById: Number(this.walletTxn.actionById)
+      actionById: Number(this.walletTxn.actionById),
+      remarks: this.walletTxn.txnRemarks
     };
 
     this.http.post<any>('https://api.instantpayment.co.in/api/ClientUser/wallet-transaction', payload).subscribe({
@@ -982,7 +991,10 @@ export class ClientUserDetailComponent implements OnInit {
             txnPin: '',
             amount: null,
             userId: 0,
-            actionById: 0
+            actionById: 0,
+            PhoneNo: '',
+            userName: '',
+            txnRemarks: ''
           };
 
           this.Username = response.username;
@@ -1033,21 +1045,29 @@ export class ClientUserDetailComponent implements OnInit {
 
   ResetPayPopup() {
 
-    this.walletTxn.status = '';
+    //this.walletTxn.status = '';
     this.walletTxn.txnPin = '';
     this.walletTxn.amount = null;
     this.walletTxn.userId = 0;
-    this.walletTxn.actionById = 0;
+    this.walletTxn.PhoneNo = '';
+    this.walletTxn.userName = '';
+    this.walletTxn.txnRemarks = '';
+    //this.walletTxn.actionById = 0;
 
   }
 
-downloadInvoice() {
-  this.isLoading = true;
-  const original = document.getElementById('invoiceContent')!;
+  onSearchChange() {
+    this.currentPage = 1;
+    this.loadClients(1, this.pageSize);
+  }
 
-  // 🔹 Inject temporary styles to avoid clipping
-  const style = document.createElement('style');
-  style.innerHTML = `
+  downloadInvoice() {
+    this.isLoading = true;
+    const original = document.getElementById('invoiceContent')!;
+
+    // 🔹 Inject temporary styles to avoid clipping
+    const style = document.createElement('style');
+    style.innerHTML = `
     #invoiceContent, .invoice, .modal-body {
       height: auto !important;
       max-height: none !important;
@@ -1060,21 +1080,21 @@ downloadInvoice() {
       page-break-before: always;
     }
   `;
-  document.head.appendChild(style);
+    document.head.appendChild(style);
 
-  html2pdf().set({
-    margin: 0.2,
-    filename: 'ClientPay_Invoice.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css','legacy'] }
-  }).from(original).save().finally(() => {
-    // 🔹 Remove temp styles after export
-    document.head.removeChild(style);
-    this.isLoading = false;
-  });
-}
+    html2pdf().set({
+      margin: 0.2,
+      filename: 'ClientPay_Invoice.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    }).from(original).save().finally(() => {
+      // 🔹 Remove temp styles after export
+      document.head.removeChild(style);
+      this.isLoading = false;
+    });
+  }
 
 
 

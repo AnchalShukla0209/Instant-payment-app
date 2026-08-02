@@ -42,10 +42,11 @@
             <!-- Txn ID -->
             <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
               <label class="form-label d-flex align-items-center fw-semibold">
-                <i class="bi bi-upc-scan me-2 icon-label"></i> Txn ID
+                <i class="bi bi-upc-scan me-2 icon-label"></i>Payment Txn ID
               </label>
               <input type="text" class="form-control" formControlName="txnId" placeholder="Enter Transaction ID" />
             </div>
+            
 
             <!-- Deposit Mode -->
             <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
@@ -66,6 +67,13 @@
                 <i class="bi bi-file-earmark-arrow-up me-2 icon-label"></i> Txn Slip
               </label>
               <input type="file" #txnFileInput  class="form-control" (change)="onFileChange($event)" accept=".jpg,.jpeg,.png" />
+            </div>
+
+             <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
+              <label class="form-label d-flex align-items-center fw-semibold">
+                <i class="bi bi-upc-scan me-2 icon-label"></i> Remarks
+              </label>
+              <input type="text" class="form-control" formControlName="userRemarks" placeholder="Enter Remarks" />
             </div>
 
             <!-- Buttons -->

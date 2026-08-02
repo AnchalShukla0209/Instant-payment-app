@@ -159,3 +159,14 @@ span
     font-size: 0.9rem;
   }
 }
+
+#tblClientData tbody tr.selected-row {
+  background-color: #97c8fb  !important; /* light blue */
+  --bs-table-bg: #97c8fb  !important;
+  font-weight: 500;
+}
+
+.selected-row {
+  background-color: #23f74d !important; /* light blue */
+  font-weight: 500;
+}

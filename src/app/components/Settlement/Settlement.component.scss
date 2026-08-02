@@ -1,0 +1,349 @@
+.page-header {
+  background: #5e2f82;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.page-header h4 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.page-header small {
+  opacity: 0.9;
+}
+
+.balance-card {
+  border-radius: 12px;
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.balance-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.aeps-card {
+  border-left: 5px solid #28a745;
+}
+
+.razorpay-card {
+  border-left: 5px solid #5e2f82;
+}
+
+.balance-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.aeps-icon {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.razorpay-icon {
+  background: rgba(0, 123, 255, 0.1);
+  color: #5e2f82;
+}
+
+.card-title {
+  font-weight: 700;
+  color: #333;
+}
+
+.card-subtitle {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.card {
+  border-radius: 12px;
+}
+
+.card-header {
+  border-radius: 12px 12px 0 0 !important;
+  font-weight: 600;
+}
+
+.bg-gradient-indigo {
+  background: linear-gradient(135deg, #5e2f82 0%, #6f42c1 100%);
+}
+
+.form-icon {
+  margin-right: 8px;
+  color: #5e2f82;
+}
+
+.icon-label {
+  font-weight: 500;
+}
+
+.btn-chandan {
+  background: #5e2f82;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-chandan:hover {
+  background: #6f42c1;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(94, 47, 130, 0.3);
+}
+
+.btn-default {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-default:hover {
+  background: #5a6268;
+  color: white;
+}
+
+.input-group-text {
+  background: #5e2f82;
+  color: white;
+  border: none;
+}
+
+.form-control:focus {
+  border-color: #5e2f82;
+  box-shadow: 0 0 0 0.2rem rgba(94, 47, 130, 0.25);
+}
+
+.btn-check:checked + .btn-outline-primary {
+  background-color: #5e2f82;
+  border-color: #5e2f82;
+  color: white;
+}
+
+.btn-outline-primary {
+  border-color: #5e2f82;
+  color: #5e2f82;
+}
+
+.btn-outline-primary:hover {
+  background-color: #5e2f82;
+  border-color: #5e2f82;
+  color: white;
+}
+
+.alert-info {
+  background: rgba(94, 47, 130, 0.1);
+  border-color: #5e2f82;
+  color: #5e2f82;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .balance-card {
+    margin-bottom: 15px;
+  }
+
+  .page-header {
+    padding: 10px;
+  }
+
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .btn-group .btn {
+    margin-bottom: 5px;
+  }
+}
+
+// Invoice Styles
+.invoice-wrapper {
+  font-family: 'Segoe UI', sans-serif;
+
+  .invoice {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background-color: #fff;
+  }
+
+  table {
+    width: 100%;
+
+    th {
+      color: #5e2f82 !important;
+      text-align: left;
+      width: 50%;
+      background-color: #f9f9f9 !important;
+      font-size: 13px !important;
+    }
+
+    td {
+      text-align: right;
+    }
+  }
+}
+
+.success-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .success-icon {
+    font-size: 3.5rem;
+    animation: blinkIcon 1s infinite;
+  }
+}
+
+@keyframes blinkIcon {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+.text-purple {
+  color: #5e2f82 !important;
+}
+
+.bg-purple {
+  background-color: #5e2f82 !important;
+}
+
+.modal-header {
+  background-color: #5e2f82;
+  color: #fff;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+// Withdrawal Modal Styles
+.withdrawal-wrapper {
+  .form-section {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+  }
+
+  .bank-form-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+
+    .form-label {
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+
+    .form-control {
+      border: 1px solid #ced4da;
+      transition: all 0.3s ease;
+
+      &:focus {
+        border-color: #5e2f82;
+        box-shadow: 0 0 0 0.2rem rgba(94, 47, 130, 0.15);
+      }
+    }
+  }
+
+  .input-group-lg {
+    .input-group-text {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .form-control {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+  }
+
+  .bg-purple {
+    background-color: #5e2f82 !important;
+  }
+
+  .alert {
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .btn-outline-success {
+    border-color: #28a745;
+    color: #28a745;
+
+    &:hover {
+      background-color: #28a745;
+      color: white;
+    }
+  }
+
+  .btn-outline-primary {
+    border-color: #5e2f82;
+    color: #5e2f82;
+
+    &:hover, &.active {
+      background-color: #5e2f82;
+      border-color: #5e2f82;
+      color: white;
+    }
+  }
+
+  .btn-check:checked + .btn-outline-primary {
+    background-color: #5e2f82;
+    border-color: #5e2f82;
+    color: white;
+  }
+}
+
+// ng-select customization
+::ng-deep .ng-select {
+  .ng-select-container {
+    border-color: #ced4da;
+    min-height: 38px;
+
+    &:hover {
+      border-color: #5e2f82;
+    }
+  }
+
+  &.ng-select-focused .ng-select-container {
+    border-color: #5e2f82;
+    box-shadow: 0 0 0 0.2rem rgba(94, 47, 130, 0.15);
+  }
+
+  .ng-option-marked {
+    background-color: rgba(94, 47, 130, 0.1) !important;
+  }
+
+  .ng-option-selected {
+    background-color: rgba(94, 47, 130, 0.15) !important;
+    color: #5e2f82;
+    font-weight: 600;
+  }
+}

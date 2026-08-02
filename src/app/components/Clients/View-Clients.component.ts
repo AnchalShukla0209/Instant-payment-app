@@ -50,6 +50,7 @@ export class ClientViewListComponent implements OnInit {
   ErrorMessage: string = '';
   IsSuccessful: string = '';
   ErrorMessages: string = '';
+  selectedRowIndex: number | null = null;
   model: any = {
     CompanyName: '',
     UserName: '',
@@ -250,13 +251,14 @@ export class ClientViewListComponent implements OnInit {
       toDate: this.toDate,
       pageIndex,
       pageSize,
-      ClientId: 0
+      ClientId: 0,
+      commonsearch: this.searchKeyword
     };
 
 
     this._clientservice.getClientReport(payload).subscribe({
       next: (res: any) => {
-        debugger
+        
         this.users = res.Users || [];
         this.totalRecords = res.TotalRecords || 0;
         this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
@@ -301,6 +303,11 @@ export class ClientViewListComponent implements OnInit {
     this.visiblePages = pages;
   }
 
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.loadClients(1, this.pageSize);
+  }
+
   applyFilter(): void {
     this.isLoading = true;
     const keyword = this.searchKeyword.toLowerCase();
@@ -320,6 +327,10 @@ export class ClientViewListComponent implements OnInit {
   changePage(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.loadClients(page, this.pageSize);
+  }
+
+  selectRow(index: number): void {
+    this.selectedRowIndex = index;
   }
 
   getTotalBalance(): void {
@@ -887,7 +898,7 @@ export class ClientViewListComponent implements OnInit {
   }
 
   submitWalletTxn() {
-    debugger
+    
     this.isLoading = true;
 
     if (!this.authServiceobj.getUserId() || !this.authServiceobj.getUserId()) {
@@ -991,7 +1002,7 @@ export class ClientViewListComponent implements OnInit {
     const url = this.router.serializeUrl(
       this.router.createUrlTree(['/ClientUsersReport', clientId])
     );
-    window.open(url, '_blank');
+    window.location.href = url; 
   }
 
   downloadInvoice() {

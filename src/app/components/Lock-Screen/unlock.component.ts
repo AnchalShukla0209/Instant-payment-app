@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { EncryptionService } from '../../encryption/encryption.service';
+import { NgbModal, NgbTypeaheadModule, NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-unlock',
@@ -23,7 +25,7 @@ export class unlockComponent {
   digits: string[] = ['', '', '', ''];
   showConfirmation = false;
 
-  constructor(public auth: AuthService, private _encrypt: EncryptionService) { }
+  constructor(public auth: AuthService, private _encrypt: EncryptionService, private toastr: ToastrService) { }
 
   ngOnInit() {
     this.username = this.auth.getUsername();
@@ -112,9 +114,17 @@ export class unlockComponent {
           this.error = 'Unexpected server response';
         }
       },
-      error: () => {
+      error: (err) => {
         this.isLoading = false;
-        this.error = 'Invalid credentials';
+        if (err?.status === 423) {
+          this.toastr.error('Account is locked. Please contact support.');
+        } else if (err?.status === 429) {
+          this.toastr.error('Too many attempts. Please try again later.');
+        } else if (err?.status === 222) {
+          this.toastr.error('Invalid credentials');
+        } else {
+          this.toastr.error('Invalid credentials');
+        }
       }
     });
   }

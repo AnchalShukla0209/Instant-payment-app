@@ -1,0 +1,38 @@
+<div class="ep-page" *ngIf="config">
+
+  <div class="ep-card">
+
+    <div class="ep-icon-ring" [ngClass]="'ep-icon-ring--' + config.colorClass">
+      <i class="bi" [ngClass]="config.icon"></i>
+    </div>
+
+    <div class="ep-code" [ngClass]="'ep-code--' + config.colorClass">{{ config.code }}</div>
+
+    <h1 class="ep-title">{{ config.title }}</h1>
+    <p class="ep-desc">{{ config.description }}</p>
+
+    <div class="ep-dots" *ngIf="showPulseDots">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div class="ep-actions">
+      <button
+        class="ep-btn-primary"
+        [ngClass]="'ep-btn-primary--' + config.colorClass"
+        (click)="handlePrimary()">
+        <i class="bi me-2"
+           [ngClass]="config.primaryAction.action === 'retry' ? 'bi-arrow-clockwise' : config.primaryAction.action === 'login' ? 'bi-box-arrow-in-right' : 'bi-house-door-fill'">
+        </i>
+        {{ config.primaryAction.label }}
+      </button>
+
+      <button class="ep-btn-back" *ngIf="config.showBack" (click)="goBack()">
+        <i class="bi bi-arrow-left me-2"></i>Go Back
+      </button>
+    </div>
+
+    <p class="ep-ref">Error {{ config.code }} &bull; Instant Payment</p>
+
+  </div>
+
+</div>

@@ -1,4 +1,4 @@
-<div>
+<div class=" ">
   <app-loader *ngIf="isLoading"></app-loader>
   <div class="row">
     <div class="col-md-12">
@@ -8,21 +8,21 @@
         </div>
         <div class="card-body">
           <form [formGroup]="txnForm" class="row g-2 align-items-end">
-            <div class="col-md-3">
+            <div class="col-md-2">
               <label class="form-label fw-semibold"><i class="bi bi-phone form-icon icon-label"></i>Service Type</label>
               <select class="form-select" formControlName="serviceType" (change)="onServiceChange()">
-               
+
                 <option *ngFor="let s of services" [value]="s">{{ s }}</option>
               </select>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-2">
               <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>From
                 Date</label>
               <input type="date" class="form-control" formControlName="dateFrom" />
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-2">
               <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>To
                 Date</label>
               <input type="date" class="form-control" formControlName="dateTo" />
@@ -30,87 +30,98 @@
 
             <div class="col-md-3">
               <label class="form-label fw-semibold"><i class="bi bi-person form-icon icon-label"></i>Select User</label>
-              <select class="form-select" formControlName="userId">
-                <option value="0">--Select--</option>
-                <option *ngFor="let user of users" [value]="user.value">{{ user.label }}</option>
-              </select>
+              <ng-select [items]="users" bindLabel="label" bindValue="value" placeholder="Select User"
+                formControlName="userId" [searchable]="true">
+              </ng-select>
+
             </div>
 
-            <div class="col-md-3">
-              <label class="form-label fw-semibold"><i class="bi bi-check-circle-fill text-success icon-label"></i>Status</label>
+            <div class="col-md-2">
+              <label class="form-label fw-semibold"><i
+                  class="bi bi-check-circle-fill text-success icon-label"></i>Status</label>
               <select class="form-control" formControlName="status">
                 <option value="">All</option>
                 <option value="Success">Success</option>
                 <option value="Pending">Pending</option>
                 <option value="Failed">Failed</option>
+                <option value="INIT">Initiated</option>
               </select>
             </div>
 
-            <!-- Buttons -->
-          <div class="col-md-3 d-flex gap-2 align-items-end">
-            <!-- Search -->
-            <button class="btn btn-primary btn-sm d-flex justify-content-center align-items-center" type="button" (click)="onSearch()">
-              <i class="bi bi-search me-1"></i> Search
-            </button>
-
-            <!-- Reset -->
-            <button class="btn btn-danger btn-sm d-flex justify-content-center align-items-center" type="button" (click)="onReset()">
-              <i class="bi bi-x-circle me-1"></i> Reset
-            </button>
-
-            <!-- Export -->
-            <div class="dropdown w-100">
-              <button class="btn btn-success btn-sm dropdown-toggle d-flex justify-content-center align-items-center" type="button" data-bs-toggle="dropdown">
-                Export
+            <div class="col-md-1 d-flex gap-2 align-items-end">
+              <button class="btn btn-primary d-flex justify-content-center align-items-center" type="button"
+                (click)="onSearch()">
+                <i class="bi bi-search me-1"></i> Search
               </button>
-              <ul class="dropdown-menu w-100">
-                <li><a class="dropdown-item" (click)="export('pdf')">Export as PDF</a></li>
-                <li><a class="dropdown-item" (click)="export('xls')">Export as XLS</a></li>
-                <li><a class="dropdown-item" (click)="export('xlsx')">Export as XLSX</a></li>
-                <li><a class="dropdown-item" (click)="export('doc')">Export as DOC</a></li>
-              </ul>
             </div>
-          </div>
+
+
+            <!-- Buttons -->
+            <div class="col-md-3 d-flex gap-2 align-items-end">
+              <!-- Search -->
+
+
+              <!-- Reset -->
+              <!-- <button class="btn btn-danger btn-sm d-flex justify-content-center align-items-center" type="button"
+                (click)="onReset()">
+                <i class="bi bi-x-circle me-1"></i> Reset
+              </button> -->
+
+              <!-- Export -->
+              <!-- <div class="dropdown w-100">
+                <button class="btn btn-success btn-sm dropdown-toggle d-flex justify-content-center align-items-center"
+                  type="button" data-bs-toggle="dropdown">
+                  Export
+                </button>
+                <ul class="dropdown-menu w-100">
+                  <li><a class="dropdown-item" (click)="export('pdf')">Export as PDF</a></li>
+                  <li><a class="dropdown-item" (click)="export('xls')">Export as XLS</a></li>
+                  <li><a class="dropdown-item" (click)="export('xlsx')">Export as XLSX</a></li>
+                  <li><a class="dropdown-item" (click)="export('doc')">Export as DOC</a></li>
+                </ul>
+              </div> -->
+            </div>
 
           </form>
         </div>
       </div>
     </div>
   </div>
- 
-<div class="row align-items-center mb-4 mt-3">
-  <!-- Search box -->
-  <div class="col-md-3">
-    <input type="text"
-           [(ngModel)]="searchKeyword"
-           class="form-control shadow-sm"
-           (input)="applyFilter()"
-           placeholder="Search transactions..." />
-  </div>
 
-  <!-- Spacer -->
-  <div class="col-md-3"></div>
+  <div class="row align-items-center mb-4 mt-3">
+    <!-- Search box -->
+    <div class="col-md-3">
+      <input type="text" [(ngModel)]="commonSearch" class="form-control shadow-sm" (input)="onSearchChange()"
+        placeholder="Search transactions..." />
+    </div>
 
-  <!-- Reporting Summary -->
-  <div class="col-md-6">
-    <div class="d-flex justify-content-end">
-      <div class="border rounded px-4 py-1 shadow-sm bg-light w-100 text-end">
-        <span class="fw-semibold text-secondary me-4">
-          No. of Transactions: <span class="text-dark">{{ totalRecords }}</span>
-        </span>
-        <span class="fw-semibold text-secondary">
-          Total Amount: <span class="text-dark">₹{{ getTotalAmount() }}</span>
-        </span>
+    <!-- Spacer -->
+    <div class="col-md-3"></div>
+
+    <!-- Reporting Summary -->
+    <div class="col-md-6">
+      <div class="d-flex justify-content-end">
+        <div class="border rounded px-4 py-1 shadow-sm bg-light w-100 text-end">
+          <span class="fw-semibold text-secondary me-4">
+            No. of Transactions: <span class="text-dark">{{ totalRecords }}</span>
+          </span>
+          <span class="fw-semibold text-secondary">
+            Total Amount: <span class="text-dark">₹{{ totalAmount}}</span>
+          </span>
+          &nbsp;&nbsp;
+          <button class="btn btn-success" (click)="export('xlsx')" type="button">
+            <i class="bi bi-file-earmark-excel"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 
 
   <div class="table-responsive mt-4">
 
-      <table class="table table-bordered table-hover text-nowrap align-middle table-striped" id="TxnReport">
+    <table class="table table-bordered table-hover text-nowrap align-middle table-striped" id="TxnReport">
       <thead class="table-dark">
         <tr>
           <th *ngFor="let col of visibleColumns">
@@ -125,27 +136,46 @@
         </tr>
       </thead>
       <tbody>
-      
-        <tr *ngFor="let row of filteredRecords; let i = index">
+
+        <tr *ngFor="let row of filteredRecords; let i = index" (click)="selectRow(i)"
+          [ngClass]="{'selected-row': i === selectedRowIndex}" style="cursor: pointer;">
           <td *ngFor="let col of visibleColumns">
             <ng-container [ngSwitch]="col">
               <ng-container *ngSwitchCase="'Sr No'">{{ (currentPage - 1) * pageSize + i + 1 }}</ng-container>
               <ng-container *ngSwitchCase="'Update Status'">
-                <ng-container *ngIf="row.TXN_ID > 0">
-                  <span *ngIf="(row?.Status | lowercase) === 'success'"><span class="badge bg-primary-gradient">Success</span></span>
-                  <i *ngIf="(row?.Status | lowercase) !== 'success'" style="color:green;font-size:15px;cursor:pointer" class="bi bi-check-circle"
-                    (click)="openSuccessModal(row.TXN_ID)"></i>
+                <ng-container *ngIf="row.TXN_ID">
+                  <span *ngIf="(row?.Status | lowercase) === 'success'"><span
+                      class="badge bg-primary-gradient">Success</span></span>
+                  <i *ngIf="(row?.Status | lowercase) !== 'success'" style="color:green;font-size:15px;cursor:pointer"
+                    class="bi bi-check-circle" (click)="openSuccessModal(row, row.servicename)"></i>
                 </ng-container>
               </ng-container>
               <ng-container *ngSwitchCase="'Refund Or Failed'">
-                <ng-container *ngIf="row.TXN_ID > 0">
-                  <i class="bi bi-x-circle text-danger" (click)="openFailedModal(row.TXN_ID)"></i>
+                <ng-container *ngIf="row.TXN_ID > 0 || row.Id >0">
+                  <i class="bi bi-x-circle text-danger" (click)="openFailedModal(row, row.servicename)"></i>
                 </ng-container>
               </ng-container>
               <ng-container *ngSwitchCase="'API Response'">
                 <i class="bi bi-info-circle" (click)="openApiResponseModal(row.APIRes)"></i>
               </ng-container>
+              <ng-container *ngSwitchCase="'TimeStamp'">{{ formatTimestamp(row[getKey(col)]) }}</ng-container>
+              <ng-container *ngSwitchCase="'Updated Time'">{{ formatTimestamp(row[getKey(col)]) }}</ng-container>
               <ng-container *ngSwitchDefault>{{ row[getKey(col)] }}</ng-container>
+              <ng-container *ngSwitchCase="'E-Invoice'">
+                <ng-container *ngIf="row.OperatorName === 'AEPS_CASH_WITHDRAWAL' ||
+                                        row.OperatorName === 'CW' ||
+                                        row.OperatorName === 'DMTTXN' || row.OperatorName === 'Money Transfer'">
+                  <i class="bi bi-eye fs-5 text-primary" style="cursor:pointer" (click)="openInvoiceModal(row)">
+                  </i>
+                </ng-container>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'Check Status'">
+                <ng-container *ngIf="(row.OperatorName === 'Money Transfer' || row.APIName === 'Settlement' || row.servicename === 'Credit Card Bill' || row.servicename === 'BILL PAYMENT' )  && (row.APIName === 'NIFI' || row.APIName === 'FZP' || row.APIName === 'ARP' || row.APIName === 'RKIT' || row.APIName === 'Settlement') && (row.Status === 'Pending' || row.Status === 'PENDING')">
+                  <i class="bi bi-check-circle" style="cursor:pointer" (click)="checkDMTStatus(row)">
+                  </i>
+                </ng-container>
+              </ng-container>
             </ng-container>
           </td>
         </tr>
@@ -155,7 +185,7 @@
       </tbody>
     </table>
     <!-- Cylinder line neeche -->
-     <div class="cylinder-line"></div>
+    <div class="cylinder-line"></div>
   </div>
 
   <nav *ngIf="totalPages > 1" class="mt-3">
@@ -179,218 +209,404 @@
     </ul>
   </nav>
 
+  <div id="printArea" style="display:none;"></div>
 
-  <ng-template #successTxnModal let-modal>
-  <div class="modal-header bg-purple text-white">
-    <h5 class="modal-title">
-      <i class="bi bi-check-circle me-2"></i>
-      Txn Update / {{ txtTxnSuccessDet }}
-    </h5>
-    <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
-  </div>
 
-  <div class="modal-body">
+  <ng-template #invoiceModalRef let-modal>
 
-    <!-- Transaction Summary -->
-    <div class="card shadow-sm mb-3 border-0">
-      <div class="card-body p-2">
-        <table class="table table-sm table-bordered text-center mb-0" id="tblAcionPreview">
-          <thead class="bg-light text-purple fw-semibold">
-            <tr>
-              <th><i class="bi bi-gear"></i> Service</th>
-              <th><i class="bi bi-credit-card"></i> Account</th>
-              <th><i class="bi bi-person-badge"></i> User ID</th>
-              <th><i class="bi bi-person"></i> User Name</th>
-              <th><i class="bi bi-cash-stack"></i> Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{{ SucessServiceName }}</td>
-              <td>{{ SucessAccountNo }}</td>
-              <td>{{ SucessUserId }}</td>
-              <td>{{ SucessUserName }}</td>
-              <td>{{ SucessCost || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">{{ invoiceTitle }}</h5>
     </div>
 
-    <!-- Current Status -->
-    <div class="row mb-3">
-      <div class="col-sm-3">
-        <label class="form-label fw-semibold">
-          <i class="bi bi-info-circle icon-label"></i> Current Status
-        </label>
+    <div class="modal-body invoice-wrapper" id="invoiceContent">
+
+      <!-- HEADER -->
+      <div class="bg-purple text-white text-center p-3 rounded-top mb-3">
+        <h5 class="m-0">{{ invoiceTitle }}</h5>
       </div>
-      <div class="col-sm-9">
-        <input type="text" class="form-control shadow-sm" [value]="txtSuccessCurrentStatus" readonly>
-      </div>
-    </div>
 
-    <!-- Remarks -->
-    <div class="row mb-3">
-      <div class="col-sm-3">
-        <label class="form-label fw-semibold">
-          <i class="bi bi-card-text icon-label"></i> Remarks
-        </label>
-      </div>
-      <div class="col-sm-9">
-        <textarea class="form-control shadow-sm" [(ngModel)]="SucesstxtRemarks" rows="3"
-                  placeholder="Enter remarks"></textarea>
-      </div>
-    </div>
+      <!-- Status Icon -->
+      <div class="text-center my-3">
+        <div class="success-icon-wrapper mx-auto">
+          <i class="bi success-icon" [ngClass]="{
+          'bi-check-circle-fill text-success': invoiceStatus === 'SUCCESS',
+          'bi-x-circle-fill text-danger': invoiceStatus === 'FAILED',
+          'bi-hourglass-split text-warning': invoiceStatus !== 'SUCCESS' && invoiceStatus !== 'FAILED'
+        }"></i>
 
-  </div>
-
-  <div class="modal-footer">
-    <button class="btn btn-outline-secondary btn-sm px-4"
-            (click)="modal.dismiss()">
-      <i class="bi bi-x-circle"></i> CLOSE
-    </button>
-    <button class="btn btn-primary btn-sm  px-4"
-            (click)="successAction()">
-      <i class="bi bi-check-circle"></i> SUBMIT
-    </button>
-  </div>
-</ng-template>
-
-
-<ng-template #txnUpdateModal let-modal>
-  <div class="modal-header bg-purple text-white">
-    <h5 class="modal-title">
-      <i class="bi bi-pencil-square me-2"></i>
-      Txn Update / {{ txnUpdateDisplay }}
-    </h5>
-    <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
-  </div>
-
-  <div class="modal-body">
-
-    <!-- Transaction Summary -->
-    <div class="card shadow-sm mb-3 border-0">
-      <div class="card-body p-2">
-        <table class="table table-sm table-bordered text-center mb-0" id="updateinfotable">
-          <thead class="bg-light text-purple fw-semibold">
-            <tr>
-              <th><i class="bi bi-gear"></i> Service</th>
-              <th><i class="bi bi-credit-card"></i> Account</th>
-              <th><i class="bi bi-person-badge"></i> User ID</th>
-              <th><i class="bi bi-person"></i> User Name</th>
-              <th><i class="bi bi-cash-stack"></i> Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{{ txnServiceName }}</td>
-              <td>{{ txnAccountNo }}</td>
-              <td>{{ txnUserId }}</td>
-              <td>{{ txnUserName }}</td>
-              <td>{{ txnCost || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Action Selection -->
-    <div class="row align-items-center mb-3">
-      <div class="col-sm-3">
-        <label class="form-label fw-semibold">
-          <i class="bi bi-flag  form-icon icon-label"></i> Action
-        </label>
-      </div>
-      <div class="col-sm-9">
-        <div class="btn-group w-100" role="group">
-          <!-- FAILED -->
-          <input type="radio" class="btn-check" name="txnAction" id="failedAction"
-                 value="FAILED" [(ngModel)]="selectedTxnAction" autocomplete="off" checked>
-          <label class="btn btn-outline-danger  fw-semibold px-3 py-2"
-                 for="failedAction"
-                 [ngClass]="{ 'btn-danger text-white shadow': selectedTxnAction === 'FAILED' }">
-            <i class="bi bi-x-circle me-1"></i> FAILED
-          </label>
-&nbsp;&nbsp;
-          <!-- REFUND -->
-          <input type="radio" class="btn-check" name="txnAction" id="refundAction"
-                 value="REFUND" [(ngModel)]="selectedTxnAction" autocomplete="off">
-          <label class="btn btn-outline-warning  fw-semibold px-3 py-2"
-                 for="refundAction"
-                 [ngClass]="{ 'btn-warning text-dark shadow': selectedTxnAction === 'REFUND' }">
-            <i class="bi bi-arrow-counterclockwise me-1"></i> REFUND
-          </label>
+          <div class="mt-2 fs-5 fw-bold" [ngClass]="{
+          'text-success': invoiceStatus === 'SUCCESS',
+          'text-danger': invoiceStatus === 'FAILED',
+          'text-warning': invoiceStatus !== 'SUCCESS' && invoiceStatus !== 'FAILED'
+        }">
+            {{ invoiceStatus }}
+          </div>
         </div>
       </div>
+
+      <!-- Invoice Body -->
+      <div class="invoice p-4">
+        <table class="table table-bordered table-sm mb-2">
+          <tbody>
+
+            <!-- AEPS INVOICE -->
+            <ng-container *ngIf="invoiceType === 'AEPS'">
+              <tr>
+                <th class="text-purple">Transaction Type</th>
+                <td class="text-end text-capitalize">Cash Withdrawal</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Aadhaar</th>
+                <td class="text-end">{{ invoiceData.AccountNo }}</td>
+              </tr>
+
+              <tr>
+                <th class="text-purple">Bank Name</th>
+                <td class="text-end">{{ invoiceData.BankRefNo }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">RRN</th>
+                <td class="text-end">{{ invoiceData.BRId }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Amount</th>
+                <td class="text-end">₹{{ invoiceData.Amount }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Transaction Time</th>
+                <td class="text-end">{{ invoiceData.TimeStamp }}</td>
+              </tr>
+
+            </ng-container>
+
+            <!-- DMT INVOICE -->
+            <ng-container *ngIf="invoiceType === 'DMT'">
+              <tr>
+                <th class="text-purple">Beneficary Name</th>
+                <td class="text-end text-capitalize">{{invoiceData.BeneName}}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Account Number</th>
+                <td class="text-end">{{ invoiceData.AccountNo }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Mobile Number</th>
+                <td class="text-end">{{ invoiceData.CustomerMobile }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Bank Name</th>
+                <td class="text-end">{{ invoiceData.BankRefNo }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">RRN</th>
+                <td class="text-end">{{ invoiceData.BRId }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Status</th>
+                <td class="text-end">{{ invoiceData.Status }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Amount</th>
+                <td class="text-end">₹{{ invoiceData.Amount }}</td>
+              </tr>
+              <tr>
+                <th class="text-purple">Transaction Time</th>
+                <td class="text-end">{{ invoiceData.TimeStamp }}</td>
+              </tr>
+            </ng-container>
+
+          </tbody>
+        </table>
+
+
+      </div>
+      <div id="printFooter" class="text-center mt-4">
+        <small class="text-muted">
+          This is a digital document. No signature is required.
+          <br>
+          © InstantPayment
+        </small>
+      </div>
     </div>
 
-    <!-- Refund Amount (REFUND only) -->
-    <div class="row mb-3" *ngIf="selectedTxnAction === 'REFUND'">
-      <div class="col-sm-3">
-        <label class="form-label fw-semibold">
-          <i class="bi bi-cash icon-label"></i> Refund Amount
-        </label>
-      </div>
-      <div class="col-sm-9">
-        <input type="number" class="form-control shadow-sm"
-               [(ngModel)]="refundAmount" [value]="txnCost || 0">
-      </div>
+    <div class="modal-footer d-flex justify-content-between">
+      <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
+
+      <button class="btn btn-chandan btn-sm" (click)="downloadInvoice()">
+        <i class="bi bi-download me-1"></i> Download Invoice
+      </button>
+
+      <button class="btn btn-chandan btn-sm" (click)="printInvoice()">
+        <i class="bi bi-printer me-1"></i> Print Invoice
+      </button>
     </div>
 
-    <!-- Current Status -->
-    <div class="row mb-3">
-      <div class="col-sm-3">
-        <label class="form-label fw-semibold">
-          <i class="bi bi-info-circle icon-label"></i> Current Status
-        </label>
-      </div>
-      <div class="col-sm-9">
-        <input type="text" class="form-control shadow-sm"
-               [value]="txnCurrentStatus" readonly>
-      </div>
+  </ng-template>
+
+  <ng-template #successTxnModal let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">
+        <i class="bi bi-check-circle me-2"></i>
+        Txn Update / {{ txtTxnSuccessDet }}
+      </h5>
+      <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
     </div>
 
-    <!-- Refund Pin (REFUND only) -->
-    <div class="row mb-3" *ngIf="selectedTxnAction === 'REFUND'">
-      <div class="col-sm-3">
-        <label class="form-label fw-semibold">
-          <i class="bi bi-shield-lock icon-label"></i> Refund Pin
-        </label>
+    <div class="modal-body">
+
+      <!-- Transaction Summary -->
+      <div class="card shadow-sm mb-3 border-0">
+        <div class="card-body p-2">
+          <table class="table table-sm table-bordered text-center mb-0" id="tblAcionPreview">
+            <thead class="bg-light text-purple fw-semibold">
+              <tr>
+                <th><i class="bi bi-gear"></i> Service</th>
+                <th><i class="bi bi-credit-card"></i> Account</th>
+                <th><i class="bi bi-person-badge"></i> User ID</th>
+                <th><i class="bi bi-person"></i> User Name</th>
+                <th><i class="bi bi-cash-stack"></i> Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ SucessServiceName }}</td>
+                <td>{{ SucessAccountNo }}</td>
+                <td>{{ SucessUserId }}</td>
+                <td>{{ SucessUserName }}</td>
+                <td>{{ SucessCost || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="col-sm-9">
-        <input type="password" class="form-control shadow-sm"
-               [(ngModel)]="refundPin" maxlength="4"
-               placeholder="Enter 4-digit Refund Pin">
+
+      <!-- Current Status -->
+      <div class="row mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-info-circle icon-label"></i> Current Status
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <input type="text" class="form-control shadow-sm" [value]="txtSuccessCurrentStatus" readonly>
+        </div>
       </div>
+
+      <div class="row align-items-center mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-flag  form-icon icon-label"></i> Action
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <div class="btn-group w-100" role="group">
+            <!-- FAILED -->
+            <input type="radio" class="btn-check" name="txnAction" id="failedAction" value="FAILED"
+              [(ngModel)]="selectedTxnAction" autocomplete="off" checked>
+            <label class="btn btn-outline-danger  fw-semibold px-3 py-2" for="failedAction"
+              [ngClass]="{ 'btn-danger text-white shadow': selectedTxnAction === 'FAILED' }">
+              <i class="bi bi-x-circle me-1"></i> FAILED
+            </label>
+            &nbsp;&nbsp;
+            <!-- REFUND -->
+            <input type="radio" class="btn-check" name="txnAction" id="refundAction" value="SUCCESS"
+              [(ngModel)]="selectedTxnAction" autocomplete="off">
+            <label class="btn btn-outline-warning  fw-semibold px-3 py-2" for="refundAction"
+              [ngClass]="{ 'btn-warning text-dark shadow': selectedTxnAction === 'SUCCESS' }">
+              <i class="bi bi-arrow-counterclockwise me-1"></i> SUCCESS
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-info-circle icon-label"></i> Txn PIN
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <input type="password" class="form-control shadow-sm" [(ngModel)]="txnPin" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-info-circle icon-label"></i> RRN
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <input type="text" class="form-control shadow-sm" [(ngModel)]="RRN">
+        </div>
+      </div>
+
+
+      <!-- Remarks -->
+      <div class="row mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-card-text icon-label"></i> Remarks
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <textarea class="form-control shadow-sm" [(ngModel)]="SucesstxtRemarks" rows="3"
+            placeholder="Enter remarks"></textarea>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Remarks -->
-    <div class="row mb-3">
-      <div class="col-sm-3">
-        <label class="form-label fw-semibold">
-          <i class="bi bi-card-text icon-label"></i> Remarks
-        </label>
-      </div>
-      <div class="col-sm-9">
-        <textarea class="form-control shadow-sm"
-                  [(ngModel)]="txnRemarks" rows="3"
-                  placeholder="Enter remarks"></textarea>
-      </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary btn-sm px-4" (click)="modal.dismiss()">
+        <i class="bi bi-x-circle"></i> CLOSE
+      </button>
+      <button class="btn btn-primary btn-sm  px-4" (click)="successAction()">
+        <i class="bi bi-check-circle"></i> SUBMIT
+      </button>
+    </div>
+  </ng-template>
+
+
+  <ng-template #txnUpdateModal let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">
+        <i class="bi bi-pencil-square me-2"></i>
+        Txn Update / {{ txnUpdateDisplay }}
+      </h5>
+      <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
     </div>
 
-  </div>
+    <div class="modal-body">
 
-  <div class="modal-footer">
-    <button class="btn btn-outline-secondary btn-sm px-4"
-            (click)="modal.dismiss()">
-      <i class="bi bi-x-circle"></i> CLOSE
-    </button>
-    <button class="btn btn-primary btn-sm px-4"
-            (click)="submitTxnUpdate()">
-      <i class="bi bi-check-circle"></i> SUBMIT
-    </button>
-  </div>
-</ng-template>
+      <!-- Transaction Summary -->
+      <div class="card shadow-sm mb-3 border-0">
+        <div class="card-body p-2">
+          <table class="table table-sm table-bordered text-center mb-0" id="updateinfotable">
+            <thead class="bg-light text-purple fw-semibold">
+              <tr>
+                <th><i class="bi bi-gear"></i> Service</th>
+                <th><i class="bi bi-credit-card"></i> Account</th>
+                <th><i class="bi bi-person-badge"></i> User ID</th>
+                <th><i class="bi bi-person"></i> User Name</th>
+                <th><i class="bi bi-cash-stack"></i> Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ txnServiceName }}</td>
+                <td>{{ txnAccountNo }}</td>
+                <td>{{ txnUserId }}</td>
+                <td>{{ txnUserName }}</td>
+                <td>{{ txnCost || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Action Selection -->
+      <div class="row align-items-center mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-flag  form-icon icon-label"></i> Action
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <div class="btn-group w-100" role="group">
+            <!-- FAILED -->
+            <input type="radio" class="btn-check" name="txnAction" id="failedAction" value="FAILED"
+              [(ngModel)]="selectedTxnAction" autocomplete="off" checked>
+            <label class="btn btn-outline-danger  fw-semibold px-3 py-2" for="failedAction"
+              [ngClass]="{ 'btn-danger text-white shadow': selectedTxnAction === 'FAILED' }">
+              <i class="bi bi-x-circle me-1"></i> FAILED
+            </label>
+            &nbsp;&nbsp;
+            <!-- REFUND -->
+            <input type="radio" class="btn-check" name="txnAction" id="refundAction" value="REFUND"
+              [(ngModel)]="selectedTxnAction" autocomplete="off">
+            <label class="btn btn-outline-warning  fw-semibold px-3 py-2" for="refundAction"
+              [ngClass]="{ 'btn-warning text-dark shadow': selectedTxnAction === 'REFUND' }">
+              <i class="bi bi-arrow-counterclockwise me-1"></i> REFUND
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Refund Amount (REFUND only) -->
+      <div class="row mb-3" *ngIf="selectedTxnAction === 'REFUND'">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-cash icon-label"></i> Refund Amount
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <input type="number" class="form-control shadow-sm" [(ngModel)]="refundAmount" [value]="txnCost || 0">
+        </div>
+      </div>
+
+      <!-- Current Status -->
+      <div class="row mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-info-circle icon-label"></i> Current Status
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <input type="text" class="form-control shadow-sm" [value]="txnCurrentStatus" readonly>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-shield-lock icon-label"></i> Txn Pin
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <input type="password" class="form-control shadow-sm" [(ngModel)]="txnPin" maxlength="4"
+            placeholder="Enter 4-digit Transaction Pin" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Refund Pin (REFUND only) -->
+      <div class="row mb-3" *ngIf="selectedTxnAction === 'REFUND'">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-shield-lock icon-label"></i> Refund Pin
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <input type="password" class="form-control shadow-sm" [(ngModel)]="refundPin" maxlength="4"
+            placeholder="Enter 4-digit Refund Pin" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Remarks -->
+      <div class="row mb-3">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-card-text icon-label"></i> Remarks
+          </label>
+        </div>
+        <div class="col-sm-9">
+          <textarea class="form-control shadow-sm" [(ngModel)]="txnRemarks" rows="3"
+            placeholder="Enter remarks"></textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary btn-sm px-4" (click)="modal.dismiss()">
+        <i class="bi bi-x-circle"></i> CLOSE
+      </button>
+      <button class="btn btn-primary btn-sm px-4" (click)="submitTxnUpdate()">
+        <i class="bi bi-check-circle"></i> SUBMIT
+      </button>
+    </div>
+  </ng-template>
+
 
 
 

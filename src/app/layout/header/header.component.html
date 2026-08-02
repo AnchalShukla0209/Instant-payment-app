@@ -1,79 +1,82 @@
 <div class="px-xl-3 px-lg-3 px-1 py-2 page-body">
+   <app-loader *ngIf="isLoading"></app-loader>
   <div class="row dashboard-header align-items-center">
-    <div class="col-sm-6 welcome-box">
+    <div class="col-sm-4 welcome-box">
       <h6>
         <span class="greet">Hey,</span>
         <span class="username">{{ username | uppercase }} !</span>
       </h6>
       <p class="subtext">
-        Position Your Business For Agility With A Proactive Cash Reserve.
+        Build Agility With A Proactive Cash Reserve.
       </p>
     </div>
 
-    <div class="col-sm-6 top-buttons text-md-end mt-3 mt-md-0 d-flex justify-content-end align-items-center gap-2">
+    <div class="col-sm-8 top-buttons text-md-end mt-3 mt-md-0 d-flex justify-content-end align-items-center gap-2">
 
-      <button *ngIf="usertype === 'Retailer' "   class="btn btn-primary btn-sm balance-btn d-flex align-items-center justify-content-between"
+      <button *ngIf="usertype === 'Retailer' "
+        class="btn btn-primary btn-sm balance-btn d-flex align-items-center justify-content-between"
         (click)="toggleBalance()">
-  <div class="text-start">
-    <div class="label">Balance</div>
-    <div class="value">
-      <span *ngIf="showBalance; else hiddenBalance">
-        ₹ {{ walletBalance?.balance }}
-      </span>
-      <ng-template #hiddenBalance>
-        ••••••
-      </ng-template>
-    </div>
-  </div>
-  <i class="bi ms-2" [ngClass]="showBalance ? 'bi-eye-slash' : 'bi-eye'"></i>
-</button>
+        <div class="text-start">
+          <div class="label">Balance</div>
+          <div class="value">
+            <span *ngIf="showBalance; else hiddenBalance">
+              ₹ {{ walletBalance?.balance }}
+            </span>
+            <ng-template #hiddenBalance>
+              ••••••
+            </ng-template>
+          </div>
+        </div>
+        <i class="bi ms-2" [ngClass]="showBalance ? 'bi-eye-slash' : 'bi-eye'"></i>
+      </button>
 
+      <button  *ngIf="usertype === 'Retailer'" class="btn btn-theme header-btn" (click)="openScanner()">
+        <i class="bi bi-qr-code-scan me-1"></i>Scan & Pay
+      </button>
+
+      <button *ngIf="usertype === 'Retailer'" class="btn btn-primary btn-sm text-white"
+        style="background: linear-gradient(to right, #6a1b9a, #8e24aa); border: none;" (click)="openAddMoneyModal()">
+        <i class="bi bi-currency-rupee"></i>
+        Add Money
+      </button>
 
       <!-- Contact -->
-     <!-- Contact Dropdown -->
-<div class="dropdown contact-dropdown d-inline-block">
-  <button 
-    class="btn btn-outline-secondary btn-sm dropdown-toggle" 
-    type="button"
-    id="contactDropdown"
-    data-bs-toggle="dropdown" 
-    aria-expanded="false">
-    <i class="bi bi-telephone me-1"></i> Contact
-  </button>
+      <!-- Contact Dropdown -->
+      <div class="dropdown contact-dropdown d-inline-block">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="contactDropdown"
+          data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-telephone me-1"></i> Contact
+        </button>
 
-  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="contactDropdown">
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="contactDropdown">
 
-    <!-- Email -->
-    <li>
-      <a class="dropdown-item" href="mailto:instantpayment@gmail.com">
-        <i class="bi bi-envelope me-2"></i> Email: instantpayment@gmail.com
-      </a>
-    </li>
+          <!-- Email -->
+          <li>
+            <a class="dropdown-item" href="mailto:instantpayment@gmail.com">
+              <i class="bi bi-envelope me-2"></i> Email: instantpayment@gmail.com
+            </a>
+          </li>
 
-    <!-- Admin -->
-    <li>
-      <a class="dropdown-item" href="tel:+91-8684020633">
-        <i class="bi bi-person me-2"></i> Admin: +91-8684020633
-      </a>
-    </li>
+          <!-- Admin -->
+          <li>
+            <a class="dropdown-item" href="tel:+91-8684020633">
+              <i class="bi bi-person me-2"></i> Admin: +91-8684020633
+            </a>
+          </li>
 
-    <!-- SuperAdmin -->
-    <li>
-      <a class="dropdown-item" href="tel:+91-8684020633">
-        <i class="bi bi-shield-lock me-2"></i> SuperAdmin: +91-8684020633
-      </a>
-    </li>
-  </ul>
-</div>
-
-
-
-
+          <!-- SuperAdmin -->
+          <li>
+            <a class="dropdown-item" href="tel:+91-8684020633">
+              <i class="bi bi-shield-lock me-2"></i> SuperAdmin: +91-8684020633
+            </a>
+          </li>
+        </ul>
+      </div>
 
       <!-- Update -->
       <button class="btn btn-primary btn-sm text-white" (click)="logout()"
         style="background: linear-gradient(to right, #6a1b9a, #8e24aa); border: none;">
-         Logout &nbsp; <i class="bi bi-box-arrow-right me-1"></i>
+        Logout &nbsp; <i class="bi bi-box-arrow-right me-1"></i>
       </button>
     </div>
   </div>
@@ -98,6 +101,275 @@
     </div>
   </div>
 
+
+  <div class="modal upi-payment-modal" [ngClass]="{ 'show d-block': isUpiPaymentVisible }"
+    (click)="closeUpiPaymentOutside($event)">
+
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content payment-container">
+        <!-- HEADER -->
+        <div class="modal-header payment-header">
+          <div class="d-flex align-items-center gap-2">
+            <div class="logo-circle">
+              <i class="bi bi-wallet2"></i>
+            </div>
+            <div>
+              <h5 class="m-0">Add Money</h5>
+              <small class="text-light">Secure UPI Payment</small>
+            </div>
+          </div>
+
+          <button class="btn-close btn-close-white" (click)="closeUpiPayment()"></button>
+
+        </div>
+
+        <div class="modal-body p-0">
+
+          <div class="row g-0">
+
+            <!-- LEFT PANEL -->
+            <div class="col-md-5 payment-left">
+
+              <div *ngIf="!paymentStarted" class="p-4">
+
+                <h6 class="section-title">Enter Details</h6>
+
+                <label>Name</label>
+                <input id="name" class="form-control mb-3" [(ngModel)]="customerName" maxlength="40"
+                  (input)="nameInvalid=false" (keypress)="allowOnlyText($event)"
+                  [ngClass]="{'input-error': nameInvalid}">
+
+                <label>Mobile</label>
+                <input id="mobile" class="form-control mb-3" [(ngModel)]="mobileNo" maxlength="10"
+                  (input)="mobileInvalid=false" (keypress)="allowOnlyNumber($event)"
+                  [ngClass]="{'input-error': mobileInvalid}">
+
+                <!-- <label>Email</label>
+                <input id="email" class="form-control mb-3" [(ngModel)]="emailId" (input)="emailInvalid=false"
+                  [ngClass]="{'input-error': emailInvalid}"> -->
+
+                <label>Amount</label>
+                <div class="amount-box" [ngClass]="{'amount-error': amountInvalid}">
+                  ₹
+                  <input id="WalletFundamount" type="number" [(ngModel)]="amount" min="10" max="3000"
+                    (input)="amountInvalid=false">
+                </div>
+                <small class="text-muted">Minimum ₹10 — Maximum ₹3000</small>
+
+                <button class="btn btn-pay w-100 mt-4" (click)="initiateUPIPayment()" [disabled]="loading">
+
+                  <span *ngIf="!loading">Generate QR Code</span>
+                  <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+                </button>
+
+              </div>
+
+              <!-- PAYMENT STATUS -->
+              <div *ngIf="paymentStarted" class="p-4 text-center">
+
+                <div class="amount-display">₹ {{ amount }}</div>
+
+                <div class="status-wait" *ngIf="!paymentSuccess">
+                  <div class="spinner-border text-purple"></div>
+                  <p class="mt-3">Waiting for payment...</p>
+                  <small>Do not close this window</small>
+                </div>
+
+                <div *ngIf="paymentSuccess" class="success-box">
+                  <i class="bi bi-check-circle-fill"></i>
+                  <h5>Payment Successful</h5>
+                  <p>Wallet credited successfully</p>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="col-md-7 payment-right text-center">
+
+              <div *ngIf="paymentStarted" class="qr-wrapper">
+
+                <div class="qr-card shadow">
+                  <iframe class="upi-frame" [src]="paymentUrl | safeUrl" scrolling="no">
+                  </iframe>
+                </div>
+
+
+              </div>
+
+              <div *ngIf="!paymentStarted" class="start-hint">
+                <i class="bi bi-qr-code-scan"></i>
+                <p>Generate QR to start payment</p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal fade show d-block" *ngIf="showModal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content upi-card">
+
+        <div class="upi-header text-center">
+          <h5>Scan QR Code</h5>
+        </div>
+
+        <div class="modal-body">
+
+          <form #upiForm="ngForm" (ngSubmit)="payNow()" novalidate>
+
+            <!-- QR Scanner -->
+            <zxing-scanner *ngIf="isScanning" (scanSuccess)="onCodeResult($event)">
+            </zxing-scanner>
+
+              <div class="mt-3">
+              <label class="form-label">UPI ID</label>
+              <input type="text" name="upiId" class="form-control" [(ngModel)]="upiId" required
+                pattern="^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$" #upiRef="ngModel">
+
+              <div class="text-danger small mt-1" *ngIf="upiRef.invalid && upiRef.touched">
+                Enter valid UPI ID (example@upi)
+              </div>
+            </div>
+
+
+            <!--Name-->
+             <div class="mt-3">
+              <label class="form-label">Beneficiary Name</label>
+              <input type="text" name="qrpayname" class="form-control" [(ngModel)]="qrpayname" maxlength="40"
+                (keypress)="allowOnlyText($event)" required #upiRef="ngModel">
+
+              <div class="text-danger small mt-1" *ngIf="upiRef.invalid && upiRef.touched">
+                Please Enter Valid Name (Ex: Krishan Yadav)
+              </div>
+            </div>
+
+            <!--END-->
+
+            <!-- UPI ID -->
+          
+            <!-- Amount -->
+            <div class="mt-3">
+              <label class="form-label">Amount</label>
+              <input type="number" name="qramount" class="form-control" [(ngModel)]="qramount" required min="100"
+                max="25000" step="0.01" #amountRef="ngModel">
+
+              <div class="text-danger small mt-1" *ngIf="amountRef.invalid && amountRef.touched">
+                Amount must be between ₹100 and ₹25000
+              </div>
+            </div>
+
+            <!-- MPIN -->
+            <div class="mt-3">
+              <label class="form-label">MPIN</label>
+              <input type="password" name="mpin" class="form-control" [(ngModel)]="usermpin" required
+                pattern="^[0-9]{4}$" maxlength="4" inputmode="numeric" #mpinRef="ngModel">
+
+              <div class="text-danger small mt-1" *ngIf="mpinRef.invalid && mpinRef.touched">
+                MPIN must be 4 digit numeric
+              </div>
+            </div>
+
+            <!-- Pay Button -->
+            <div class="text-center mt-4">
+              <button class="btn btn-theme w-100" type="submit" [disabled]="upiForm.invalid">
+                Pay ₹{{qramount || 0}}
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="printArea" style="display:none;"></div>
+
+
+  <ng-template #invoiceModal let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Transection Reciept</h5>
+
+    </div>
+
+    <div class="modal-body invoice-wrapper" id="invoiceContent">
+      <!-- HEADER FOR PDF -->
+      <div class="bg-purple text-white text-center p-3 rounded-top mb-3">
+        <h5 class="m-0">Transection Details</h5>
+      </div>
+
+      <!-- Success Icon -->
+      <div class="text-center my-3">
+        <div class="success-icon-wrapper mx-auto">
+          <i class="bi bi-check-circle-fill text-success success-icon" id="successIcon"></i>
+          <div class="text-success mt-2 fs-5 fw-bold">Transection Successful</div>
+        </div>
+      </div>
+
+      <!-- Invoice Content -->
+      <div class="invoice p-4">
+        <div class="text-center mb-4">
+          <h4 class="mt-2 text-purple">Instant Payment</h4>
+        </div>
+
+        <table class="table table-bordered table-sm mb-2">
+          <tbody>
+            <tr>
+              <th scope="row" class="text-purple">UPI ID</th>
+              <td class="text-end">{{ invoiceData?.AccountNo }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Amount</th>
+              <td class="text-end">{{ invoiceData?.Amount }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Transaction ID</th>
+              <td class="text-end">{{ invoiceData?.TxnID }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Txn Date</th>
+              <td class="text-end">{{ invoiceData?.TxnDate }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Status</th>
+              <td class="text-end">{{ invoiceData?.Status }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="printFooter" class="text-center mt-4">
+        <small class="text-muted">
+          This is a digital document. No signature is required.
+          <br>
+          © InstantPayment
+        </small>
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between">
+      <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
+      <button class="btn btn-chandan btn-sm" (click)="downloadInvoice()">
+        <i class="bi bi-download me-1"></i>Download Invoice
+      </button>
+      <button class="btn btn-chandan btn-sm" (click)="printInvoice()">
+        <i class="bi bi-printer me-1"></i> Print Invoice
+      </button>
+    </div>
+  </ng-template>
 
 
 </div>

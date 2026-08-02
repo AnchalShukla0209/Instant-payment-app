@@ -1,0 +1,222 @@
+<div class="container-fluid pb-4" *ngIf="isAdmin">
+    <app-loader *ngIf="isLoading"></app-loader>
+
+    <!-- Page Title -->
+    <div class="page-title-bar mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="title-icon-wrap">
+                <i class="bi bi-android2"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold">APK Release Manager</h5>
+                <p class="mb-0 text-muted">Upload and manage Android application releases</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- LEFT: Upload Form -->
+        <div class="col-xl-5 col-lg-6">
+            <div class="card upload-card shadow-sm h-100">
+                <div class="card-header bg-gradient-indigo text-white d-flex align-items-center gap-2">
+                    <i class="bi bi-cloud-upload fs-5"></i>
+                    <strong>Upload New Release</strong>
+                </div>
+                <div class="card-body p-4">
+
+                    <!-- Success Banner -->
+                    <div class="success-banner mb-4" *ngIf="uploadResult">
+                        <div class="success-banner-inner">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="success-check-circle">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-success" style="font-size:0.9rem">APK Uploaded Successfully!</div>
+                                    <div class="text-muted" style="font-size:0.78rem">
+                                        Version <strong>{{ uploadResult.versionName }}</strong> · Code <strong>{{ uploadResult.versionCode }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="url-copy-box">
+                                <div class="url-text" [title]="uploadResult.downloadUrl">{{ uploadResult.downloadUrl }}</div>
+                                <button class="copy-btn" (click)="copyDownloadUrl()" [class.copied]="urlCopied" [title]="urlCopied ? 'Copied!' : 'Copy download URL'">
+                                    <i class="bi" [ngClass]="urlCopied ? 'bi-check2' : 'bi-copy'"></i>
+                                    <span>{{ urlCopied ? 'Copied!' : 'Copy' }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Version Name -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-tag-fill icon-label me-1"></i>Version Name
+                        </label>
+                        <input type="text" class="form-control shadow-sm" placeholder="e.g. 1.0.0, Two, Release A"
+                            [(ngModel)]="versionName" maxlength="100" />
+                    </div>
+
+                    <!-- Version Code -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-hash icon-label me-1"></i>Version Code
+                        </label>
+                        <input type="text" class="form-control shadow-sm" placeholder="e.g. 1, 2, 10"
+                            [(ngModel)]="versionCode" maxlength="20" />
+                    </div>
+
+                    <!-- Release Notes -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-journal-text icon-label me-1"></i>Release Notes
+                        </label>
+                        <textarea class="form-control shadow-sm" rows="3"
+                            placeholder="What's new in this release..."
+                            [(ngModel)]="releaseNotes" maxlength="1000"></textarea>
+                    </div>
+
+                    <!-- Drag-Drop File Zone -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-file-earmark-zip icon-label me-1"></i>APK File
+                        </label>
+                        <div class="drop-zone" [class.drag-over]="isDragOver" [class.has-file]="selectedFile"
+                            (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)"
+                            (click)="apkFileInput.click()">
+                            <input #apkFileInput id="apkFileInput" type="file" accept=".apk"
+                                style="display:none" (change)="onFileChange($event)" />
+                            <ng-container *ngIf="!selectedFile">
+                                <i class="bi bi-cloud-arrow-up drop-icon"></i>
+                                <p class="drop-label mb-1">Drag & drop your <code>.apk</code> here</p>
+                                <p class="drop-sub mb-0">or <span class="text-purple fw-semibold">click to browse</span></p>
+                            </ng-container>
+                            <ng-container *ngIf="selectedFile">
+                                <i class="bi bi-android2 drop-icon text-success"></i>
+                                <p class="drop-label mb-0 text-success fw-semibold">{{ selectedFileName }}</p>
+                                <p class="drop-sub mb-0">{{ selectedFileSize }} · <span class="text-purple" style="cursor:pointer">Change file</span></p>
+                            </ng-container>
+                        </div>
+                    </div>
+
+                    <!-- Upload Button -->
+                    <button class="btn btn-chandan w-100 py-2 d-flex align-items-center justify-content-center gap-2 upload-btn"
+                        (click)="upload()" [disabled]="isLoading">
+                        <span class="spinner-border spinner-border-sm" *ngIf="isLoading"></span>
+                        <i class="bi bi-cloud-upload" *ngIf="!isLoading"></i>
+                        <span>{{ isLoading ? 'Uploading...' : 'Upload APK' }}</span>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Release History -->
+        <div class="col-xl-7 col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-gradient-indigo text-white d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history fs-5"></i>
+                    <strong>Release History</strong>
+                    <span class="badge bg-white text-purple ms-auto" *ngIf="totalCount > 0">{{ totalCount }} release{{ totalCount !== 1 ? 's' : '' }}</span>
+                </div>
+                <div class="card-body p-0">
+
+                    <!-- Search Bar -->
+                    <div class="px-3 pt-3 pb-2">
+                        <div class="input-group input-group-sm search-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 ps-0"
+                                placeholder="Search by version, notes..."
+                                [(ngModel)]="searchKeyword" (ngModelChange)="onSearchChange()" />
+                            <button class="btn btn-outline-secondary btn-sm" *ngIf="searchKeyword"
+                                (click)="searchKeyword=''; onSearchChange()" title="Clear">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div class="text-center py-5 text-muted" *ngIf="releasesLoading">
+                        <div class="spinner-border spinner-border-sm me-2 text-purple" role="status"></div>
+                        Loading release history...
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state py-5" *ngIf="!releasesLoading && releases.length === 0">
+                        <i class="bi bi-inbox empty-icon"></i>
+                        <p class="text-muted mt-2 mb-0">No releases found.</p>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-responsive" *ngIf="!releasesLoading && releases.length > 0">
+                        <table class="table table-hover mb-0" id="tblClientData">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Version</th>
+                                    <th>Code</th>
+                                    <th>Release Notes</th>
+                                    <th>File Size</th>
+                                    <th>Uploaded On</th>
+                                    <th>Status</th>
+                                    <th>APK Link</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let r of releases; let i = index">
+                                    <td class="text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                                    <td><span class="badge-version">{{ r.versionName }}</span></td>
+                                    <td><code>{{ r.versionCode }}</code></td>
+                                    <td class="text-start notes-cell">{{ r.releaseNotes }}</td>
+                                    <td class="text-nowrap text-muted">{{ formatBytes(r.fileSizeBytes) }}</td>
+                                    <td class="text-nowrap">{{ r.uploadedAt | date:'dd MMM yyyy, h:mm a' }}</td>
+                                    <td>
+                                        <span class="badge rounded-pill"
+                                            [ngClass]="r.isActive ? 'bg-success' : 'bg-secondary'">
+                                            {{ r.isActive ? 'Active' : 'Inactive' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="row-copy-btn" (click)="copyRowUrl(r)"
+                                            [class.row-copied]="copiedRowId === r.id"
+                                            [title]="copiedRowId === r.id ? 'Copied!' : 'Copy download URL'">
+                                            <i class="bi" [ngClass]="copiedRowId === r.id ? 'bi-check2' : 'bi-copy'"></i>
+                                            <span>{{ copiedRowId === r.id ? 'Copied' : 'Copy URL' }}</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="px-3 py-2" *ngIf="!releasesLoading && totalPages > 1">
+                        <nav>
+                            <ul class="pagination pagination-sm justify-content-end mb-0">
+                                <li class="page-item" [class.disabled]="currentPage === 1">
+                                    <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+                                </li>
+                                <ng-container *ngFor="let page of visiblePages">
+                                    <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+                                        <a class="page-link" (click)="changePage(page!)">{{ page }}</a>
+                                    </li>
+                                    <li class="page-item disabled" *ngIf="page === null">
+                                        <span class="page-link">…</span>
+                                    </li>
+                                </ng-container>
+                                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                    <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

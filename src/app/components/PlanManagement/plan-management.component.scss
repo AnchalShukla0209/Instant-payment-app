@@ -1,0 +1,88 @@
+.card-header {
+  background: linear-gradient(135deg, #5f2c82, #49a09d);
+  color: white !important;
+  border-radius: 5px 5px 0 0 !important;
+}
+
+.bg-purple {
+  background-color: #5e2f82 !important;
+}
+
+#tblPlanData thead th {
+  background: #5e2f82 !important;
+  color: white !important;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.table-bordered {
+  border: 1px solid #ccc;
+
+  th, td {
+    border: 1px solid #ccc;
+  }
+}
+
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="datetime-local"],
+input[type="file"],
+select {
+  font-size: 0.9rem;
+}
+
+.pagination .page-link {
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #5e2f82;
+  border-color: #5e2f82;
+}
+
+label {
+  font-weight: bold;
+}
+
+span {
+  font-size: 15px;
+}
+
+.icon-label {
+  font-size: 14px;
+}
+
+.badge {
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.input-group-text {
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.input-group .form-control {
+  border-radius: 0;
+}
+
+.input-group .btn {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.input-group .btn-outline-secondary {
+  border-radius: 0.375rem;
+  margin-left: 0.25rem;
+}

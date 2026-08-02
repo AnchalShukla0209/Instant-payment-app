@@ -3,7 +3,8 @@ export interface GetUsersWithMainBalanceQuery {
   pageSize: number;
   fromDate?: string;
   toDate?: string;
-  ClientId?: number
+  ClientId?: number;
+  commonsearch?: string;
 }
 
 export interface GetUsersWithMainBalanceResponse {

@@ -1,0 +1,267 @@
+<div class="container-fluid">
+
+  <app-loader *ngIf="isLoading"></app-loader>
+
+
+
+
+
+  <!-- Settlement Period Info -->
+  <div class="alert alert-info d-flex align-items-center" *ngIf="settlementFromDate && settlementToDate">
+    <i class="bi bi-info-circle me-2"></i>
+    <div>
+      <strong>Settlement Period:</strong>
+      <span *ngIf="withdrawalForm.get('withdrawalType')?.value === 'Razorpay'">
+        Same Day & Last Day ({{ formatDate(settlementFromDate) }} to Today)
+      </span>
+      <span *ngIf="withdrawalForm.get('withdrawalType')?.value === 'AEPS'">
+        {{ formatDate(settlementFromDate) }} to {{ formatDate(settlementToDate) }}
+      </span>
+      <span *ngIf="withdrawalForm.get('withdrawalType')?.value === 'MATM'">
+        {{ formatDate(settlementFromDate) }} to {{ formatDate(settlementToDate) }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Withdrawal Request Section -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-gradient-indigo text-white">
+      <strong><i class="bi bi-arrow-down-circle"></i> Withdrawal Request</strong>
+    </div>
+    <div class="card-body py-3">
+      <form [formGroup]="withdrawalForm">
+        <div class="row">
+          <!-- Withdrawal Type & Amount in same row -->
+          <div class="col-md-8 mb-2">
+            <label class="form-label small fw-semibold mb-1">Withdrawal Type</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="withdrawalType" id="aepsType" value="AEPS"
+                formControlName="withdrawalType" (change)="onWithdrawalTypeChange('AEPS')">
+              <label class="btn btn-outline-primary btn-sm" for="aepsType">AEPS</label>
+              <input type="radio" class="btn-check" name="withdrawalType" id="razorpayType" value="Razorpay"
+                formControlName="withdrawalType" (change)="onWithdrawalTypeChange('Razorpay')">
+              <label class="btn btn-outline-primary btn-sm" for="razorpayType">Razorpay</label>
+              <input type="radio" class="btn-check" name="withdrawalType" id="matmType" value="MATM"
+                formControlName="withdrawalType" (change)="onWithdrawalTypeChange('MATM')">
+              <label class="btn btn-outline-primary btn-sm" for="matmType">MATM</label>
+            </div>
+            <small class="text-muted" style="font-size: 0.75rem;">
+              Available: {{ withdrawalForm.get('withdrawalType')?.value === 'AEPS' ? formatCurrency(availableAEPSAmount) : (withdrawalForm.get('withdrawalType')?.value === 'Razorpay' ? formatCurrency(availableRazorpayAmount) : formatCurrency(availableMATMAmount)) }}
+            </small>
+          </div>
+
+          <div class="col-md-4 mb-2">
+            <label class="form-label small fw-semibold mb-1">Amount <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text bg-purple text-white">₹</span>
+              <input type="number" class="form-control" formControlName="amount" placeholder="Enter amount"
+                (keydown)="validateAmountKeydown($event)"
+                (paste)="validateAmountPaste($event)"
+                (input)="validateAmountInput()"
+                min="1" max="100000">
+            </div>
+            <div *ngIf="withdrawalForm.get('amount')?.invalid && withdrawalForm.get('amount')?.touched" class="text-danger small mt-1">
+              Please enter a valid amount
+            </div>
+          </div>
+
+          <!-- Bank Section - Compact -->
+          <div class="col-md-12 mb-2">
+            <label class="form-label small fw-semibold mb-1">Bank Details</label>
+            <div class="bank-form-container p-2 rounded bg-light">
+              <div class="row g-2">
+                <!-- Bank Name -->
+                <div class="col-md-3">
+                  <label class="form-label small text-muted mb-0" style="font-size: 0.75rem;">Bank Name <span class="text-danger">*</span></label>
+                  <ng-select [items]="banks" bindLabel="Bankname" bindValue="BankId" placeholder="Select Bank"
+                    [searchable]="true" (change)="onBankSelect($event)">
+                  </ng-select>
+                  <input type="hidden" formControlName="bankName" />
+                  <div *ngIf="withdrawalForm.get('bankName')?.invalid && withdrawalForm.get('bankName')?.touched" class="text-danger small mt-1" style="font-size: 0.7rem;">
+                    Bank required
+                  </div>
+                </div>
+
+                <!-- Account Number -->
+                <div class="col-md-3">
+                  <label class="form-label small text-muted mb-0" style="font-size: 0.75rem;">Account Number <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" placeholder="9-18 digits" formControlName="bankAccount"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                    (blur)="onBankAccountBlur()" maxlength="18" />
+                  <div *ngIf="withdrawalForm.get('bankAccount')?.invalid && withdrawalForm.get('bankAccount')?.touched" class="text-danger small mt-1" style="font-size: 0.7rem;">
+                    Invalid account
+                  </div>
+                </div>
+
+                <!-- IFSC Code -->
+                <div class="col-md-3">
+                  <label class="form-label small text-muted mb-0" style="font-size: 0.75rem;">IFSC Code <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" placeholder="IFSC Code"
+                    formControlName="ifsc" maxlength="11" style="text-transform: uppercase;"
+                    (blur)="onIfscBlur()" />
+                  <div *ngIf="withdrawalForm.get('ifsc')?.invalid && withdrawalForm.get('ifsc')?.touched" class="text-danger small mt-1" style="font-size: 0.7rem;">
+                    Invalid IFSC
+                  </div>
+                </div>
+
+                <!-- Beneficiary Name -->
+                <div class="col-md-3">
+                  <label class="form-label small text-muted mb-0" style="font-size: 0.75rem;">Beneficiary Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" placeholder="Beneficiary Name" formControlName="beneName" />
+                  <div *ngIf="validatebankdetails" class="text-success small mt-1" style="font-size: 0.7rem;">
+                    <i class="bi bi-check-circle-fill"></i> Verified
+                  </div>
+                </div>
+
+                <!-- Verify Button -->
+                <div class="col-md-12">
+                  <button *ngIf="
+                    withdrawalForm.get('bankAccount')?.value &&
+                    withdrawalForm.get('beneName')?.value &&
+                    withdrawalForm.get('bankName')?.value &&
+                    withdrawalForm.get('ifsc')?.value &&
+                    !validatebankdetails
+                  " type="button" class="btn btn-outline-success btn-sm w-100" (click)="ValidateBankDetails()">
+                    <i class="bi bi-shield-check"></i> Verify Bank Account
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verification Status -->
+          <div class="col-md-12 mb-2">
+            <div *ngIf="validatebankdetails" class="alert alert-success d-flex align-items-center py-1 px-2" style="font-size: 0.8rem;">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              <span>Bank account verified successfully.</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="col-md-12 mt-2">
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-chandan" (click)="processWithdrawal()"
+                [disabled]="!validatebankdetails || !withdrawalForm.get('amount')?.value || !withdrawalForm.get('bankName')?.value || !withdrawalForm.get('bankAccount')?.value || !withdrawalForm.get('ifsc')?.value || !withdrawalForm.get('beneName')?.value || isLoading">
+                <i *ngIf="!isLoading" class="bi bi-check-circle"></i>
+                <i *ngIf="isLoading" class="bi bi-hourglass-split"></i>
+                {{ isLoading ? 'Processing...' : 'Submit Withdrawal' }}
+              </button>
+              <button type="button" class="btn btn-default" (click)="onCancel()" [disabled]="isLoading">
+                <i class="bi bi-x-circle"></i> Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Print Area -->
+  <div id="printArea" style="display:none;"></div>
+
+  <!-- INVOICE MODAL -->
+  <ng-template #invoiceModal let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Settlement Receipt</h5>
+    </div>
+
+    <div class="modal-body invoice-wrapper" id="invoiceContent">
+      <!-- HEADER FOR PDF -->
+      <div class="bg-purple text-white text-center p-1 rounded-top">
+        <h5 class="m-0">Settlement Details</h5>
+      </div>
+
+      <!-- Success Icon -->
+      <div class="text-center">
+        <div class="success-icon-wrapper mx-auto">
+          <div [ngClass]="invoiceData?.PayoutStatus === 'SUCCESS' ? 'text-success' : 'text-warning'" class="mt-2 fs-5 fw-bold">
+            {{ invoiceData?.PayoutStatus === 'SUCCESS' ? 'Transaction Successful' : 'Transaction Pending' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoice Content -->
+      <div class="invoice p-2">
+        <div class="text-center">
+          <h4 class="mt-2 text-purple">Instant Payment</h4>
+        </div>
+
+        <table class="table table-bordered table-sm mb-2">
+          <tbody>
+            <tr>
+              <th scope="row" class="text-purple">User Name</th>
+              <td class="text-end">{{ invoiceData?.UserName }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">User ID</th>
+              <td class="text-end">{{ invoiceData?.UserId }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Withdrawal Type</th>
+              <td class="text-end">{{ invoiceData?.WithdrawalType }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Beneficiary Name</th>
+              <td class="text-end">{{ invoiceData?.BeneName }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Bank Name</th>
+              <td class="text-end">{{ invoiceData?.BankName }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Account Number</th>
+              <td class="text-end">{{ invoiceData?.AccountNo }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">IFSC Code</th>
+              <td class="text-end">{{ invoiceData?.IFSCCode }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Transaction ID</th>
+              <td class="text-end">{{ invoiceData?.PayoutTransactionId || 'N/A' }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Txn Date</th>
+              <td class="text-end">{{ invoiceData?.TxnDate }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Status</th>
+              <td class="text-end">{{ invoiceData?.PayoutStatus }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Amount</th>
+              <td class="text-end">{{ formatCurrency(invoiceData?.Amount) }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Charge</th>
+              <td class="text-end">{{ formatCurrency(invoiceData?.Charge) }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">New Wallet Balance</th>
+              <td class="text-end">{{ formatCurrency(invoiceData?.NewWalletBalance) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="printFooter" class="text-center mt-4">
+        <small class="text-muted">
+          This is a digital document. No signature is required.
+          <br>
+          © InstantPayment
+        </small>
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between">
+      <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
+      <button class="btn btn-chandan btn-sm" (click)="downloadInvoice()">
+        <i class="bi bi-download me-1"></i>Download Invoice
+      </button>
+      <button class="btn btn-chandan btn-sm" (click)="printInvoice()">
+        <i class="bi bi-printer me-1"></i> Print Invoice
+      </button>
+    </div>
+  </ng-template>
+
+</div>

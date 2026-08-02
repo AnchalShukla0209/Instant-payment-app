@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, finalize } from 'rxjs';
 import { LoginPayload, JwtPayload, OTPPayload } from '../models/login-payload.model';
 import { LoginResponse, OTPSuccessResponse } from '../models/login-response.model';
 import { environment } from '../../environments/environment';
@@ -8,7 +8,7 @@ import { EncryptionService } from '../encryption/encryption.service';
 import { jwtDecode } from 'jwt-decode';
 import { ServiceRightsData } from '../models/ServiceRightsData';
 import { JIODailyLoginResponse } from '../models/FinoDailyLoginResponse'
-import {JIODailyTokenResponse} from '../models/FinoDailyLoginResponse'
+import { JIODailyTokenResponse } from '../models/FinoDailyLoginResponse'
 
 @Injectable({
   providedIn: 'root'
@@ -37,13 +37,9 @@ export class AuthService {
   }
 
   Adminlogin(payload: any): Observable<LoginResponse> {
-  return this.http.post<LoginResponse>(this.apiUrl, payload).pipe(
-    map((res: any) => {
-      const decrypted = res.data;
-      return decrypted as LoginResponse;
-    })
-  );
-}
+    return this.http.post<LoginResponse>(this.apiUrl, payload);
+
+  }
 
 
 
@@ -59,48 +55,82 @@ export class AuthService {
   // }
 
   saveLoginData(res: any): void {
-  debugger;
 
-  if (!res) return;
+    if (!res) return;
 
-  const d = res?.Data?.[0] || {};
+    const d = res?.Data?.[0] || res?.data || {};
 
-  const values = {
-    sessionKey: this.encryptor.encrypt(res?.SessionKey ?? ""),
-    username: this.encryptor.encrypt(d?.Name ?? res?.username ?? ""),
-    userType: this.encryptor.encrypt(d?.Usertype ?? res?.usertype ?? ""),
-    OTP: this.encryptor.encrypt(res?.otp) ?? "",
-    IsOtpRequired: this.encryptor.encrypt(res?.OTPStatus ?? res?.isOtpRequired ?? ""),
-    userid: this.encryptor.encrypt(d?.Id ?? res?.userid ?? ""),
-    phoneno: this.encryptor.encrypt(d?.Phone ?? ""),
-    AadharNo: this.encryptor.encrypt(d?.AadharCard ?? ""),
-    PanCard: this.encryptor.encrypt(d?.PanCard ?? ""),
-    EmailId: this.encryptor.encrypt(d?.EmailId ?? ""),
-    CompanyName: this.encryptor.encrypt(d?.CompanyName ?? ""),
-    AddressLine1: this.encryptor.encrypt(d?.AddressLine1 ?? ""),
-    AddressLine2: this.encryptor.encrypt(d?.AddressLine2 ?? ""),
-    City: this.encryptor.encrypt(d?.City ?? ""),
-    Pincode: this.encryptor.encrypt(d?.Pincode ?? ""),
-    Lat: d?.lat ?? "",
-    Long: d?.longitute ?? "",
-  };
+    const values = {
+      sessionKey: this.encryptor.encrypt(res?.SessionKey ?? ""),
+      username: this.encryptor.encrypt(d?.Name ?? d?.username ?? ""),
+      userType: this.encryptor.encrypt(d?.Usertype ?? d?.usertype ?? ""),
+      OTP: this.encryptor.encrypt(res?.otp) ?? "",
+      IsOtpRequired: this.encryptor.encrypt(res?.OTPStatus ?? d?.isOtpRequired ?? ""),
+      userid: this.encryptor.encrypt(d?.Id ?? d?.userid ?? ""),
+      phoneno: this.encryptor.encrypt(d?.Phone ?? ""),
+      AadharNo: this.encryptor.encrypt(d?.AadharCard ?? ""),
+      PanCard: this.encryptor.encrypt(d?.PanCard ?? ""),
+      EmailId: this.encryptor.encrypt(d?.EmailId ?? ""),
+      CompanyName: this.encryptor.encrypt(d?.CompanyName ?? ""),
+      AddressLine1: this.encryptor.encrypt(d?.AddressLine1 ?? ""),
+      AddressLine2: this.encryptor.encrypt(d?.AddressLine2 ?? ""),
+      City: this.encryptor.encrypt(d?.City ?? ""),
+      Pincode: this.encryptor.encrypt(d?.Pincode ?? ""),
+      Lat: d?.lat ?? "",
+      Long: d?.longitute ?? "",
+      TxnPin: this.encryptor.encrypt(d?.TxnPin ?? ""),
+      MPin: this.encryptor.encrypt(d?.MPin ?? ""),
+      Password: this.encryptor.encrypt(d?.Password ?? ""),
+      Name: this.encryptor.encrypt(d?.Name ?? ""),
+      crUserName: d?.Username ?? d?.username ?? "",
+      isOtpVerified: this.encryptor.encrypt("true")
+    };
 
-  Object.entries(values).forEach(([key, value]) => {
-    localStorage.setItem(key, value);
-  });
-}
+    Object.entries(values).forEach(([key, value]) => {
+      localStorage.setItem(key, value);
+    });
+  }
+
+  setPendingOTPVerification(sessionKey: string, otpRequired: boolean): void {
+    localStorage.setItem('sessionKey', this.encryptor.encrypt(sessionKey));
+    localStorage.setItem('otpRequired', otpRequired ? 'true' : 'false');
+    localStorage.setItem('otpVerified', 'false');
+  }
+
+  setOtpVerified(): void {
+    localStorage.setItem('otpVerified', 'true');
+  }
+
+  isOtpVerified(): boolean {
+    const otpRequired = localStorage.getItem('otpRequired');
+    const otpVerified = localStorage.getItem('otpVerified');
+    
+    // If OTP is not required, always return true
+    if (otpRequired !== 'true') {
+      return true;
+    }
+    
+    // If OTP is required but key doesn't exist (backward compatibility), allow access
+    if (!otpVerified) {
+      return true;
+    }
+    
+    // If OTP is required, check if it's verified
+    return otpVerified === 'true';
+  }
 
 
   sendLoginOTP(sessionKey: string) {
     return this.http.post('https://instantpayment.co.in/api/SendLoginOTP', {
       SessionKey: sessionKey
-    }).pipe(
-      map((res: any) => {
-        const otp = res.Data;
-        localStorage.setItem('OTP', this.encryptor.encrypt(otp));
-        return otp;
-      })
-    );
+    });
+  }
+
+  verifyLoginOTP(sessionKey: string, otp: string) {
+    return this.http.post(`https://instantpayment.co.in/api/VerifyLoginOTP`, {
+      SessionKey: sessionKey,
+      OTP: otp
+    });
   }
 
 
@@ -121,19 +151,6 @@ export class AuthService {
     );
   }
 
-
-
-  // saveToken(res: any): void {
-  //  localStorage.setItem('token', this.encryptor.encrypt(res.token));
-  //   localStorage.setItem('username', this.encryptor.encrypt(res.username));
-  //   localStorage.setItem('usertype', this.encryptor.encrypt(res.usertype));
-  //   localStorage.setItem('OTP', this.encryptor.encrypt(res.otp));
-  //   localStorage.setItem('IsOtpRequired', this.encryptor.encrypt(res.isOtpRequired));
-  //   const decoded = jwtDecode<JwtPayload>(res.token);
-  //   localStorage.setItem('userid', this.encryptor.encrypt(decoded.userid));
-  //   localStorage.setItem('phoneno', this.encryptor.encrypt(res.phoneno));
-  // }
-
   saveToken(res: any): void {
     localStorage.setItem('sessionKey', this.encryptor.encrypt(res.SessionKey));
     localStorage.setItem('username', this.encryptor.encrypt(res?.Data[0]?.Name));
@@ -142,9 +159,8 @@ export class AuthService {
     localStorage.setItem('IsOtpRequired', this.encryptor.encrypt(res.OTPStatus));
     localStorage.setItem('userid', this.encryptor.encrypt(res?.Data[0]?.Id));
     localStorage.setItem('phoneno', this.encryptor.encrypt(res?.Data[0]?.Phone));
+  
   }
-
-
 
   MatchOTP(payload: OTPPayload): Observable<OTPSuccessResponse> {
     const encrypted = this.encryptor.encrypt(payload);
@@ -156,6 +172,12 @@ export class AuthService {
     );
   }
 
+  verifyRegularOTP(sessionKey: string, otp: string): Observable<any> {
+    return this.http.post('https://instantpayment.co.in/api/verifyotp', {
+      SessionKey: sessionKey,
+      OTP: otp
+    });
+  }
 
   ResendOTP(sessionKey: string) {
     return this.http.post('https://instantpayment.co.in/api/SendLoginOTP', {
@@ -169,17 +191,16 @@ export class AuthService {
     );
   }
 
-
-  // ResendOTP(payload: OTPPayload): Observable<LoginResponse> {
-  //   const encrypted = this.encryptor.encrypt(payload);
-  //   return this.http.post(this.resendotpurl, { data: encrypted }).pipe(
-  //     map((res: any) => {
-  //       const decrypted = this.encryptor.decrypt(res.data);
-  //       localStorage.setItem('OTP', this.encryptor.encrypt(decrypted.OTP));
-  //       return decrypted as LoginResponse;
-  //     })
-  //   );
-  // }
+  ResendOTPEnc(payload: OTPPayload): Observable<LoginResponse> {
+    const encrypted = this.encryptor.encrypt(payload);
+    return this.http.post(this.resendotpurl, { data: encrypted }).pipe(
+      map((res: any) => {
+        const decrypted = this.encryptor.decrypt(res.data);
+        localStorage.setItem('OTP', this.encryptor.encrypt(decrypted.OTP));
+        return decrypted as LoginResponse;
+      })
+    );
+  }
 
   getUserRightsInfo(id: number): Observable<ServiceRightsData> {
     return this.http.get<{ data: ServiceRightsData }>(
@@ -189,8 +210,14 @@ export class AuthService {
     );
   }
 
-  logout(): void {
-    localStorage.clear();
+  logout(): Observable<any> {
+    return this.http.post('https://instantpayment.co.in/api/Login/logout', {}).pipe(
+      finalize(() => localStorage.clear())
+    );
+  }
+
+  clearOTPVerification(): void {
+    localStorage.removeItem('isOtpVerified');
   }
 
   isLoggedIn(): boolean {
@@ -221,10 +248,49 @@ export class AuthService {
     return this.encryptor.decrypt(localStorage.getItem('userid') || '');
   }
 
+  getUserTxnPin(): string {
+    return this.encryptor.decrypt(localStorage.getItem('TxnPin') || '');
+  }
+
+  getUserMPin(): string {
+    return this.encryptor.decrypt(localStorage.getItem('MPin') || '');
+  }
+
+  getcrUserName():string {
+    return localStorage.getItem('crUserName') || '';
+  }
+
+  getUserPassword(): string {
+    return this.encryptor.decrypt(localStorage.getItem('Password') || '');
+  }
+
   getToken(): string | null {
     const t = localStorage.getItem('token');
     if (!t) return null;
     return this.encryptor.decrypt(t);
+  }
+
+  forgetPassword(mobile: string, aadharNumber: string, panNumber: string): Observable<any> {
+    return this.http.post(
+      `${environment.apiBaseUrl}/Auth/forget-password`,
+      {
+        mobile,
+        aadharNumber,
+        panNumber
+      }
+    );
+  }
+
+  resetPassword(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Auth/reset-password`, payload);
+  }
+
+  ValidateResetPasswordLink(payload: any): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Auth/expiry-forget-password`, payload);
+  }
+
+  resendOtp(token: string): Observable<any> {
+    return this.http.post(`${environment.apiBaseUrl}/Auth/resend-reset-otp`, { token });
   }
 
   saveJPBAEPSToken(res: JIODailyLoginResponse): void {
@@ -307,6 +373,25 @@ export class AuthService {
   }
   getUserPincode(): string {
     return this.encryptor.decrypt(localStorage.getItem('Pincode') || '');
+  }
+  getUserName(): string {
+    return this.encryptor.decrypt(localStorage.getItem('Name') || '');
+  }
+  SaveOTPinCookies(res: any): void {
+    localStorage.setItem('OTP', res.message);
+  }
+  updateUserInfo(payload: any): Observable<any> {
+    return this.http.post(
+      `${environment.apiBaseUrl}/Auth/UpdateUserInfo`,
+      payload
+    );
+  }
+
+  ValidateUserInfo(payload: any): Observable<any> {
+    return this.http.post(
+      `${environment.apiBaseUrl}/Auth/ValidateUserInfoAndSentOTP`,
+      payload
+    );
   }
 
 }

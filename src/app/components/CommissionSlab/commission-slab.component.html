@@ -1,0 +1,269 @@
+<div class="container-fluid">
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <!-- Header -->
+        <div class="card-header d-flex justify-content-between align-items-center bg-gradient-indigo" style="background-color: var(--bs-card-cap-bg);">
+          <strong><i class="bi bi-layers"></i> Commission Plan Slab Setting (Total: {{ totalRecords }})</strong>
+          <button class="btn btn-primary btn-sm" (click)="openModal(slabModal)">
+            <i class="bi bi-plus"></i> Add New Slab
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="card-body pt-3 pb-2">
+          <div class="row g-2">
+            <div class="col-md-4">
+              <div class="input-group">
+                <span class="input-group-text bg-purple text-white">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control shadow-sm" [(ngModel)]="searchKeyword"
+                  placeholder="Search by slab range..." (input)="onSearchInput()" />
+                <button class="btn btn-primary" (click)="onSearch()">Search</button>
+                <button class="btn btn-outline-secondary" (click)="resetSearch()" title="Reset">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card-body table-responsive">
+          <table class="table table-bordered table-hover text-nowrap align-middle table-striped" id="tblSlabData">
+            <thead class="table-dark">
+              <tr>
+                <th>Sr No</th>
+                <th>Plan Name</th>
+                <th>Slab Range</th>
+                <th>Service</th>
+                <th>API Code</th>
+                <th>Admin Share</th>
+                <th>WL Admin Share</th>
+                <th>MD Share</th>
+                <th>AD Share</th>
+                <th>RT Share</th>
+                <th>Commission Type</th>
+                <th>Created By</th>
+                <th>Created At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="commissionSlabs.length === 0">
+                <td colspan="14" class="text-center text-muted">No commission slabs found.</td>
+              </tr>
+              <tr *ngFor="let slab of commissionSlabs; let i = index" (click)="selectRow(i)"
+                [ngClass]="{'selected-row': i === selectedRowIndex}" style="cursor: pointer;">
+                <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
+                <td class="fw-semibold">{{ slab.planName || getPlanName(slab.planId) }}</td>
+                <td>{{ slab.slabRange }}</td>
+                <td>{{ slab.serviceId ? getServiceName(slab.serviceId) : '-' }}</td>
+                <td>{{ getApiCodeName(slab.apiCode) }}</td>
+                <td>{{ slab.adminShare }}<span *ngIf="slab.commissionType === 'percentage'">%</span></td>
+                <td>{{ slab.wlAdminShare }}<span *ngIf="slab.commissionType === 'percentage'">%</span></td>
+                <td>{{ slab.mdShare }}<span *ngIf="slab.commissionType === 'percentage'">%</span></td>
+                <td>{{ slab.adShare }}<span *ngIf="slab.commissionType === 'percentage'">%</span></td>
+                <td>{{ slab.rtShare }}<span *ngIf="slab.commissionType === 'percentage'">%</span></td>
+                <td>
+                  <span class="badge bg-primary-gradient">{{ slab.commissionType }}</span>
+                </td>
+                <td>{{ slab.createdBy || 'System' }}</td>
+                <td>{{ slab.createdAt ? (slab.createdAt | date:'medium') : '-' }}</td>
+                <td (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-primary me-1" (click)="openModal(slabModal, slab)" title="Edit">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteSlab(slab.id!)" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          <nav *ngIf="totalPages > 1" class="mt-3">
+            <ul class="pagination justify-content-end">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+              </li>
+              <ng-container *ngFor="let page of visiblePages">
+                <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+                  <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                </li>
+                <li class="page-item disabled" *ngIf="page === null">
+                  <span class="page-link">...</span>
+                </li>
+              </ng-container>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slab Modal -->
+<ng-template #slabModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">
+      <i class="bi bi-layers me-2"></i>
+      {{ isEditMode ? 'Update Commission Slab' : 'Add New Commission Slab' }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body">
+    <div class="row">
+      <!-- Plan Selection -->
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-diagram-3 me-1 text-purple icon-label"></i> Plan
+          <span class="text-danger">*</span>
+        </label>
+        <select class="form-select shadow-sm" [(ngModel)]="selectedSlab.planId" required>
+          <option [ngValue]="0">Select Plan</option>
+          <option *ngFor="let plan of planDropdown" [ngValue]="plan.id">{{ plan.planName }}</option>
+        </select>
+      </div>
+
+      <!-- Slab Range -->
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-hash me-1 text-purple icon-label"></i> Slab Range
+          <span class="text-danger">*</span>
+        </label>
+        <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedSlab.slabRange"
+          placeholder="e.g., 1001-2000" required />
+        <small class="text-muted">Format: min-max (e.g., 1001-2000)</small>
+      </div>
+
+      <!-- Service Selection -->
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-gear me-1 text-purple icon-label"></i> Service
+          <span class="text-danger">*</span>
+        </label>
+        <select class="form-select shadow-sm" [(ngModel)]="selectedSlab.serviceId" (change)="onServiceChange()" required>
+          <option [ngValue]="0">Select Service</option>
+          <option *ngFor="let service of serviceDropdown" [ngValue]="service.id">{{ service.serviceName }}</option>
+        </select>
+      </div>
+
+      <!-- Operator Selection -->
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-broadcast me-1 text-purple icon-label"></i> Operator
+        </label>
+        <select class="form-select shadow-sm" [(ngModel)]="selectedSlab.operatorId">
+          <option [ngValue]="0">Select Operator (Optional)</option>
+          <option *ngFor="let operator of operatorDropdown" [ngValue]="operator.id">{{ operator.operatorName }}</option>
+        </select>
+      </div>
+
+      <!-- API Code Selection -->
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-code-slash me-1 text-purple icon-label"></i> API Code
+          <span class="text-danger">*</span>
+        </label>
+        <select class="form-select shadow-sm" [(ngModel)]="selectedSlab.apiCode" required>
+          <option [ngValue]="''">Select API Code</option>
+          <option *ngFor="let code of apiCodeDropdown" [ngValue]="code.apiCodeValue">{{ code.name }} ({{ code.apiCodeValue }})</option>
+        </select>
+      </div>
+
+      <!-- Commission Type -->
+      <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-percent me-1 text-purple icon-label"></i> Commission Type
+          <span class="text-danger">*</span>
+        </label>
+        <select class="form-select shadow-sm" [(ngModel)]="selectedSlab.commissionType" required>
+          <option value="flat">Flat</option>
+          <option value="percentage">Percentage</option>
+        </select>
+      </div>
+
+      <!-- Admin Share -->
+      <div class="col-md-4 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person-badge me-1 text-purple icon-label"></i> Admin Share
+          <span *ngIf="selectedSlab.commissionType === 'percentage'"> (%)</span>
+          <span class="text-danger">*</span>
+        </label>
+        <input type="number" class="form-control shadow-sm" [(ngModel)]="selectedSlab.adminShare"
+          min="0" max="100" step="0.01" placeholder="0.00" required />
+      </div>
+
+      <!-- WL Admin Share -->
+      <div class="col-md-4 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person-workspace me-1 text-purple icon-label"></i> WL Admin Share
+          <span *ngIf="selectedSlab.commissionType === 'percentage'"> (%)</span>
+          <span class="text-danger">*</span>
+        </label>
+        <input type="number" class="form-control shadow-sm" [(ngModel)]="selectedSlab.wlAdminShare"
+          min="0" max="100" step="0.01" placeholder="0.00" required />
+      </div>
+
+      <!-- MD Share -->
+      <div class="col-md-4 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person-check me-1 text-purple icon-label"></i> MD Share
+          <span *ngIf="selectedSlab.commissionType === 'percentage'"> (%)</span>
+          <span class="text-danger">*</span>
+        </label>
+        <input type="number" class="form-control shadow-sm" [(ngModel)]="selectedSlab.mdShare"
+          min="0" max="100" step="0.01" placeholder="0.00" required />
+      </div>
+
+      <!-- AD Share -->
+      <div class="col-md-4 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person-gear me-1 text-purple icon-label"></i> AD Share
+          <span *ngIf="selectedSlab.commissionType === 'percentage'"> (%)</span>
+          <span class="text-danger">*</span>
+        </label>
+        <input type="number" class="form-control shadow-sm" [(ngModel)]="selectedSlab.adShare"
+          min="0" max="100" step="0.01" placeholder="0.00" required />
+      </div>
+
+      <!-- RT Share -->
+      <div class="col-md-4 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person-vcard me-1 text-purple icon-label"></i> RT Share
+          <span *ngIf="selectedSlab.commissionType === 'percentage'"> (%)</span>
+          <span class="text-danger">*</span>
+        </label>
+        <input type="number" class="form-control shadow-sm" [(ngModel)]="selectedSlab.rtShare"
+          min="0" max="100" step="0.01" placeholder="0.00" required />
+      </div>
+
+      <!-- Created By (Read-only for edit mode) -->
+      <div class="col-md-4 mb-3" *ngIf="!isEditMode">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person me-1 text-purple icon-label"></i> Created By
+        </label>
+        <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedSlab.createdBy"
+          placeholder="Enter creator name" />
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" (click)="modal.dismiss()">
+      <i class="bi bi-x-circle me-1"></i> Close
+    </button>
+    <button class="btn btn-primary btn-sm text-white rounded-pill px-4" (click)="saveSlab(modal)">
+      <i class="bi bi-check-circle me-1"></i> {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </div>
+</ng-template>

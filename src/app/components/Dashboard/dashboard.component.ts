@@ -74,8 +74,7 @@ export class DashboardComponent {
     this.dashboardService.getDashboard().subscribe({
       next: (data) => {
         this.walletAmount = data.WalletAmount;
-        this.services = data.Services;
-        
+        this.services = data.Services.filter((service: any) => service.ActiveStatus === true);
         this.totalTransaction = data.TotalTransaction;
         this.newUsers = data.UserJoined;
         this.transactionDetails = data._TransactionDetails.map((t: any) => ({

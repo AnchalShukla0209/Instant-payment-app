@@ -5,9 +5,11 @@
   <!-- Tab Buttons -->
   <div class="service-btns mb-3">
     <button *ngFor="let s of services" class="btn service-btn btn-sm me-2" [class.active]="selectedTab() === s.key"
-      (click)="onTabSelect(s.key)">
-      <i class="bi" [ngClass]="s.icon"></i> {{ s.label }}
+      (click)="onTabSelect(s)">
+      <i class="bi" [ngClass]="s.icon"></i>
+      {{ s.label }}
     </button>
+
 
     <button class="btn btn-outline-info btn-sm" *ngIf="!showRecentTxns" (click)="toggleRecentTxns()"
       style="float:right;background: #054a58 !important;">
@@ -23,58 +25,117 @@
   <!-- Mobile Tab -->
   <div>
     <div class="row">
-      <div [class.col-md-12]="!showRecentTxns" [class.col-md-6]="showRecentTxns">
-        <div class="card shadow-sm">
-          <div class="card-header bg-gradient-indigo text-white">
-            <strong><i class="bi" [ngClass]="selectedicon"></i> {{selectedServiceIcon}}</strong>
-            <strong style="text-align: right;float: right;" *ngIf="isSenderRegistered">{{ senderName }}</strong>
-          </div>
-          <div class="card-body">
-            <div class="row">
+      <div [class.col-md-12]="!showRecentTxns"
+           [class.col-md-4]="showRecentTxns && selectedService === 'PPI'"
+           [class.col-md-6]="showRecentTxns && selectedService !== 'PPI'">
 
+        <!-- ── PPI Registered: Wallet Card ── -->
+        <ng-container *ngIf="selectedService === 'PPI' && isSenderRegistered; else defaultSenderCard">
+          <div class="ppi-wsc-outer">
 
-              <div [ngClass]="colClass" class="form-group">
-                <label class="form-label d-flex align-items-center">
-                  <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
-                </label>
-                <input type="text" [readonly]="isSenderRegistered" class="form-control" [(ngModel)]="mobileNumber"
-                  maxlength="10"
-                  (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
-                  placeholder="Enter Mobile Number" />
+            <!-- Dark gradient section -->
+            <div class="ppi-wsc-dark">
+              <div class="ppi-wsc-avatar"><i class="bi bi-person-fill"></i></div>
+              <div class="ppi-wsc-name">{{ senderName || 'Registered Sender' }}</div>
+              <div class="ppi-wsc-mobile"><i class="bi bi-phone-fill me-1"></i>+91 {{ mobileNumber }}</div>
+              <div class="ppi-wsc-badge"><i class="bi bi-check-circle-fill me-1"></i>Wallet Active</div>
+              <div class="ppi-wsc-bal-row">
+                <div class="ppi-wsc-bal-card ppi-purple">
+                  <div class="ppi-wsc-bal-icon"><i class="bi bi-credit-card-fill"></i></div>
+                  <div class="ppi-wsc-bal-label">Current Balance</div>
+                  <div class="ppi-wsc-bal-amount">₹{{ walletCurrentBalance }}</div>
+                </div>
+                <div class="ppi-wsc-bal-card ppi-teal">
+                  <div class="ppi-wsc-bal-icon"><i class="bi bi-bar-chart-fill"></i></div>
+                  <div class="ppi-wsc-bal-label">Wallet Limit</div>
+                  <div class="ppi-wsc-bal-amount">₹{{ walletLimit }}</div>
+                </div>
               </div>
-
-              <div [ngClass]="colClass" class="form-group" *ngIf="PPI_EnteredOTPFlag">
-                <label class="form-label d-flex align-items-center">
-                  <i class="bi bi-shield-lock form-icon icon-label"></i> OTP
-                </label>
-                <input type="text" class="form-control" [(ngModel)]="PPI_EnteredOTP" maxlength="06"
-                  (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
-                  placeholder="Enter OTP" />
-              </div>
-
-              <div [ngClass]="colClass" class="form-group mt-4 d-flex gap-2">
-                <button class="btn btn-chandan btn-sm" *ngIf="showVerifyButton && !PPI_EnteredOTPFlag"
-                  (click)="openPreviewModal(previewModal)">
-                  <i class="bi bi-check-circle"></i> Verify Number
-                </button>
-                <button class="btn btn-chandan btn-sm" *ngIf="PPI_EnteredOTPFlag" (click)="validatePPIOtp()">
-                  <i class="bi bi-shield-lock"></i> Verify OTP
-                </button>
-                <button class="btn btn-default btn-sm" (click)="onCancel()">
-                  <i class="bi bi-x-circle"></i> Cancel
-                </button>
-              </div>
-
-
             </div>
 
+            <!-- Features strip -->
+            <div class="ppi-wsc-features">
+              <div class="ppi-wsc-feat">
+                <div class="ppi-wsc-feat-icon green"><i class="bi bi-shield-check"></i></div>
+                <div class="ppi-wsc-feat-title">100% Secure</div>
+                <div class="ppi-wsc-feat-desc">Bank-level security</div>
+              </div>
+              <div class="ppi-wsc-feat">
+                <div class="ppi-wsc-feat-icon blue"><i class="bi bi-lightning-charge-fill"></i></div>
+                <div class="ppi-wsc-feat-title">Instant Transfer</div>
+                <div class="ppi-wsc-feat-desc">Real-time processing</div>
+              </div>
+              <div class="ppi-wsc-feat">
+                <div class="ppi-wsc-feat-icon teal"><i class="bi bi-headset"></i></div>
+                <div class="ppi-wsc-feat-title">24/7 Support</div>
+                <div class="ppi-wsc-feat-desc">We're here to help</div>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex gap-2 p-2">
+              <button class="btn btn-chandan btn-sm flex-grow-1" (click)="openPpiLoadWallet()">
+                <i class="bi bi-wallet2 me-1"></i> Load Wallet
+              </button>
+              <button class="btn btn-default btn-sm flex-grow-1" (click)="onCancel()">
+                <i class="bi bi-x-circle"></i> Cancel
+              </button>
+            </div>
 
           </div>
-        </div>
+        </ng-container>
+
+        <!-- ── Default card (all other services / PPI not yet registered) ── -->
+        <ng-template #defaultSenderCard>
+          <div class="card shadow-sm">
+            <div class="card-header bg-gradient-indigo text-white">
+              <strong><i class="bi" [ngClass]="selectedicon"></i> {{selectedServiceIcon}}</strong>
+              <strong style="text-align: right;float: right;" *ngIf="isSenderRegistered">{{ senderName }}</strong>
+            </div>
+            <div class="card-body">
+              <div class="row">
+
+                <div [ngClass]="colClass" class="form-group">
+                  <label class="form-label d-flex align-items-center">
+                    <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
+                  </label>
+                  <input type="text" [readonly]="isSenderRegistered" class="form-control" [(ngModel)]="mobileNumber"
+                    maxlength="10"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                    placeholder="Enter Mobile Number" />
+                </div>
+
+                <div [ngClass]="colClass" class="form-group" *ngIf="PPI_EnteredOTPFlag">
+                  <label class="form-label d-flex align-items-center">
+                    <i class="bi bi-shield-lock form-icon icon-label"></i> OTP
+                  </label>
+                  <input type="text" class="form-control" [(ngModel)]="PPI_EnteredOTP" maxlength="06"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                    placeholder="Enter OTP" autocomplete="one-time-code" />
+                </div>
+
+                <div [ngClass]="colClass" class="form-group mt-4 d-flex gap-2">
+                  <button class="btn btn-chandan btn-sm" *ngIf="showVerifyButton && !PPI_EnteredOTPFlag"
+                    (click)="openPreviewModal(previewModal)">
+                    <i class="bi bi-check-circle"></i> Verify Number
+                  </button>
+                  <button class="btn btn-chandan btn-sm" *ngIf="PPI_EnteredOTPFlag" (click)="validatePPIOtp()">
+                    <i class="bi bi-shield-lock"></i> Verify OTP
+                  </button>
+                  <button class="btn btn-default btn-sm" (click)="onCancel()">
+                    <i class="bi bi-x-circle"></i> Cancel
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
       </div>
 
       <!-- Recent Transactions Panel -->
-      <div *ngIf="showRecentTxns" class="col-md-6">
+      <div *ngIf="showRecentTxns" [class.col-md-8]="selectedService === 'PPI'" [class.col-md-6]="selectedService !== 'PPI'">
         <div class="card shadow-sm plans-wrapper">
           <div class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
             <strong><i class="bi bi-clock-history"></i> Recent Beneficiary</strong>
@@ -159,7 +220,7 @@
       <div class="row">
 
 
-        <div class="col-md-3 form-group mb-2">
+        <div class="col-md-3 form-group mb-2" *ngIf="selectedService !== 'NIFI'">
           <label><i class=""></i>Txn Type</label>
           <select class="form-control" id="txnType">
             <option>IMPS</option>
@@ -169,7 +230,7 @@
 
         <div class="col-md-3 form-group mb-2">
           <label><i class=""></i>Amount</label>
-          <input type="text" maxlength="6"  (keyup)="onAmountEntered()"
+          <input type="text" maxlength="6" (keyup)="onAmountEntered()"
             (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" id="amount"
             class="form-control" placeholder="Amount">
         </div>
@@ -179,26 +240,34 @@
           <label><i class="bi bi-shield-lock"></i> OTP</label>
           <div class="input-group">
             <input type="text" [(ngModel)]="enteredPaymentOTP" maxlength="4" style="max-width: 40% !important;"
-              class="form-control" placeholder="Enter OTP">
+              class="form-control" placeholder="Enter OTP" autocomplete="one-time-code">
             &nbsp;&nbsp;
             <button class="btn btn-success btn-sm" (click)="ResendOTPForPayment()">Resend OTP</button>
           </div>
         </div>
 
+        <div *ngIf="selectedService == 'PPI' && !showPPIPaymentOtpBlock" class="col-md-3 form-group mb-2 d-flex align-items-end">
+          <button class="btn btn-chandan btn-sm w-100" (click)="sendOtpForPaymentForPPI()">
+            <i class="bi bi-send"></i> Get OTP
+          </button>
+        </div>
+
         <div *ngIf="selectedService == 'PPI' && showPPIPaymentOtpBlock" class="col-md-6 form-group mb-2">
-          <label><i class="bi bi-shield-lock"></i> OTP</label>
+          <label><i class="bi bi-shield-lock"></i> Payment OTP</label>
           <div class="input-group">
-            <input type="text" [(ngModel)]="enteredPaymentOTPForPPI" maxlength="6" style="max-width: 40% !important;"
-              class="form-control" placeholder="Enter OTP">
+            <input type="text" [(ngModel)]="enteredPaymentOTPForPPI" maxlength="6" style="max-width: 50% !important;"
+              class="form-control" placeholder="Enter OTP" autocomplete="one-time-code">
             &nbsp;&nbsp;
-            <button class="btn btn-success btn-sm" (click)="sendOtpForPaymentForPPI()">Resend OTP</button>
+            <button class="btn btn-outline-secondary btn-sm" (click)="sendOtpForPaymentForPPI()">
+              <i class="bi bi-arrow-repeat"></i> Resend
+            </button>
           </div>
         </div>
 
-        <div *ngIf="selectedService == 'TRAMO'" class="col-md-6 form-group mb-2">
+        <div *ngIf="selectedService == 'TRAMO' || selectedService == 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT'" class="col-md-6 form-group mb-2">
           <label><i class="bi bi-key"></i> Transaction PIN</label>
           <input type="password" [(ngModel)]="enteredMPIN" maxlength="4" class="form-control"
-            placeholder="Enter Txn PIN">
+            placeholder="Enter Txn PIN" autocomplete="off">
         </div>
 
 
@@ -215,6 +284,167 @@
   </ng-template>
 
   <div id="printArea" style="display:none;"></div>
+  <div id="ppiPrintArea" style="display:none;"></div>
+
+  <!-- PPI LOAD WALLET MODAL -->
+  <ng-template #ppiLoadWalletModal let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i>Load PPI Wallet</h5>
+    </div>
+    <div class="modal-body">
+
+      <!-- Sender Info Strip -->
+      <div class="d-flex align-items-center gap-3 mb-3 p-2 rounded"
+        style="background:linear-gradient(135deg,#f5f0ff,#edf8f6);border:1.5px solid #d4c8e8;">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#5e2f82,#49a09d);
+            display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;flex-shrink:0;">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <div class="flex-grow-1">
+          <div class="fw-bold" style="font-size:0.9rem;color:#2d1a45;">{{ senderName || 'Sender' }}</div>
+          <div style="font-size:0.75rem;color:#7a6b8a;"><i class="bi bi-phone-fill me-1"></i>+91 {{ mobileNumber }}</div>
+        </div>
+        <div class="text-end">
+          <div style="font-size:0.62rem;color:#7a6b8a;text-transform:uppercase;letter-spacing:0.04em;">Balance</div>
+          <div style="font-size:1rem;font-weight:800;color:#5e2f82;">₹{{ walletCurrentBalance }}</div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <!-- Amount -->
+        <div class="col-12">
+          <label class="form-label d-flex align-items-center" style="font-size:0.78rem;font-weight:700;color:#3a1f5c;">
+            <i class="bi bi-currency-rupee me-1"></i> Amount
+          </label>
+          <input type="text" class="form-control" [(ngModel)]="ppiLoadWalletAmount" maxlength="7"
+            (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+            placeholder="Min ₹5,000 – Max ₹1,00,000" autocomplete="off" />
+        </div>
+        <!-- TXN PIN -->
+        <div class="col-12">
+          <label class="form-label d-flex align-items-center" style="font-size:0.78rem;font-weight:700;color:#3a1f5c;">
+            <i class="bi bi-lock me-1"></i> Transaction PIN
+          </label>
+          <div class="input-group">
+            <input [type]="showLoadWalletPin ? 'text' : 'password'" class="form-control"
+              [(ngModel)]="ppiLoadWalletTxnPin" maxlength="6"
+              placeholder="Enter Transaction PIN" autocomplete="off" />
+            <button class="btn btn-outline-secondary btn-sm" type="button"
+              (click)="showLoadWalletPin = !showLoadWalletPin">
+              <i class="bi" [ngClass]="showLoadWalletPin ? 'bi-eye-fill' : 'bi-eye-slash-fill'"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info note -->
+      <div class="d-flex align-items-start gap-2 p-2 rounded mb-2"
+        style="background:#f8f7fe;border:1.5px solid #e8e4f5;font-size:0.75rem;">
+        <i class="bi bi-info-circle text-purple mt-1"></i>
+        <div>
+          <div style="font-weight:600;color:#2d1a45;">Amount must be between ₹5,000 and ₹1,00,000.</div>
+          <div style="color:#8274a0;">Transaction is non-reversible.</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm flex-grow-1" (click)="modal.dismiss()">
+        <i class="bi bi-x-circle me-1"></i> Cancel
+      </button>
+      <button class="btn btn-chandan btn-sm flex-grow-1" (click)="submitPpiLoadWallet()">
+        <i class="bi bi-lock-fill me-1"></i> Load Wallet
+      </button>
+    </div>
+  </ng-template>
+
+  <!-- PPI LOAD WALLET INVOICE MODAL -->
+  <ng-template #ppiLoadWalletInvoiceModal let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Transaction Receipt</h5>
+    </div>
+    <div class="modal-body invoice-wrapper" id="ppiLoadWalletInvoiceContent">
+
+      <!-- Status Badge -->
+      <div class="text-center mb-3">
+        <span class="badge fs-6 px-4 py-2"
+          [ngClass]="ppiLoadWalletInvoice?.status?.toUpperCase() === 'SUCCESS' ? 'bg-success' : 'bg-warning text-dark'">
+          <i class="bi me-1"
+            [ngClass]="ppiLoadWalletInvoice?.status?.toUpperCase() === 'SUCCESS' ? 'bi-check-circle-fill' : 'bi-clock-fill'"></i>
+          {{ ppiLoadWalletInvoice?.status?.toUpperCase() === 'SUCCESS' ? 'Transaction Successful' : 'Transaction Pending' }}
+        </span>
+      </div>
+
+      <!-- Brand -->
+      <div class="text-center mb-3">
+        <h5 class="text-purple mb-0">Instant Payment</h5>
+        <small class="text-muted">PPI Wallet Load Receipt</small>
+      </div>
+
+      <!-- Details -->
+      <div class="invoice p-2">
+        <table class="table table-bordered table-sm mb-0">
+          <tbody>
+            <tr>
+              <th class="text-purple">Account No</th>
+              <td class="text-end">{{ ppiLoadWalletInvoice?.accountNo }}</td>
+            </tr>
+            <tr>
+              <th class="text-purple">RT Name</th>
+              <td class="text-end">{{ ppiLoadWalletInvoice?.beneName }}</td>
+            </tr>
+            <tr>
+              <th class="text-purple">Amount Loaded</th>
+              <td class="text-end fw-bold text-success">₹{{ ppiLoadWalletInvoice?.amount }}</td>
+            </tr>
+            <tr>
+              <th class="text-purple">Charges</th>
+              <td class="text-end">₹{{ ppiLoadWalletInvoice?.charge }}</td>
+            </tr>
+            <tr>
+              <th class="text-purple">Current Balance</th>
+              <td class="text-end">₹{{ ppiLoadWalletInvoice?.currentBalance }}</td>
+            </tr>
+            <tr>
+              <th class="text-purple">Status</th>
+              <td class="text-end">
+                <span class="badge"
+                  [ngClass]="ppiLoadWalletInvoice?.status?.toUpperCase() === 'SUCCESS' ? 'bg-success' : 'bg-warning text-dark'">
+                  {{ ppiLoadWalletInvoice?.status }}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <th class="text-purple">Txn ID</th>
+              <td class="text-end text-muted small">{{ ppiLoadWalletInvoice?.txnID }}</td>
+            </tr>
+            <tr>
+              <th class="text-purple">BR ID</th>
+              <td class="text-end text-muted small">{{ ppiLoadWalletInvoice?.bR_Id }}</td>
+            </tr>
+            <tr>
+              <th class="text-purple">Txn Date</th>
+              <td class="text-end">{{ ppiLoadWalletInvoice?.txnDate }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-center mt-3">
+        <small class="text-muted">Digitally generated. No signature required.<br>© InstantPayment</small>
+      </div>
+
+    </div>
+    <div class="modal-footer d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
+      <button class="btn btn-chandan btn-sm" (click)="downloadPpiLoadWalletInvoice()">
+        <i class="bi bi-download me-1"></i> Download
+      </button>
+      <button class="btn btn-chandan btn-sm" (click)="printPpiLoadWalletInvoice()">
+        <i class="bi bi-printer me-1"></i> Print
+      </button>
+    </div>
+  </ng-template>
 
   <!-- RECHARGE INVOICE MODAL -->
   <ng-template #invoiceModal let-modal>
@@ -225,21 +455,21 @@
 
     <div class="modal-body invoice-wrapper" id="invoiceContent">
       <!-- HEADER FOR PDF -->
-      <div class="bg-purple text-white text-center p-3 rounded-top mb-3">
+      <div class="bg-purple text-white text-center p-1 rounded-top">
         <h5 class="m-0">Transection Details</h5>
       </div>
 
       <!-- Success Icon -->
-      <div class="text-center my-3">
+      <div class="text-center">
         <div class="success-icon-wrapper mx-auto">
-          <i class="bi bi-check-circle-fill text-success success-icon" id="successIcon"></i>
+          <!-- <i class="bi bi-check-circle-fill text-success success-icon" id="successIcon"></i> -->
           <div class="text-success mt-2 fs-5 fw-bold">Transection Successful</div>
         </div>
       </div>
 
       <!-- Invoice Content -->
-      <div class="invoice p-4">
-        <div class="text-center mb-4">
+      <div class="invoice p-2">
+        <div class="text-center">
           <h4 class="mt-2 text-purple">Instant Payment</h4>
         </div>
 
@@ -248,6 +478,10 @@
             <tr>
               <th scope="row" class="text-purple">Beneficiary Name</th>
               <td class="text-end">{{ invoiceData?.BeneName }}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-purple">Bank Name</th>
+              <td class="text-end">{{ invoiceData?.BankName }}</td>
             </tr>
             <tr>
               <th scope="row" class="text-purple">Account Number</th>
@@ -261,10 +495,7 @@
               <th scope="row" class="text-purple">BR Id </th>
               <td class="text-end">{{ invoiceData?.BR_Id }}</td>
             </tr>
-            <tr>
-              <th scope="row" class="text-purple">Transaction ID</th>
-              <td class="text-end">{{ invoiceData?.TxnID }}</td>
-            </tr>
+           
             <tr>
               <th scope="row" class="text-purple">Txn Date</th>
               <td class="text-end">{{ invoiceData?.TxnDate }}</td>
@@ -548,7 +779,7 @@
                 <div class="input-group">
                   <input type="text" maxlength="6" [(ngModel)]="aadharOtpInput" class="form-control"
                     (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
-                    placeholder="Enter OTP">
+                    placeholder="Enter OTP" autocomplete="one-time-code">
 
                   <button class="btn btn-chandan btn-sm" (click)="sendPpiAadharOtp()">Resend</button>
                 </div>
@@ -618,7 +849,7 @@
             <div class="input-group">
               <input type="text" [(ngModel)]="tramoOTP" maxlength="04"
                 (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
-                placeholder="Enter OTP" class="form-control">
+                placeholder="Enter OTP" class="form-control" autocomplete="one-time-code">
               &nbsp;&nbsp;
               <button type="button" class="btn btn-chandan btn-sm" (click)="ResendOTPForSender()">Resend
                 OTP</button>
@@ -633,7 +864,7 @@
           <label><i class="bi bi-shield-lock"></i> OTP</label>
           <div class="input-group">
             <input type="text" maxlength="6" style="max-width: 50% !important;" placeholder="Enter OTP"
-              class="form-control">
+              class="form-control" autocomplete="one-time-code">
             &nbsp;&nbsp;
             <button type="button" class="btn btn-chandan btn-sm" (click)="ResendOTPForSender()">Resend
               OTP</button>
@@ -663,19 +894,32 @@
         <table class="table table-bordered text-center small">
           <thead class="bg-purple text-white">
             <tr>
-              <th>Account Number</th>
-              <th>Benificiary Number</th>
-              <th>IFSC Code</th>
-              <th>Branch Name</th>
+              <th style="white-space: nowrap;">Account Number</th>
+              <th style="white-space: nowrap;">Benificiary Name</th>
+              <th style="white-space: nowrap;">IFSC Code</th>
+              <th style="white-space: nowrap;">Branch Name</th>
+              <th style="white-space: nowrap;" *ngIf="selectedService==='PPI'">OTP</th>
 
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>{{ beneficiaryForm.get('accountNumber')?.value }}</td>
-              <td>{{ beneficiaryForm.get('beneficiaryNumber')?.value }}</td>
-              <td>{{ beneficiaryForm.get('ifscCode')?.value }}</td>
-              <td>{{ getBankName(beneficiaryForm.get('branchName')?.value) }}</td>
+              <td style="white-space: nowrap;">{{ beneficiaryForm.get('accountNumber')?.value }}</td>
+              <td style="white-space: nowrap;">{{ beneficiaryForm.get('beneficiaryNumber')?.value }}</td>
+              <td style="white-space: nowrap;">{{ beneficiaryForm.get('ifscCode')?.value }}</td>
+              <td style="white-space: nowrap;">{{ getBankName(beneficiaryForm.get('branchName')?.value) }}</td>
+              <td style="white-space: nowrap;" *ngIf="selectedService === 'PPI'">
+                <div class="input-group input-group-sm">
+                  <input type="text" class="form-control" placeholder="Enter OTP" maxlength="6"
+                    [(ngModel)]="ppibeneaddotp" (input)="checkPpiOtp()"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" autocomplete="one-time-code" />
+
+                  <button class="btn btn-chandan" type="button" (click)="ResendOTPForPPIAddBenf()">
+                    Resend OTP
+                  </button>
+                </div>
+              </td>
+
 
 
             </tr>
@@ -701,7 +945,7 @@
           <label><i class="bi bi-shield-lock"></i> OTP</label>
           <div class="input-group">
             <input type="text" maxlength="6" style="max-width: 50% !important;" placeholder="Enter OTP"
-              class="form-control">
+              class="form-control" autocomplete="one-time-code">
             &nbsp;&nbsp;
             <button type="button" class="btn btn-chandan btn-sm" (click)="ResendOTPForBenf()">Resend
               OTP</button>
@@ -716,8 +960,74 @@
     <div class="modal-footer d-flex justify-content-between flex-wrap">
       <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
       <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="FinalBeneForCreation()"
-        [disabled]=" selectedService !== 'PPI' && selectedService !== 'FINO' &&  !validateOTPforBenef">
+        [disabled]="selectedService === 'PPI' && !validateOTPforBenef">
         <i class="bi bi-check-circle"></i> Confirm & Proceed
+      </button>
+    </div>
+  </ng-template>
+
+
+  <ng-template #previewModalforDeleteBeneficiary let-modal>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title">Delete-Beneficiary Preview - Instant Pay</h5>
+    </div>
+
+    <div class="modal-body">
+      <!-- Stage 1: Basic Details & Fingerprint -->
+      <div>
+        <table class="table table-bordered text-center small">
+          <thead class="bg-purple text-white">
+            <tr>
+              <th style="white-space: nowrap;">Account Number</th>
+              <th style="white-space: nowrap;">Benificiary Name</th>
+              <th style="white-space: nowrap;">IFSC Code</th>
+              <th style="white-space: nowrap;">Bank Name</th>
+              <th style="white-space: nowrap;" *ngIf="selectedService==='PPI' || selectedService==='FINO' || selectedService==='TRAMO' || selectedService==='ARP' || selectedService==='NIFI' || selectedService==='FZP' || selectedService==='RKIT'">OTP</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="white-space: nowrap;"> {{benedet.AccountNo}}</td>
+              <td style="white-space: nowrap;"> {{benedet.BeneName}}</td>
+              <td style="white-space: nowrap;">{{benedet.IFSCCode}}</td>
+              <td style="white-space: nowrap;"> {{benedet.BankName}}</td>
+              <td style="white-space: nowrap;" *ngIf="selectedService === 'PPI'">
+                <div class="input-group input-group-sm">
+                  <input type="text" class="form-control" placeholder="Enter OTP" maxlength="6"
+                    [(ngModel)]="ppideletebeneOTP"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" />
+
+                  <button class="btn btn-chandan" type="button" (click)="ResendOTPForPPIDeleteBenf(benedet.beneId)">
+                    Resend OTP
+                  </button>
+                </div>
+              </td>
+              <td style="white-space: nowrap;" *ngIf="selectedService === 'FINO' || selectedService === 'TRAMO' || selectedService === 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT'">
+                <div class="input-group input-group-sm">
+                  <input type="text" class="form-control" placeholder="Enter OTP" maxlength="6"
+                    [(ngModel)]="deleteBeneficiaryOtp"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" />
+
+                  <button class="btn btn-chandan" type="button" (click)="resendDeleteOtp()" [disabled]="!canResendOtp">
+                    {{ canResendOtp ? 'Resend OTP' : 'Wait ' + resendOtpTimer + 's' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between flex-wrap">
+      <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2" (click)="modal.dismiss()">Cancel</button>
+      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" *ngIf="selectedService === 'PPI'" (click)="PPIFinalBeneForDeletion(benedet)">
+        <i class="bi bi-check-circle"></i> Confirm & Delete
+      </button>
+      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" *ngIf="selectedService === 'FINO' || selectedService === 'TRAMO' || selectedService === 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT' " (click)="confirmDeleteWithOtp()">
+        <i class="bi bi-check-circle"></i> Confirm & Delete
       </button>
     </div>
   </ng-template>

@@ -158,7 +158,7 @@ export class superadmindashboardComponent implements OnInit  {
     };
 this.superDDData.GetDashboardData(payload).subscribe({
     next: (res) => {
-      debugger
+      
       this._serviceList.set(
         (res.services || []).map((s: any) => ({
           ServiceId: s.ServiceId,

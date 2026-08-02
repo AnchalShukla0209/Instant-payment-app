@@ -18,6 +18,7 @@ export class PaymentRequestAdminComponent implements OnInit {
 
   payments: PaymentResponse[] = [];
   paginatedPayments: PaymentResponse[] = [];
+  exportdataPayments: PaymentResponse[] = [];
   totalRecords = 0;
   totalPages = 0;
   currentPage = 1;
@@ -25,25 +26,38 @@ export class PaymentRequestAdminComponent implements OnInit {
   searchKeyword = '';
   isLoading = false;
   visiblePages: (number | null)[] = [];
+  selectedRowIndex: number | null = null;
 
   selectedPayment: PaymentResponse | null = null;
-  actionType: 'Approve' | 'Reject' | null= null;
+  actionType: 'Approve' | 'Reject' | null = null;
   remarks: string = '';
   @ViewChild('paymentModalRef') paymentModalRef: any;
 
-  fromDate?: Date;
-  toDate?: Date;
-  statusFilter?: string='';
+  fromDate?: string;
+  toDate?: string;
+  statusFilter?: string = '';
 
   constructor(private service: PaymentService, private modalService: NgbModal) { }
 
+  formatDateLocal(date: Date) {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${yyyy}-${mm}-${dd}`; // format for input type="date"
+  }
+
   ngOnInit(): void {
+    const today = new Date();
+    const fromDateObj = new Date();
+    fromDateObj.setMonth(fromDateObj.getMonth() - 3);
+    this.fromDate = this.formatDateLocal(today);
+    this.toDate = this.formatDateLocal(today);
     this.loadPayments(this.currentPage, this.pageSize);
   }
 
   loadPayments(pageIndex: number, pageSize: number): void {
     this.isLoading = true;
-    this.service.getAllPayments(pageIndex, pageSize, this.statusFilter, this.fromDate, this.toDate)
+    this.service.getAllPayments(pageIndex, pageSize, this.statusFilter, this.fromDate, this.toDate, "", 0, 0)
       .subscribe({
         next: (res: PaginatedPaymentResponse) => {
           this.payments = res.payments;
@@ -51,11 +65,15 @@ export class PaymentRequestAdminComponent implements OnInit {
           this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
           this.currentPage = pageIndex;
           this.updateVisiblePages();
-          this.applyFilter();
+          this.paginatedPayments = res.payments;
           this.isLoading = false;
         },
         error: () => this.isLoading = false
       });
+  }
+
+  selectRow(index: number): void {
+    this.selectedRowIndex = index;
   }
 
   updateVisiblePages(): void {
@@ -75,13 +93,21 @@ export class PaymentRequestAdminComponent implements OnInit {
   }
 
   applyFilter(): void {
+    this.isLoading= true;
     const keyword = this.searchKeyword.toLowerCase();
-    this.paginatedPayments = this.payments.filter(p =>
-      p.userName?.toLowerCase().includes(keyword) ||
-      p.txnId?.toLowerCase().includes(keyword) ||
-      p.status?.toLowerCase().includes(keyword) ||
-      p.bankName?.toLowerCase().includes(keyword)
-    );
+    this.service.getAllPayments(1, this.pageSize, this.statusFilter, this.fromDate, this.toDate, keyword, 0, 0)
+      .subscribe({
+        next: (res: PaginatedPaymentResponse) => {
+          this.payments = res.payments;
+          this.totalRecords = res.totalCount;
+          this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
+          this.currentPage = 1;
+          this.updateVisiblePages();
+          this.paginatedPayments = res.payments;
+          this.isLoading = false;
+        },
+        error: () => this.isLoading = false
+      });
   }
 
   changePage(page: number): void {
@@ -123,13 +149,13 @@ export class PaymentRequestAdminComponent implements OnInit {
         const updateRequest: PaymentUpdateRequest = {
           paymentId: this.selectedPayment!.paymentId,
           status: this.actionType === 'Approve' ? 'Approved' : 'Rejected',
-          adminRemarks: this.actionType === 'Approve' ?'':this.remarks.trim(),
-          modifiedBy: 1 
+          adminRemarks: this.actionType === 'Approve' ? '' : this.remarks.trim(),
+          modifiedBy: 1
         };
 
         this.service.updatePayment(updateRequest).subscribe({
           next: () => {
-            Swal.fire('Success', `Payment ${this.actionType!=null?this.actionType.toLowerCase():''}ed successfully`, 'success');
+            Swal.fire('Success', `Payment ${this.actionType != null ? this.actionType.toLowerCase() : ''}ed successfully`, 'success');
             this.modalService.dismissAll();
             this.loadPayments(this.currentPage, this.pageSize);
           },
@@ -156,10 +182,11 @@ export class PaymentRequestAdminComponent implements OnInit {
   }
 
   resetFilters(): void {
+    const today = new Date();
     this.searchKeyword = '';
     this.statusFilter = '';
-    this.fromDate = undefined;
-    this.toDate = undefined;
+    this.fromDate = this.formatDateLocal(today);
+    this.toDate = this.formatDateLocal(today);;
     this.loadPayments(1, this.pageSize);
   }
 
@@ -171,12 +198,23 @@ export class PaymentRequestAdminComponent implements OnInit {
         html2pdf.default().from(el).save('Transaction_Report.pdf');
       });
     } else {
-      import('xlsx').then(xlsx => {
-        const worksheet = xlsx.utils.json_to_sheet(this.paginatedPayments);
-        const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-        const ext = type === 'doc' ? 'xls' : type;
-        xlsx.writeFile(workbook, `Transaction_Report.${ext}`);
-      });
+
+      this.isLoading = true;
+      this.service.getAllPayments(0, 0, this.statusFilter, this.fromDate, this.toDate, "", 1, 0)
+        .subscribe({
+          next: (res: PaginatedPaymentResponse) => {
+            this.exportdataPayments = res.payments;
+            import('xlsx').then(xlsx => {
+              const worksheet = xlsx.utils.json_to_sheet(this.exportdataPayments);
+              const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+              const ext = type === 'doc' ? 'xls' : type;
+              const FileName= this.statusFilter===''?'Payment_Request_Report': this.statusFilter === 'Pending'? 'Pending_Payment_Request_Report': this.statusFilter === 'Approved'? 'Approved_Payment_Request_Report': this.statusFilter === 'Rejected'? 'Rejected_Payment_Request_Report' : '' ;
+              xlsx.writeFile(workbook, `${FileName}.${ext}`);
+            });
+            this.isLoading = false;
+          },
+          error: () => this.isLoading = false
+        });
     }
   }
 

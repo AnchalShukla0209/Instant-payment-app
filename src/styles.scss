@@ -11,7 +11,7 @@
 *::-webkit-scrollbar {
   width: 0 !important;
   height: 0 !important;
-  background: transparent !important;
+  display: none !important;
 }
 
 *:hover::-webkit-scrollbar {
@@ -226,8 +226,13 @@ body {
     visibility: hidden !important;
   }
 
+  body>*:not(#printArea):not(app-root) {
+    display: none !important;
+  }
+
   /* Show only printArea */
-  #printArea, #printArea * {
+  #printArea,
+  #printArea * {
     visibility: visible !important;
   }
 
@@ -236,39 +241,31 @@ body {
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
-    
+
   }
 
   #printArea #invoiceContent .modal-body {
     padding: 0 !important;
   }
 
- 
-
-   #printArea #printFooter
-  {
+  #printArea #printFooter {
     margin-top: -2% !important;
   }
 
-
-  #printArea .text-center
-  {
+  #printArea .text-center {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
   }
 
-  #printArea #invoiceContent .invoice
-  {
+  #printArea #invoiceContent .invoice {
     padding: 0 !important;
   }
-
-   
 
   /* Add border */
   #printArea {
     border: 2px solid #ccc !important;
     border-radius: 10px !important;
-    
+
   }
 
   /* Full color print */
@@ -276,5 +273,22 @@ body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-}
 
+    @page {
+    size: A4 portrait;
+    
+  }
+
+  html, body {
+    width: 210mm;
+    height: 50%;
+    overflow: hidden;
+  }
+
+  #printArea {
+    width: 100% !important;
+    height: 110mm !important;
+    overflow: hidden !important;
+  }
+
+}

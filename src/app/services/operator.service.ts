@@ -13,7 +13,6 @@ export class OperatorService {
 
    getOperators(serviceName: string): Observable<any> {
     const encryptedServiceName = this.encryptor.encrypt(serviceName);
-    debugger
     return this.http.post<any>(`${this.apiUrl}/Operator/get-operators`,{ serviceName: encryptedServiceName }).pipe(
       
       map(res => this.encryptor.decrypt(res.data))

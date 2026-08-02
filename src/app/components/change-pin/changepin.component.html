@@ -1,0 +1,143 @@
+<div class="container-fluid">
+
+    <app-loader *ngIf="isLoading"></app-loader>
+
+    <!-- Tab Buttons -->
+    <div class="d-flex justify-content-end mb-3" style="display: none;">
+        <button class="btn btn-info btn-sm" (click)="toggleRecentTxns()"
+            style="background:#054a58; color: white !important; display: none !important;">
+            <i class="bi bi-clock-history"></i>
+            {{ showRecentTxns ? 'Hide User Information' : 'Show User Information' }}
+        </button>
+    </div>
+    <div class="row">
+        <div [ngClass]="showRecentTxns ? 'col-md-6' : 'col-md-12'">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-indigo text-white">
+                    <strong><i class="bi bi-key"></i> UPDATE USER TXN PIN & MPIN</strong>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div [ngClass]="colClass" class="form-group">
+                            <label class="form-label d-flex align-items-center">
+                                <i class="bi bi-person form-icon icon-label"></i> Name
+                            </label>
+                            <input type="text" [ngClass]="disableclass" class="form-control" [(ngModel)]="Name" />
+                        </div>
+
+                        <div [ngClass]="colClass" class="form-group">
+                            <label class="form-label d-flex align-items-center">
+                                <i class="bi bi-credit-card-2-front form-icon icon-label"></i> Aadhar Number
+                            </label>
+                            <input type="text"
+                                (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                                maxlength="12" class="form-control" [class.is-invalid]="showInputAAdharError"
+                                placeholder="Enter Aadhar Number" [(ngModel)]="inputAadhar" />
+                        </div>
+
+                        <div [ngClass]="colClass" class="form-group">
+                            <label class="form-label d-flex align-items-center">
+                                <i class="bi bi-credit-card-2-front form-icon icon-label"></i> PAN Number
+                            </label>
+                            <input type="text" maxlength="10" class="form-control"
+                                [class.is-invalid]="showInputPANError" placeholder="Enter PAN Number"
+                                [(ngModel)]="inputPANNumber" />
+                        </div>
+
+                        <div class="mt-3 text-left">
+                            <button class="btn btn-chandan btn-sm" (click)="ValidateUser()">
+                                <i class="bi bi-check-circle"></i> VALIDATE USER INFO
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <ng-template #previewModal let-modal>
+        <div class="modal-header bg-purple text-white">
+            <h5 class="modal-title">Change TxnPin & MPin Preview - Instant Pay</h5>
+        </div>
+
+        <div class="modal-body">
+            <div>
+                <table class="table table-bordered text-center small">
+                    <thead class="bg-purple text-white">
+                        <tr>
+                            <th>Custoner Name</th>
+                            <th>Phone Number</th>
+                            <th>Aadhar No </th>
+                            <th>PAN Number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td> {{Name}}</td>
+                            <td> {{PhoneNo}} </td>
+                            <td> {{AadharNo}}</td>
+                            <td> {{PANNo}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-4 form-group">
+                    <label class="form-label d-flex align-items-center">
+                        <i class="bi bi-key icon-label me-1"></i> Txn PIN
+                    </label>
+
+                    <div class="input-group">
+                        <input [type]="showTxnPin ? 'text' : 'password'" class="form-control" [(ngModel)]="TxnPin"
+                            maxlength="04" placeholder="Enter Txn PIN" autocomplete="off"
+                            (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" />
+
+                        <span class="input-group-text cursor-pointer" (click)="toggleTxnPin()">
+                            <i class="bi" [ngClass]="showTxnPin ? 'bi-eye' : 'bi-eye-slash'">
+                            </i>
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="col-md-4 form-group">
+                    <label class="form-label d-flex align-items-center">
+                        <i class="bi bi-key icon-label me-1"></i> M-PIN
+                    </label>
+
+                    <div class="input-group">
+                        <input [type]="showMPin ? 'text' : 'password'" class="form-control" [(ngModel)]="MPIN"
+                            maxlength="04" placeholder="Enter MPIN" autocomplete="off"
+                            (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" />
+
+                        <span class="input-group-text cursor-pointer" (click)="toggleMPin()">
+                            <i class="bi" [ngClass]="showMPin ? 'bi-eye' : 'bi-eye-slash'">
+                            </i>
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="col-md-4 form-group">
+                    <label><i class="bi bi-shield-lock"></i> OTP</label>
+                    <div class="input-group">
+                        <input type="text" [(ngModel)]="otp" maxlength="4" style="max-width: 75% !important;"
+                            class="form-control" placeholder="Enter OTP" autocomplete="one-time-code">
+                        &nbsp;&nbsp;
+                        <button class="btn btn-success btn-sm" (click)="ResendOTP()">Resend OTP</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer d-flex justify-content-between flex-wrap">
+            <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2"
+                (click)="CancelMoneyTransfer()">Cancel</button>
+            <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="updatePin()">
+                <i class="bi bi-check-circle"></i> Confirm & Proceed
+            </button>
+        </div>
+    </ng-template>

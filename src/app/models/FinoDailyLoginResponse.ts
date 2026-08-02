@@ -10,6 +10,7 @@ export interface FinoAepsRequest {
   aadharno: string;
   bankiinno: string;
   mobileno: string;
+  customermobileno?: string | number;
   amount: string;
   txntype: string;
   BankName: string;
@@ -18,7 +19,23 @@ export interface FinoAepsRequest {
   fingerdata: string;
   DeviceSrNo: string;
   deviceType: string;
+  comingFrom: string;
 }
+
+export interface FinoMerchantEKYCRequest {
+  SessionKey: string;
+  APIKey: string;
+  aadharno: string;
+  NameasperPan: string;
+  mobileno: string;
+  DOB: string;
+  Pancardno: string;
+  Firstname: string;
+  LastName: string;
+  fingerdata: string;
+  deviceType: string;
+}
+
 
 export interface FinoAepsResponse {
   Status_Code: string;

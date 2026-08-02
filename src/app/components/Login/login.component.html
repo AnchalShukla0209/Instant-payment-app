@@ -1,17 +1,13 @@
 <div class="container-fluid login-container left-panel">
-   <app-loader *ngIf="isLoading"></app-loader>
+  <app-loader *ngIf="isLoading"></app-loader>
   <div class="row g-0 min-vh-100">
     <!-- Left Section -->
     <div class="col-lg-6 d-flex flex-column justify-content-between text-white p-5">
       <div class="welcome-section text-white py-5">
         <div class="container">
-          <img
-            src="../../../assets/images/logo_2.png"
-            alt="InstantPayment logo"
-            style="height: 100px"
-            class="brand-logo mb-4"
-          />
-          <br /><br /><br/>
+          <img [src]="logoUrl" alt="InstantPayment logo" style="height: 100px"
+            class="brand-logo mb-4" />
+          <br /><br /><br />
           <span class="welcome-text">Welcome to the World of New Age Banking</span>
 
           <div class="stats d-flex flex-wrap mt-4">
@@ -34,20 +30,16 @@
       <div class="mt-auto pt-3">
         <span class="small">Download Our App</span><br />
         <img style="height: 45px;"
-          src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-          alt="Play Store"
-          class="store-badge me-2"
-        />
+          src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Play Store"
+          class="store-badge me-2" />
         <img style="height: 45px;"
-          src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-          alt="App Store"
-          class="store-badge"
-        />
+          src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store"
+          class="store-badge" />
       </div>
     </div>
 
     <!-- Right Section -->
-    <div class="col-lg-6 d-flex align-items-center justify-content-center">
+    <div class="col-lg-6 d-flex align-items-center justify-content-center" *ngIf="!isForgetPasswordflag">
       <div class="login-box p-4 p-md-5 rounded-4 bg-white shadow">
         <h6>
           <span class="fw-bold mb-4 text-heading" style="
@@ -58,62 +50,54 @@
         </h6>
         <br />
         <form #loginForm="ngForm">
-        <div class="mb-3" *ngIf="isInputLogin==true && isotprequired==false">
-          <label for="username" class="form-label">Username</label>
-        <input
-          type="text"
-          class="form-control"
-          id="username"
-          name="username"
-          placeholder="User Name"
-          required
-          [(ngModel)]="username"
-        />
-        </div>
-        <div class="mb-3" *ngIf="isInputLogin==true && isotprequired==false">
-         <label for="password" class="form-label">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          name="password"
-          required
-          [(ngModel)]="password"
-        />
-        </div>
-        <div class="mb-3" *ngIf="isotprequired==true">
-         <label for="OTP" class="form-label">OTP</label>
-        <input
-          type="text"
-          class="form-control"
-          id="OTP"
-          name="OTP"
-          style="caret-color: auto !important; color: #000 !important; background-color: #fff !important;"
-          placeholder="Enter OTP"
-          required
-          [(ngModel)]="inputotp"
-        />
-        </div>
-        <button *ngIf="isInputLogin==true && isotprequired==false" class="btn btn-primary w-100 mb-2" type="button" (click)="onSubmit()">Proceed</button>
-        <div class="row">
-          <div class="col-md-1"></div>
-           <div class="col-md-5">
-             <button *ngIf="isotprequired==true" class="btn btn-primary w-100 mb-2" type="button" (click)="verifyOTP()">Verify OTP</button>
-           </div>
-            <div class="col-md-5">
-              <button *ngIf="isotprequired==true" class="btn btn-danger  w-100 mb-2" type="button" (click)="resendotp()">Resend OTP</button>
+          <div class="mb-3" *ngIf="isInputLogin==true && isotprequired==false">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="User Name" required
+              [(ngModel)]="username" />
+          </div>
+          <div class="mb-3" *ngIf="isInputLogin==true && isotprequired==false">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+              <input [type]="showMPin ? 'text' : 'password'" name="password" class="form-control" [(ngModel)]="password"
+                placeholder="Enter Password" autocomplete="off" />
+              <span class="input-group-text cursor-pointer" (click)="toggleMPin()">
+                <i class="bi" [ngClass]="showMPin ? 'bi-eye' : 'bi-eye-slash'">
+                </i>
+              </span>
             </div>
-             <div class="col-md-1"></div>
-       
-          
+          </div>
+          <div class="mb-3" *ngIf="isotprequired==true">
+            <label for="OTP" class="form-label">OTP</label>
+            <input type="text" class="form-control" id="OTP" name="OTP"
+              style="caret-color: auto !important; color: #000 !important; background-color: #fff !important;"
+              placeholder="Enter OTP" required [(ngModel)]="inputotp" autocomplete="one-time-code" />
+          </div>
+          <button *ngIf="isInputLogin==true && isotprequired==false" class="btn btn-primary w-100 mb-2" type="button"
+            (click)="onSubmit()">Proceed</button>
+          <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-5">
+              <button *ngIf="isotprequired==true" class="btn btn-primary w-100 mb-2" type="button"
+                (click)="verifyOTP()">Verify OTP</button>
+            </div>
+            <div class="col-md-5">
+              <button *ngIf="isotprequired==true" class="btn btn-danger  w-100 mb-2" type="button"
+                (click)="resendotp()">Resend OTP</button>
+            </div>
+            <div class="col-md-1"></div>
+
+
           </div>
         </form>
         <div class="text-center mb-2">
-          <a href="#" class="text-decoration-none small text-primary">Trouble logging in?</a>
+          <a href="javascript:void(0)" (click)="forgetpasswordlink()" class="text-decoration-none small text-primary">
+            Forgot password?
+          </a>
         </div>
-        
+
         <div class="text-center my-3 text-muted d-flex align-items-center justify-content-center">
-          <hr class="flex-grow-1 me-2" /> OR <hr class="flex-grow-1 ms-2" />
+          <hr class="flex-grow-1 me-2" /> OR
+          <hr class="flex-grow-1 ms-2" />
         </div>
 
         <button class="btn btn-outline-secondary w-100 mb-2">
@@ -127,7 +111,49 @@
         </div>
       </div>
     </div>
+
+
+
+    <div class="col-lg-6 d-flex align-items-center justify-content-center" *ngIf="isForgetPasswordflag">
+      <div class="login-box p-4 p-md-5 rounded-4 bg-white shadow" style="width: 75%;">
+        <h6>
+          <span class="fw-bold mb-4 text-heading" style="color: #39416b;font-size: 28px;line-height: 36px;">Forget Password</span>
+        </h6>
+        <br />
+        <form #loginForm="ngForm">
+          <div class="mb-2">
+            <label for="username" class="form-label">Mobile Number</label>
+            <input type="text" maxlength="10" (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()" [class.is-invalid]="showMobileError" class="form-control" id="registeredmobNo" name="registeredmobNo" placeholder="Mobile Number" required
+              [(ngModel)]="registeredmobNo" />
+          </div>
+          <div class="mb-2">
+            <label for="password" class="form-label">Aadhar Number</label>
+            <div class="input-group">
+              <input type="text" name="aadharNumberinp" (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                maxlength="12" class="form-control" [class.is-invalid]="showInputAAdharError"
+                [(ngModel)]="aadharNumberinp" placeholder="Enter Aadhar Number" />
+
+            </div>
+          </div>
+          <div class="mb-2">
+            <label for="OTP" class="form-label">PAN Number</label>
+            <input type="text" maxlength="10" class="form-control"
+              [class.is-invalid]="showInputPANError" name="panNumberinp" [(ngModel)]="panNumberinp"
+              placeholder="Enter PAN Number" />
+          </div>
+          <button class="btn btn-primary w-100 mb-2" type="button" (click)="sendResetLink()">Validate User</button>
+        </form>
+
+        <div class="text-center my-1 text-muted d-flex align-items-center justify-content-center">
+          <hr class="flex-grow-1 me-2" /> OR
+          <hr class="flex-grow-1 ms-2" />
+        </div>
+
+        <button class="btn btn-outline-secondary w-100 mb-2" (click)="LoginRedirect()" >
+          <i class="bi bi-google me-2"></i>Countinue With Login
+        </button>
+
+      </div>
+    </div>
   </div>
 </div>
-
-

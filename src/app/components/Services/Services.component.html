@@ -21,6 +21,7 @@
                 <th>Service Name</th>
                 <th>Image</th>
                 <th>Active</th>
+                <th>Active on APK</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -38,6 +39,11 @@
                 <td>
                   <span [class.text-success]="service.isActive" [class.text-danger]="!service.isActive">
                     {{ service.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  <span [class.text-success]="service.isActiveOnApk" [class.text-danger]="!service.isActiveOnApk">
+                    {{ service.isActiveOnApk ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
                 <td>
@@ -132,6 +138,17 @@
         <i class="bi bi-toggle-on me-1 text-purple icon-label"></i> Status
       </label>
       <select class="form-select shadow-sm" [(ngModel)]="selectedService.isActive">
+        <option [ngValue]="true">Active</option>
+        <option [ngValue]="false">Inactive</option>
+      </select>
+    </div>
+
+    <!-- Is Active on APK -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-android me-1 text-purple icon-label"></i> Active on APK
+      </label>
+      <select class="form-select shadow-sm" [(ngModel)]="selectedService.isActiveOnApk">
         <option [ngValue]="true">Active</option>
         <option [ngValue]="false">Inactive</option>
       </select>

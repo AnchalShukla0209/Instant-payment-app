@@ -1,0 +1,153 @@
+<div class="container-fluid">
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <!-- Header -->
+        <div class="card-header bg-gradient-indigo text-white d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-diagram-3"></i> Plan Management (Total: {{ totalRecords }})</strong>
+          <button class="btn btn-light btn-sm text-primary" (click)="openModal(planModal)">
+            <i class="bi bi-plus"></i> Add New Plan
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="card-body pt-3 pb-2">
+          <div class="row g-2">
+            <div class="col-md-4">
+              <div class="input-group">
+                <span class="input-group-text bg-purple text-white">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control shadow-sm" [(ngModel)]="searchKeyword"
+                  placeholder="Search by plan name..." (input)="onSearchInput()" />
+                <button class="btn btn-primary" (click)="onSearch()">Search</button>
+                <button class="btn btn-outline-secondary" (click)="resetSearch()" title="Reset">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card-body table-responsive">
+          <table class="table table-bordered table-hover text-center" id="tblPlanData">
+            <thead>
+              <tr>
+                <th>Sr No</th>
+                <th>Plan Name</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th>Created At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="plans.length === 0">
+                <td colspan="6" class="text-muted">No plans found.</td>
+              </tr>
+              <tr *ngFor="let plan of plans; let i = index">
+                <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
+                <td class="fw-semibold">{{ plan.planName }}</td>
+                <td>
+                  <span [class]="plan.isActive ? 'badge bg-success' : 'badge bg-danger'">
+                    {{ plan.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>{{ plan.createdBy || 'System' }}</td>
+                <td>{{ plan.createdAt ? (plan.createdAt | date:'medium') : '-' }}</td>
+                <td>
+                  <button class="btn btn-sm btn-primary me-1" (click)="openModal(planModal, plan)" title="Edit">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-sm btn-warning me-1" (click)="toggleStatus(plan)" 
+                    [title]="plan.isActive ? 'Deactivate' : 'Activate'">
+                    <i class="bi" [class.bi-toggle-on]="!plan.isActive" [class.bi-toggle-off]="plan.isActive"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deletePlan(plan.id!)" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          <nav *ngIf="totalPages > 1" class="mt-3">
+            <ul class="pagination justify-content-end">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+              </li>
+              <ng-container *ngFor="let page of visiblePages">
+                <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+                  <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                </li>
+                <li class="page-item disabled" *ngIf="page === null">
+                  <span class="page-link">...</span>
+                </li>
+              </ng-container>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Plan Modal -->
+<ng-template #planModal let-modal>
+  <div class="modal-header bg-purple text-white">
+    <h5 class="modal-title">
+      <i class="bi bi-diagram-3 me-2"></i>
+      {{ isEditMode ? 'Update Plan' : 'Add New Plan' }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Plan Name -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-card-text me-1 text-purple icon-label"></i> Plan Name
+        <span class="text-danger">*</span>
+      </label>
+      <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedPlan.planName"
+        placeholder="Enter plan name (e.g., Silver, Gold, Platinum)" required />
+      <small class="text-muted">Plan name must be at least 3 characters</small>
+    </div>
+
+    <!-- Is Active -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-toggle-on me-1 text-purple icon-label"></i> Status
+      </label>
+      <select class="form-select shadow-sm" [(ngModel)]="selectedPlan.isActive">
+        <option [ngValue]="true">Active</option>
+        <option [ngValue]="false">Inactive</option>
+      </select>
+    </div>
+
+    <!-- Created By (Read-only for edit mode) -->
+    <div class="mb-3" *ngIf="!isEditMode">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-person me-1 text-purple icon-label"></i> Created By
+      </label>
+      <input type="text" class="form-control shadow-sm" [(ngModel)]="selectedPlan.createdBy"
+        placeholder="Enter creator name" />
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" (click)="modal.dismiss()">
+      <i class="bi bi-x-circle me-1"></i> Close
+    </button>
+    <button class="btn btn-primary btn-sm text-white rounded-pill px-4" (click)="savePlan(modal)">
+      <i class="bi bi-check-circle me-1"></i> {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </div>
+</ng-template>

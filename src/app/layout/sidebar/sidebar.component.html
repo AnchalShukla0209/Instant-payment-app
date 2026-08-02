@@ -4,7 +4,7 @@
   <div class="d-flex align-items-center mb-2 logo-info px-3 py-2">
     <a routerLink="/" class="brand-icon d-flex align-items-center text-decoration-none">
       <div class="ms-2 sidebarmenuleft">
-        <img src="../../../assets/images/logo__.png" alt="InstantPayment logo" style="height: 85px"
+        <img [src]="logoUrl" alt="InstantPayment logo" style="height: 85px"
           class="brand-logo mb-4" />
       </div>
     </a>
@@ -60,6 +60,12 @@
           <li>
             <a class="nav-link d-flex align-items-center gap-2" routerLink="/Payment-Request-User-Report">
              <i class="bi bi-file-earmark-text"></i>Payment Report
+            </a>
+          </li>
+
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/settlement">
+              <i class="bi bi-wallet2"></i> Settlement
             </a>
           </li>
 
@@ -122,7 +128,33 @@
               <i class="bi bi-bank"></i> Bank Mgmt
             </a>
           </li>
-          
+
+          <li>
+              <a class="nav-link d-flex align-items-center gap-2" routerLink="/featureToggle">
+              <i class="bi bi-tools"></i> Feature Toggle
+            </a>
+            
+          </li>
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/app-release">
+              <i class="bi bi-android2"></i> APK Release
+            </a>
+          </li>
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/whatsapp-broadcast">
+              <i class="bi bi-whatsapp"></i> WA Broadcast
+            </a>
+          </li>
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/plan-management">
+              <i class="bi bi-diagram-3"></i> Plan Management
+            </a>
+          </li>
+          <li>
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/commission-slab">
+              <i class="bi bi-layers"></i> Commission Slab
+            </a>
+          </li>
 
         </ul>
       </div>
@@ -171,7 +203,7 @@
             </a>
           </li>
           <li>
-            <a class="nav-link d-flex align-items-center gap-2" routerLink="/change-pin">
+            <a class="nav-link d-flex align-items-center gap-2" routerLink="/changepin">
               <i class="bi bi-unlock"></i> Change Pin
             </a>
           </li>
@@ -187,6 +219,24 @@
 
   <!-- Support Box -->
   <div class="support-box mt-auto p-3">
+
+    <!-- APK Download Card (Retailers only) -->
+    <div class="apk-download-card mb-3" *ngIf="usertype === 'Retailer' && latestApk">
+      <div class="apk-glow-ring">
+        <i class="bi bi-android2 apk-android-icon"></i>
+      </div>
+      <div class="apk-card-body">
+        <div class="apk-label">Latest App Release</div>
+        <div class="apk-version-row">
+          <span class="apk-version-badge">v{{ latestApk.versionName }}</span>
+          <span class="apk-size-pill">{{ formatApkSize(latestApk.fileSizeBytes) }}</span>
+        </div>
+        <p class="apk-release-note">{{ latestApk.releaseNotes }}</p>
+        <a [href]="latestApk.downloadUrl" class="apk-dl-btn" download>
+          <i class="bi bi-download me-2"></i>Download APK
+        </a>
+      </div>
+    </div>
     <div class="bg-white rounded shadow-sm p-3">
       <strong class="d-block">Need Support</strong>
       <p class="small mb-2">Contact One Of Our Experts</p>

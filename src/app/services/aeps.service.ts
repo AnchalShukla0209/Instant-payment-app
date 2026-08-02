@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FinoDailyLoginResponse, JIODailyLoginResponse } from '../models/FinoDailyLoginResponse'
 import { FinoAepsResponse } from '../models/FinoDailyLoginResponse'
-import { FinoAepsRequest } from '../models/FinoDailyLoginResponse'
+import { FinoAepsRequest, FinoMerchantEKYCRequest } from '../models/FinoDailyLoginResponse'
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -12,10 +12,14 @@ import { environment } from '../../environments/environment';
 })
 export class AEPSService {
     private baseUrl = 'https://instantpayment.co.in/api';
-    private DAILY_LOGIN_URL = "https://instantpayment.co.in/api/AepsDailyLogin";
-    private FINO_AEPS_URL = "https://instantpayment.co.in/api/FinoAEPS";
-    private State_URL ="https://liveapi.in/geo/state/?country=IN";
+    //private DAILY_LOGIN_URL = "https://instantpayment.co.in/api/AepsDailyLogin";
+    private DAILY_LOGIN_URL = environment.apiBaseUrl+"/FinoAEPS/DailyLoginCheck";
+    //private FINO_AEPS_URL = "https://instantpayment.co.in/api/FinoAEPS";
+    private FINO_AEPS_URL = environment.apiBaseUrl+"/FinoAEPS";
+    private State_URL = "https://liveapi.in/geo/state/?country=IN";
     private JPB_AEPS_URL = environment.apiBaseUrl;
+    //private FINO_EKYC_URL = "https://instantpayment.co.in/api/FinoMerchantReg";
+    private FINO_EKYC_URL = environment.apiBaseUrl+"/FinoAEPS/MerchantEkyc";
 
     constructor(private http: HttpClient) { }
 
@@ -61,16 +65,24 @@ export class AEPSService {
         return this.http.get(`${this.State_URL}`);
     }
 
-    jpbBalanceEnquiry(request: any):Observable<any>{
+    jpbBalanceEnquiry(request: any): Observable<any> {
         return this.http.post(`${this.JPB_AEPS_URL}/AEPS/JPBBalanceEnquiry`, request);
     }
 
-    jpbCashWithdrawal(request: any):Observable<any>{
+    jpbCashWithdrawal(request: any): Observable<any> {
         return this.http.post(`${this.JPB_AEPS_URL}/AEPS/JPBCashWithdrawal`, request);
     }
 
-    jpbMiniStatement(request: any):Observable<any>{
+    jpbCashDeposit(request: any): Observable<any> {
+        return this.http.post(`${this.JPB_AEPS_URL}/AEPS/JPBCashDeposit`, request);
+    }
+
+    jpbMiniStatement(request: any): Observable<any> {
         return this.http.post(`${this.JPB_AEPS_URL}/AEPS/JPBMiniStatement`, request);
+    }
+
+    finoMerchantEKYC(payload: FinoMerchantEKYCRequest) {
+        return this.http.post<FinoAepsResponse>(this.FINO_EKYC_URL, payload);
     }
 }
 

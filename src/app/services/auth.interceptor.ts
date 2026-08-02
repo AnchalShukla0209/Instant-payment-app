@@ -20,38 +20,58 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.encryptor.decrypt(localStorage.getItem('token') || '') || '';
-    let authReq = req;
      const skipUrls = [
       '/DMTSenderinfo',
       '/DMTKYCProcess',
       '/DMTSendOTP',
       '/DMTAddSender',
       '/HAddBene',
-      '/HBeneInfo'
+      '/HBeneInfo',
+      '/api/UserLogin',
+      '/api/SendLoginOTP',
+      '/api/verifyotp',
+      '/Login/verifyotp',
+      '/VerifyLoginOTP',
+      '/Login'
     ];
 
     let userid = '';
     let username = '';
+    let plateform = 'web';
 
     try {
       userid = String(this.encryptor.decrypt(localStorage.getItem('userid') || '') || '');
-      username = String(this.encryptor.decrypt(localStorage.getItem('username') || '') || '');
+      username = String(localStorage.getItem('crUserName') || '');
+      plateform = 'web';
     } catch (e) {
       userid = '';
       username = '';
+      plateform = 'web';
     }
 
     const modifiedReq = req.clone({
       setHeaders: {
+        token: token || '',
         userid: userid || '',
-        username: username || ''
+        username: username || '',
+        platform: plateform || 'web',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       }
     });
 
     if (skipUrls.some(url => req.url.includes(url))) {
-      return next.handle(req);
+      return next.handle(modifiedReq);
     }
 
+    // Check OTP verification for protected API calls
+    const otpRequired = localStorage.getItem('otpRequired');
+    const otpVerified = localStorage.getItem('otpVerified');
+    if (otpRequired === 'true' && otpVerified !== 'true') {
+      this.router.navigate(['/login']);
+      return throwError(() => new Error('OTP verification required'));
+    }
 
     return next.handle(modifiedReq).pipe(
       catchError((error: HttpErrorResponse) => {

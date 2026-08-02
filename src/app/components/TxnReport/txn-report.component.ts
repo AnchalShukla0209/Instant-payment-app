@@ -3,28 +3,36 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TxnReportPayload } from '../../models/TxnReport.model';
 import { TxnReportService } from '../../services/Txn.report.service';
 import { MasterService, UserMasterDataForDD } from '../../services/master.service';
+import { AuthService } from '../../services/auth.service';
+import { MoneyTransferService } from '../../services/money-transfer.service';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe, CommonModule } from '@angular/common';
 import { LoaderComponent } from '../app-loader/loader.component';
 import { NgbModal, NgbTypeaheadModule, NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
+import html2pdf from 'html2pdf.js';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-txn-report',
   standalone: true,
-  imports: [DatePipe, CommonModule, FormsModule, ReactiveFormsModule, LoaderComponent, NgbTypeaheadModule, NgbToastModule],
+  imports: [DatePipe, CommonModule, FormsModule, ReactiveFormsModule, LoaderComponent, NgbTypeaheadModule, NgbToastModule, NgSelectModule],
   templateUrl: './txn-report.component.html',
   styleUrl: './txn-report.component.scss',
 })
 export class TxnReportComponent implements OnInit {
   txnForm!: FormGroup;
   records: any[] = [];
+  exportrecords: any[] = [];
   filteredRecords: any[] = [];
   totalRecords = 0;
+  totalAmount = "0";
   totalPages = 0;
   currentPage = 1;
-  pageSize = 10;
+  pageSize = 15;
+  transId: number = 0;
+  RRN: string = '';
   visiblePages: (number | null)[] = [];
   visibleColumns: string[] = [
     'Sr No', 'TXN_ID', 'BankRefNo', 'UserName', 'Amount', 'OperatorName',
@@ -34,8 +42,12 @@ export class TxnReportComponent implements OnInit {
   searchKeyword: string = '';
   filters: any = {};
   isLoading = false;
-
-  services = ['All Service', 'Mobile Recharge', 'AEPS', 'MATM', 'DTH', 'ELECTRICITY', 'DMT', 'UPI', 'QR CODE', 'ONLINE PAYMENT', 'LESSER REPORT', 'ADMIN LESSER REPORT'];
+  invoiceData: any = null;
+  invoiceStatus: string = '';
+  invoiceType: string = '';
+  invoiceTitle: string = '';
+  selectedRowIndex: number | null = null;
+  services = ['All Service', 'RECHARGE', 'AEPS', 'MATM', 'DTH', 'BILL PAYMENT', 'Credit Card Bill', 'DMT', 'UPI', 'QR CODE', 'ONLINE PAYMENT', 'SETTLEMENT', 'LESSER REPORT', 'ADMIN LESSER REPORT', 'SUPERADMIN LESSER REPORT'];
   users: { label: string; value: number }[] = [];
 
 
@@ -65,28 +77,46 @@ export class TxnReportComponent implements OnInit {
   txnRemarks: string = '';                // common for both
   refundAmount: number = 0;               // only for REFUND
   refundPin: string = '';
+  commonSearch: string = '';
   //END
 
+  txnPin: string = '';
+
   columnConfig: any = {
-    'All Service': ['Sr No', 'TXN ID', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response'],
-    'Mobile Recharge': ['Sr No', 'TXN ID', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response'],
-    'DTH': ['Sr No', 'TXN ID', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response'],
-    'ELECTRICITY': ['Sr No', 'TXN ID', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response'],
-    'AEPS': ['Sr No', 'TXN ID', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response'],
-    'MATM': ['Sr No', 'TXN ID', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response'],
-    'DMT': ['Sr No', 'TXN ID', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response'],
-    'UPI': ['Sr No', 'TXN ID', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response'],
-    'QR CODE': ['Sr No', 'TXN ID', 'User Name', 'Opening Bal', 'Amount', 'Closing', 'Status', 'TimeStamp', 'Updated Time', 'API Response'],
-    'ONLINE PAYMENT': ['Sr No', 'TXN ID', 'User Name', 'Opening Bal', 'Amount', 'Closing', 'Status', 'TimeStamp', 'Updated Time', 'API Response'],
-    'LESSER REPORT': ['Sr No', 'User Name', 'Opening Bal', 'Amount', 'Closing', 'Status', 'TimeStamp', 'Updated Time', 'API Response'],
-    'ADMIN LESSER REPORT': ['Sr No', 'User Name', 'Opening Bal', 'Amount', 'Closing', 'Status', 'TimeStamp', 'Updated Time', 'API Response'],
+    'All Service': ['Sr No', 'TXN ID', 'Bank Name', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'RECHARGE': ['Sr No', 'TXN ID', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'DTH': ['Sr No', 'TXN ID', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'BILL PAYMENT': ['Sr No', 'TXN ID', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'Credit Card Bill': ['Sr No', 'TXN ID', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'AEPS': ['Sr No', 'TXN ID', 'Bank Name', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'MATM': ['Sr No', 'TXN ID', 'Bank Name', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'DMT': ['Sr No', 'TXN ID', 'Bank Name', 'BankRefNo', 'User Name', 'Operator Name', 'Bene Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'UPI': ['Sr No', 'TXN ID', 'Bank Name', 'BankRefNo', 'User Name', 'Operator Name', 'Account No', 'Opening Bal', 'Amount', 'Closing', 'Status', 'APIName', 'Coming From', 'Master Distributor', 'Distributor', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response', 'E-Invoice', 'Check Status'],
+    'QR CODE': ['Sr No', 'TXN ID', 'User Name', 'Opening Bal', 'Amount', 'Closing', 'Status', 'TimeStamp', 'Updated Time', 'API Response', 'Update Status', 'E-Invoice', 'Check Status'],
+    'ONLINE PAYMENT': ['Sr No', 'TXN ID', 'BankRefNo', 'User Name', 'Payment Id', 'Amount', 'Mobile No', 'Order Id', 'Aadhar No', 'PAN No', 'Name', 'Last 4 Digit Card No', 'Card Type', 'Status', 'TimeStamp', 'Updated Time', 'API Response', 'Update Status'],
+    'SETTLEMENT':  ['Sr No', 'User Name', 'Operator Name','TXN ID', 'Bank Name', 'IFSC Code', 'Account No', 'BankRefNo', 'Bene Name', 'Customer Mobile', 'Amount', 'Charge', 'Status', 'Coming From', 'TimeStamp', 'Updated Time', 'Update Status', 'Refund Or Failed', 'API Response','Check Status' ],
+    'LESSER REPORT': ['Sr No', 'User Name', 'Opening Bal', 'Txn Amount', 'Commission/Charge', 'TDS', 'Closing', 'Status', 'Remarks', 'TimeStamp', 'Updated Time', 'API Response'],
+    'ADMIN LESSER REPORT': ['Sr No', 'User Name', 'Opening Bal', 'Amount', 'Closing', 'Status', 'Remarks', 'TimeStamp', 'Updated Time', 'API Response'],
+    'SUPERADMIN LESSER REPORT': ['Sr No', 'User Name', 'Opening Bal', 'Amount', 'Closing', 'Status', 'Remarks', 'TimeStamp', 'Updated Time', 'API Response'],
   };
+
 
   @ViewChild('successTxnModal') previewSuccessoperationmodel: any;
   @ViewChild('txnUpdateModal') previewtxnUpdatefailedorrefundModal: any;
+  @ViewChild('invoiceModalRef') invoiceModalRef: any;
 
+  selectRow(index: number): void {
+    this.selectedRowIndex = index;
+  }
 
-  constructor(private fb: FormBuilder, private txnService: TxnReportService, private modalService: NgbModal, private _MasterService: MasterService) { }
+  constructor(private fb: FormBuilder, private txnService: TxnReportService, private modalService: NgbModal, private _MasterService: MasterService, private _authservice: AuthService, private _moneyTransferService: MoneyTransferService) { }
+
+  formatDateLocal(date: Date) {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${yyyy}-${mm}-${dd}`; // format for input type="date"
+  }
 
   ngOnInit(): void {
     const today = new Date();
@@ -102,8 +132,8 @@ export class TxnReportComponent implements OnInit {
     this.txnForm = this.fb.group({
       serviceType: ['All Service'],
       status: [''],
-      dateFrom: [formatDateLocal(fromDateObj)],
-      dateTo: [formatDateLocal(today)],
+      dateFrom: [this.formatDateLocal(today)],
+      dateTo: [this.formatDateLocal(today)],
       userId: [0],
     });
 
@@ -111,24 +141,24 @@ export class TxnReportComponent implements OnInit {
     this.loadData(this.currentPage, this.pageSize);
   }
 
-loadUsers(mode: string) {
-  this.isLoading = true;
-  this.users = []; // clear users before loading new ones
+  loadUsers(mode: string) {
+    this.isLoading = true;
+    this.users = []; // clear users before loading new ones
 
-  this._MasterService.getUsers(mode).subscribe({
-    next: (data: UserMasterDataForDD[]) => {
-      this.users = data.map(u => ({
-        label: u.name,
-        value: u.id
-      }));
-      this.isLoading = false;
-    },
-    error: err => {
-      console.error('Error loading users', err);
-      this.isLoading = false;
-    }
-  });
-}
+    this._MasterService.getUsers(mode).subscribe({
+      next: (data: UserMasterDataForDD[]) => {
+        this.users = data.map(u => ({
+          label: u.name,
+          value: u.id
+        }));
+        this.isLoading = false;
+      },
+      error: err => {
+        console.error('Error loading users', err);
+        this.isLoading = false;
+      }
+    });
+  }
 
 
   onSearch(): void {
@@ -141,8 +171,8 @@ loadUsers(mode: string) {
     this.txnForm.reset({
       serviceType: 'All Service',
       status: '',
-      dateFrom: fromDate.toISOString().split('T')[0],
-      dateTo: new Date().toISOString().split('T')[0],
+      dateFrom: this.formatDateLocal(today),
+      dateTo: this.formatDateLocal(today),
       userId: 0,
     });
     this.onSearch();
@@ -150,13 +180,14 @@ loadUsers(mode: string) {
 
   onServiceChange(): void {
     const type = this.txnForm.value.serviceType;
-    if(type=='LESSER REPORT')
-    {
+    if (type == 'LESSER REPORT') {
       this.loadUsers("RET");
-    } 
-    if(type=='ADMIN LESSER REPORT')
-    {
+    }
+    if (type == 'ADMIN LESSER REPORT') {
       this.loadUsers("AD");
+    }
+    if (type == 'SUPERADMIN LESSER REPORT') {
+      this.loadUsers("SA");
     }
     this.updateVisibleColumns();
     this.filters = {};
@@ -176,8 +207,10 @@ loadUsers(mode: string) {
       dateFrom: this.formatDate(this.txnForm.value.dateFrom),
       dateTo: this.formatDate(this.txnForm.value.dateTo),
       userId: Number(this.txnForm.value.userId),
+      commonsearch: this.commonSearch?.trim(),
       pageIndex,
       pageSize,
+      ispaginationenabled: 1
     };
 
     this.isLoading = true;
@@ -186,6 +219,7 @@ loadUsers(mode: string) {
       next: (res: any) => {
         this.records = res.Data || [];
         this.totalRecords = res.TotalTransactions || 0;
+        this.totalAmount = res.TotalAmount.toString();
         this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
         this.currentPage = pageIndex;
         this.updateVisiblePages();
@@ -194,6 +228,11 @@ loadUsers(mode: string) {
       },
       error: () => (this.isLoading = false),
     });
+  }
+
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.loadData(1, this.pageSize);
   }
 
   changePage(page: number): void {
@@ -247,7 +286,9 @@ loadUsers(mode: string) {
       user.Failed?.toString().toLowerCase().includes(keyword) ||
       user.OpeningBal?.toString().toLowerCase().includes(keyword) ||
       user.Closing?.toString().toLowerCase().includes(keyword) ||
-      user.APIName?.toLowerCase().includes(keyword)
+      user.APIName?.toLowerCase().includes(keyword) ||
+      user.servicename?.toLowerCase().includes(keyword)
+
     );
     this.isLoading = false;
   }
@@ -259,6 +300,7 @@ loadUsers(mode: string) {
     return !noFilterCols.includes(col);
   }
 
+
   getTotalAmount(): number {
     return this.filteredRecords.reduce((acc, curr) => acc + (+curr.Amount || 0), 0);
   }
@@ -266,10 +308,14 @@ loadUsers(mode: string) {
   getKey(col: string): string {
     switch (col) {
       case 'TXN ID': return 'TXN_ID';
-      case 'BankRefNo': return 'BankRefNo';
+      case 'Bank Name': return 'BankRefNo';
+      case 'BankRefNo': return 'BRId';
       case 'User Name': return 'UserName';
       case 'Operator Name': return 'OperatorName';
       case 'Account No': return 'AccountNo';
+      case 'Bene Name': return 'BeneName';
+      case 'Customer Mobile': return 'CustomerMobile';
+      case 'Customer No': return 'BeneName';
       case 'Opening Bal': return 'OpeningBal';
       case 'Amount': return 'Amount';
       case 'Closing': return 'Closing';
@@ -281,15 +327,31 @@ loadUsers(mode: string) {
       case 'TimeStamp': return 'TimeStamp';
       case 'Updated Time': return 'UpdatedTime';
       case 'API Response': return 'APIRes';
+      case 'TxnType': return 'APIName';
+      case 'Remarks': return 'APIRes';
+      case 'Name': return 'OperatorName';
+      case 'PAN No': return 'AccountNo';
+      case 'Order Id': return 'BankRefNo';
+      case 'Mobile No': return 'APIName';
+      case 'Payment Id': return 'ComingFrom';
+      case 'Aadhar No': return 'Transactionid';
+      case 'Last 4 Digit Card No': return 'CustomerMobile';
+      case 'Card Type': return 'BeneName';
+      case 'Commission/Charge': return 'BeneName';
+      case 'TDS': return 'CustomerMobile';
+      case 'Txn Amount': return 'servicename';
+      case 'IFSC Code': return 'Success';
+      case 'Operator Name': return 'servicename';
+      case 'Charge': return 'OperatorName';
       default: return col.replace(/\s+/g, '');
     }
   }
 
-  openSuccessModal(transId: number) {
+  openSuccessModal(data: any, servicename: string) {
 
     this.isLoading = true;
-
-    this.txnService.getTxnSuccessDetails(transId).subscribe({
+    this.transId = data.servicename == "RAZORPAY" || data.servicename == "QR CODE" || data.servicename == "SettlementAEPS"  || data.servicename == "SettlementRazorpay" || data.servicename == "SettlementMATM" ? data.Id : Number(data.TXN_ID);
+    this.txnService.getTxnSuccessDetails(this.transId, servicename).subscribe({
       next: (res: any) => {
         console.log('API Response:', res);
 
@@ -316,7 +378,7 @@ loadUsers(mode: string) {
   successAction() {
     Swal.fire({
       title: 'Are you sure?',
-      text: 'Do you really want to update the status as Success?',
+      text: `Do you really want to update the status as ${this.selectedTxnAction}?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Yes, update it',
@@ -325,20 +387,34 @@ loadUsers(mode: string) {
       cancelButtonColor: '#6c757d'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.isLoading = true;
 
+
+        if (!this.txnPin?.trim()) {
+          Swal.fire('Validation Error', 'Txn Pin is required for this action.', 'warning');
+          return;
+        }
+
+        if (!this.RRN?.trim() && this.selectedTxnAction.toUpperCase() == "SUCCESS") {
+          Swal.fire('Validation Error', 'RRN is required for this action.', 'warning');
+          return;
+        }
+        if (!this.SucesstxtRemarks?.trim()) {
+          Swal.fire('Validation Error', 'Remarks are required for this action.', 'warning');
+          return;
+        }
+        this.isLoading = true;
         // Build payload just like your old jQuery version
         const payload = {
-          Status: 'SUCCESS',
+          Status: this.selectedTxnAction,
           Remarks: this.SucesstxtRemarks || '',
           TransId: this.SucessTxnId,
           UserId: this.SucessUserId,
           ServiceName: this.SucessServiceName,
-          Amount: 0,
-          AccountNo: this.SucessAccountNo,
+          Amount: this.SucessCost,
+          AccountNo: this.RRN,
           UserName: this.SucessUserName,
           TxnAmount: 0,
-          TxnPin: ''   // always blank for Success
+          TxnPin: this.txnPin
         };
 
         this.txnService.getUpdateTxnStatus(payload).subscribe({
@@ -360,7 +436,10 @@ loadUsers(mode: string) {
                 this.SucessUserId = '0';
                 this.SucessUserName = '';
                 this.txtSuccessCurrentStatus = '';
+                this.selectedTxnAction = 'FAILED';
                 this.SucesstxtRemarks = '';
+                this.txnPin = '';
+                this.RRN = '';
 
                 // Close modal
                 this.modalService.dismissAll();
@@ -392,10 +471,11 @@ loadUsers(mode: string) {
     });
   }
 
-  openFailedModal(transId: number) {
+  openFailedModal(data: any, servicename: string) {
 
     this.isLoading = true;
-    this.txnService.getTxnSuccessDetails(transId).subscribe({
+    this.transId = servicename == "RAZORPAY" || servicename == "QR CODE" || servicename == "SettlementAEPS"  || servicename == "SettlementRazorpay" || servicename == "SettlementMATM" ? data.Id : Number(data.TXN_ID);
+    this.txnService.getTxnSuccessDetails(this.transId, servicename).subscribe({
       next: (res: any) => {
         this.txnUpdateDisplay = `${res.serviceName}/${res.accountNo}`;
         this.txnTransId = res.transId;
@@ -464,7 +544,7 @@ loadUsers(mode: string) {
           AccountNo: this.txnAccountNo,
           UserName: this.txnUserName,
           TxnAmount: this.selectedTxnAction === 'REFUND' ? this.refundAmount : 0,
-          TxnPin: this.selectedTxnAction === 'REFUND' ? this.refundPin : ''
+          TxnPin: this.selectedTxnAction === 'REFUND' ? this.refundPin : this.txnPin
         };
 
         // ---- API call ----
@@ -491,6 +571,7 @@ loadUsers(mode: string) {
                 this.refundAmount = 0;
                 this.refundPin = '';
                 this.selectedTxnAction = 'FAILED';
+                this.txnPin = '';
 
                 // Close modal
                 this.modalService.dismissAll();
@@ -528,23 +609,155 @@ loadUsers(mode: string) {
   }
 
   export(type: string): void {
-    if (type === 'pdf') {
-      const el = document.querySelector('.table-responsive') as HTMLElement;
-      if (!el) return;
-      import('html2pdf.js').then(html2pdf => {
-        html2pdf.default().from(el).save('Transaction_Report.pdf');
-      });
-    } else {
-      import('xlsx').then(xlsx => {
-        const worksheet = xlsx.utils.json_to_sheet(this.filteredRecords);
-        const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-        const ext = type === 'doc' ? 'xls' : type;
-        xlsx.writeFile(workbook, `Transaction_Report.${ext}`);
-      });
-    }
+    const payload: TxnReportPayload = {
+      serviceType: this.txnForm.value.serviceType,
+      status: this.txnForm.value.status,
+      dateFrom: this.formatDate(this.txnForm.value.dateFrom),
+      dateTo: this.formatDate(this.txnForm.value.dateTo),
+      userId: Number(this.txnForm.value.userId),
+      commonsearch: this.commonSearch?.trim(),
+      pageIndex: 0,
+      pageSize: 0,
+      ispaginationenabled: 0
+    };
+    this.isLoading = true;
+    const FileName = this.txnForm.value.serviceType === 'LESSER REPORT'? 'LESSAR Report': this.txnForm.value.serviceType === 'ADMIN LESSER REPORT' ? 'ADMIN LESSER Report' : this.txnForm.value.serviceType + " "+'Report';
+    
+    this.txnService.getTxnReport(payload).subscribe({
+      next: (res: any) => {
+        this.exportrecords = res.Data || [];
+        import('xlsx').then(xlsx => {
+          const worksheet = xlsx.utils.json_to_sheet(this.exportrecords);
+          const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+          const ext = type === 'doc' ? 'xls' : type;
+          xlsx.writeFile(workbook, `${FileName}.${ext}`);
+        });
+        this.isLoading = false;
+      },
+      error: () => (this.isLoading = false),
+    });
   }
 
   private formatDate(date: any): string {
     return new Date(date).toISOString().split('T')[0];
+  }
+
+  formatTimestamp(value: string): string {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    const yyyy = d.getFullYear();
+    const MM = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const h = d.getHours();
+    const ampm = h >= 12 ? 'pm' : 'am';
+    const hour = h % 12 || 12;
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${yyyy}-${MM}-${dd} ${hour}:${mm}:${ss} ${ampm}`;
+  }
+
+  openInvoiceModal(row: any) {
+    this.invoiceData = row;
+    this.invoiceData.TimeStamp = this.formatTimestamp(this.invoiceData.TimeStamp);
+    // Map status to icon
+    this.invoiceStatus = row.Status?.toUpperCase();
+
+    if (['AEPS_CASH_WITHDRAWAL', 'CW'].includes(row.OperatorName)) {
+      this.invoiceType = 'AEPS';
+      this.invoiceTitle = "AEPS Cash Withdrawal Invoice";
+
+    } else if (row.OperatorName === 'DMTTXN' || row.OperatorName === 'Money Transfer') {
+      this.invoiceType = 'DMT';
+      this.invoiceTitle = "Money Transfer Invoice";
+    } else {
+      return; // No invoice for other operators
+    }
+
+    this.modalService.open(this.invoiceModalRef, { size: 'lg', backdrop: 'static' });
+  }
+
+  checkDMTStatus(row: any) {
+    if (!row.Transactionid) {
+      Swal.fire('Validation Error', 'TxnId is required!', 'warning');
+      return;
+    }
+
+    this.isLoading = true;
+
+    const request$ = row.APIName === 'FZP'
+      ? this._moneyTransferService.CheckStatusFZPMoneyTransfer(row.Transactionid)
+      : row.APIName === 'ARP'
+      ? this._moneyTransferService.CheckStatusARPMoneyTransfer(row.Transactionid)
+      : row.APIName === 'RKIT'
+      ? this._moneyTransferService.CheckStatusRKITMoneyTransfer(row.Transactionid)
+      : row.APIName === 'Settlement'
+      ? this._moneyTransferService.CheckStatusARPMoneyTransfer(row.TXN_ID) :
+       this._moneyTransferService.CheckStatusNifiMoneyTransfer(row.Transactionid);
+
+    request$.subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (res.status_Code === "1") {
+          Swal.fire('Success', res.message || 'Transaction status retrieved successfully!', 'success');
+          this.loadData(1, this.pageSize);
+        } else if (res.data && res.data.length > 0) {
+          const txn = res.data[0];
+          Swal.fire('Transaction Status', `Status: ${txn.status || res.message}\nTxn ID: ${txn.txnID || ''}\nAmount: ₹${txn.amount || ''}`, 'info');
+          this.loadData(1, this.pageSize);
+        } else {
+          Swal.fire('Warning', res.message || 'Transaction not found or already processed', 'warning');
+        }
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        Swal.fire('Error', 'Server Error. Please try again.', 'error');
+        console.error('Error checking DMT status:', err);
+      }
+    });
+  }
+
+  printInvoice() {
+    const content = document.getElementById('invoiceContent');
+    const printArea = document.getElementById('printArea');
+
+    if (!content || !printArea) return;
+
+    // Clone ONLY the invoice
+    printArea.innerHTML = content.innerHTML;
+
+    // Show print area
+    printArea.style.display = 'inline-block';
+
+    // Trigger print
+    window.print();
+
+    // Cleanup after print
+    setTimeout(() => {
+      printArea.innerHTML = '';
+      printArea.style.display = 'none';
+    }, 500);
+  }
+
+
+  downloadInvoice() {
+    this.isLoading = true;
+    const original = document.getElementById('invoiceContent')!;
+    const clone = original.cloneNode(true) as HTMLElement;
+
+    // Remove animation for PDF
+    const icon = clone.querySelector('.success-icon');
+    if (icon) {
+      icon.classList.add('no-animate');
+    }
+
+    html2pdf().set({
+      margin: 0.2,
+      filename: 'E-Invoice.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }).from(clone).save();
+    this.isLoading = false;
   }
 }

@@ -6,6 +6,8 @@ export interface TxnReportPayload {
   userId?: number;
   pageIndex?: number;
   pageSize?: number;
+  commonsearch?: string;
+  ispaginationenabled?: number;
 }
 
 export interface TxnReportUserPayload {
@@ -17,6 +19,8 @@ export interface TxnReportUserPayload {
   userName?: string;
   pageIndex?: number;
   pageSize?: number;
+  commonsearch?: string;
+  ispaginationenabled?: number;
 }
 
 

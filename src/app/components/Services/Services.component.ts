@@ -25,7 +25,7 @@ export class ServiceListComponent implements OnInit {
   isLoading = false;
   visiblePages: (number | null)[] = [];
 
-  selectedService: ServiceDto = { serviceName: '', servicePath: '', isActive: true };
+  selectedService: ServiceDto = { serviceName: '', servicePath: '', isActive: true, isActiveOnApk: true };
   isEditMode = false;
   @ViewChild('serviceModal') serviceModal: any;
 
@@ -84,7 +84,7 @@ export class ServiceListComponent implements OnInit {
       this.selectedService = { ...service };
       this.isEditMode = true;
     } else {
-      this.selectedService = { serviceName: '', servicePath: '', isActive: true };
+      this.selectedService = { serviceName: '', servicePath: '', isActive: true, isActiveOnApk: true };
       this.isEditMode = false;
     }
     this.modalService.open(this.serviceModal, { size: 'lg', backdrop: 'static', keyboard: false });

@@ -16,7 +16,8 @@ export class PaymentService {
     formData.append('BankId', request.bankId);
     formData.append('UserId', request.userId.toString());
     formData.append('Amount', request.amount.toString());
-    formData.append('TxnId', request.txnId);
+    formData.append('PaymentTxnId', request.paymentTxnId.toString() ?? "");
+    formData.append('UserRemarks', request.userRemarks?.toString() ?? "");
     if (request.deposideMode) {
       formData.append('DeposideMode', request.deposideMode);
     }
@@ -31,8 +32,11 @@ export class PaymentService {
     pageNumber: number = 1,
     pageSize: number = 10,
     status?: string,
-    fromDate?: Date,
-    toDate?: Date
+    fromDate?: string,
+    toDate?: string,
+    commonsearch?: string,
+    isExport?: Number,
+    userid?: number
   ): Observable<PaginatedPaymentResponse> {
     let params = new HttpParams()
       .set('pageNumber', pageNumber.toString())
@@ -48,7 +52,13 @@ export class PaymentService {
       const to = new Date(toDate);
       params = params.set('toDate', to.toISOString());
     }
-
+    if (commonsearch) {
+      params = params.set('commonsearch', commonsearch);
+    }
+    params = params.set('isExport', Number(isExport));
+    if (userid !== undefined) {
+      params = params.set('userid', userid.toString());
+    }
     return this.http.get<PaginatedPaymentResponse>(`${this.apiUrl}`, { params });
   }
 

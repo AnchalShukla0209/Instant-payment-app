@@ -28,13 +28,15 @@
               <input type="date" class="form-control" formControlName="dateTo" />
             </div>
 
-             <div class="col-md-3">
-              <label class="form-label fw-semibold"><i class="bi bi-check-circle-fill text-success icon-label"></i>Status</label>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold"><i
+                  class="bi bi-check-circle-fill text-success icon-label"></i>Status</label>
               <select class="form-control" formControlName="status">
                 <option value="">All</option>
                 <option value="Success">Success</option>
                 <option value="Pending">Pending</option>
                 <option value="Failed">Failed</option>
+                <option value="INIT">Initiated</option>
               </select>
             </div>
 
@@ -77,7 +79,7 @@
   <div class="row align-items-center mb-4 mt-3">
     <!-- Search box -->
     <div class="col-md-3">
-      <input type="text" [(ngModel)]="searchKeyword" class="form-control shadow-sm" (input)="applyFilter()"
+      <input type="text" [(ngModel)]="commonSearch" class="form-control shadow-sm" (input)="onSearchChange()"
         placeholder="Search transactions..." />
     </div>
 
@@ -92,7 +94,7 @@
             No. of Transactions: <span class="text-dark">{{ totalRecords }}</span>
           </span>
           <span class="fw-semibold text-secondary">
-            Total Amount: <span class="text-dark">₹{{ getTotalAmount() }}</span>
+            Total Amount: <span class="text-dark">₹{{ totalAmount}}</span>
           </span>
         </div>
       </div>
@@ -119,7 +121,8 @@
       </thead>
       <tbody>
 
-        <tr *ngFor="let row of filteredRecords; let i = index">
+        <tr *ngFor="let row of filteredRecords; let i = index" (click)="selectRow(i)"
+          [ngClass]="{'selected-row': i === selectedRowIndex}" style="cursor: pointer;">
           <td *ngFor="let col of visibleColumns">
             <ng-container [ngSwitch]="col">
               <ng-container *ngSwitchCase="'Sr No'">{{ (currentPage - 1) * pageSize + i + 1 }}</ng-container>
@@ -127,11 +130,13 @@
               <ng-container *ngSwitchCase="'API Response'">
                 <i class="bi bi-info-circle" (click)="openApiResponseModal(row.APIRes)"></i>
               </ng-container>
+              <ng-container *ngSwitchCase="'TimeStamp'">{{ formatTimestamp(row[getKey(col)]) }}</ng-container>
+              <ng-container *ngSwitchCase="'Updated Time'">{{ formatTimestamp(row[getKey(col)]) }}</ng-container>
               <ng-container *ngSwitchDefault>{{ row[getKey(col)] }}</ng-container>
               <ng-container *ngSwitchCase="'E-Invoice'">
                 <ng-container *ngIf="row.OperatorName === 'AEPS_CASH_WITHDRAWAL' ||
                                         row.OperatorName === 'CW' ||
-                                        row.OperatorName === 'DMTTXN'">
+                                        row.OperatorName === 'DMTTXN' || row.OperatorName === 'Money Transfer'">
                   <i class="bi bi-eye fs-5 text-primary" style="cursor:pointer" (click)="openInvoiceModal(row)">
                   </i>
                 </ng-container>
@@ -178,38 +183,34 @@
   <ng-template #invoiceModalRef let-modal>
 
     <div class="modal-header bg-purple text-white">
-      <h5 class="modal-title">{{ invoiceTitle }}</h5>
+      <h5 class="modal-title">Transaction Details</h5>
     </div>
 
     <div class="modal-body invoice-wrapper" id="invoiceContent">
 
       <!-- HEADER -->
-      <div class="bg-purple text-white text-center p-3 rounded-top mb-3">
-        <h5 class="m-0">{{ invoiceTitle }}</h5>
+      <div class="bg-purple text-white text-center p-1 rounded-top">
+        <h5 class="m-0">Transaction Details</h5>
       </div>
 
       <!-- Status Icon -->
-      <div class="text-center my-3">
+      <div class="text-center">
         <div class="success-icon-wrapper mx-auto">
-          <i class="bi success-icon" [ngClass]="{
-          'bi-check-circle-fill text-success': invoiceStatus === 'SUCCESS',
-          'bi-x-circle-fill text-danger': invoiceStatus === 'FAILED',
-          'bi-hourglass-split text-warning': invoiceStatus !== 'SUCCESS' && invoiceStatus !== 'FAILED'
-        }"></i>
+
 
           <div class="mt-2 fs-5 fw-bold" [ngClass]="{
-          'text-success': invoiceStatus === 'SUCCESS',
-          'text-danger': invoiceStatus === 'FAILED',
-          'text-warning': invoiceStatus !== 'SUCCESS' && invoiceStatus !== 'FAILED'
+          'text-success': invoiceStatus === 'Successful',
+          'text-danger': invoiceStatus === 'Failed',
+          'text-warning': invoiceStatus !== 'Successful' && invoiceStatus !== 'Failed'
         }">
-            {{ invoiceStatus }}
+            Transaction {{ invoiceStatus }}
           </div>
         </div>
       </div>
 
       <!-- Invoice Body -->
-      <div class="invoice p-4">
-        <table class="table table-bordered table-sm mb-2">
+      <div class="invoice p-2">
+        <table class="table table-bordered table-sm">
           <tbody>
 
             <!-- AEPS INVOICE -->
@@ -222,7 +223,7 @@
                 <th class="text-purple">Aadhaar</th>
                 <td class="text-end">{{ invoiceData.AccountNo }}</td>
               </tr>
-             
+
               <tr>
                 <th class="text-purple">Bank Name</th>
                 <td class="text-end">{{ invoiceData.BankRefNo }}</td>
@@ -239,7 +240,7 @@
                 <th class="text-purple">Transaction Time</th>
                 <td class="text-end">{{ invoiceData.TimeStamp }}</td>
               </tr>
-              
+
             </ng-container>
 
             <!-- DMT INVOICE -->
@@ -252,7 +253,7 @@
                 <th class="text-purple">Account Number</th>
                 <td class="text-end">{{ invoiceData.AccountNo }}</td>
               </tr>
-               <tr>
+              <tr>
                 <th class="text-purple">Mobile Number</th>
                 <td class="text-end">{{ invoiceData.CustomerMobile }}</td>
               </tr>

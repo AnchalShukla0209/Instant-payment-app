@@ -1,16 +1,11 @@
 import { Component, signal, ViewChild, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Observable, debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs';
 import { NgbModal, NgbTypeaheadModule, NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrService } from 'ngx-toastr';
 import html2pdf from 'html2pdf.js';
 import { LoaderComponent } from '../app-loader/loader.component';
 import { OperatorService } from '../../services/operator.service';
-import { HttpClient } from '@angular/common/http';
-import { EncryptionService } from '../../encryption/encryption.service';
-import { RechargeRequest } from '../../models/recharge.model';
-import { RechargeService } from '../../services/recharge.service';
 import { AuthService } from '../../services/auth.service';
 import { MoneyTransferService } from '../../services/money-transfer.service';
 import { Router } from '@angular/router';
@@ -18,6 +13,8 @@ import Swal from 'sweetalert2';
 import { MasterService, ServiceStatusResponse } from '../../services/master.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { PidConfig, PID_OPTIONS_CONFIG } from '../../services/pid-options.config';
+import { AdminProvider, AdminFeature } from '../../models/AdminFeature';
+import { AdminConfigService } from '../../services/admin.service';
 
 @Component({
   selector: 'app-Money-Transfer',
@@ -27,12 +24,15 @@ import { PidConfig, PID_OPTIONS_CONFIG } from '../../services/pid-options.config
   styleUrls: ['./Money-Transfer.component.scss']
 })
 export class MoneyTransferComponent {
-  private rechargeService = inject(RechargeService);
+  serviceCode = 'DMT'; // Money Transfer main service
   private authServiceobj = inject(AuthService);
   private router = inject(Router);
-  selectedService: string = 'FINO';
+  selectedService: string = '';
+  selectedServiceIcon: string = '';
+  selectedicon: string = '';
+  selectedServiceLabel = '';
+  //selectedService: string = 'FINO';
   fingurdataKYCforJPB = true;
-  selectedicon: string = 'bi-cash-stack';
   showRecentTxns = false;
   amount: any = null;
   benedet: any = {};
@@ -49,12 +49,18 @@ export class MoneyTransferComponent {
   otpverification: boolean = false;
   tramoOTP: string = '';
   enteredMPIN: string = '';
-  selectedServiceIcon: string = 'FINO - Money Transfer';
+  //selectedServiceIcon: string = 'FINO - Money Transfer';
   consentContent: string = '';
   PPI_OTP_TOKEN: string = '';
   PPI_TOKEYKEY: string = '';
   PPI_EnteredOTP: string = '';
   PPI_EnteredOTPFlag: boolean = false;
+  walletCurrentBalance: string = '';
+  walletLimit: string = '';
+  ppiLoadWalletAmount: string = '';
+  ppiLoadWalletTxnPin: string = '';
+  showLoadWalletPin: boolean = false;
+  ppiLoadWalletInvoice: any = null;
   panCardNo: string = '';
   showPPIOtpBlock: boolean = false;
   showPPIBiometricBlock: boolean = false;
@@ -67,31 +73,59 @@ export class MoneyTransferComponent {
   aadharOtpInput: string = '';
   applicationNo: string = '';
   xmlBase64: string = '';
-  invoicemobno : string ='';
+  invoicemobno: string = '';
+  ppiAddbeneOTPToken: string = '';
+  PPIDeleteBeneOTPToken: string = '';
+  ppibeneaddotp: string = '';
+  ppideletebeneOTP: string = '';
+  services: AdminProvider[] = [];
+  features: AdminFeature[] = [];
 
-  services = [
-    { key: 'FINO', label: 'FINO - Money Transfer', icon: 'bi-cash-stack' },
-    { key: 'TRAMO', label: 'Money Transfer - 2', icon: 'bi-cash-stack' },
-    { key: 'PPI', label: 'Money Transfer - 3', icon: 'bi-cash-stack' },
-  ];
+  // New Beneficiary OTP properties
+  deleteBeneficiaryOtp: string = '';
+  deleteBeneficiaryId: number = 0;
+  showDeleteOtpModal: boolean = false;
+  resendOtpTimer: number = 0;
+  resendOtpInterval: any = null;
+  canResendOtp: boolean = true;
+
+  // services = [
+  //   { key: 'FINO', label: 'FINO - Money Transfer', icon: 'bi-cash-stack' },
+  //   { key: 'TRAMO', label: 'Money Transfer - 2', icon: 'bi-cash-stack' },
+  //   { key: 'PPI', label: 'Money Transfer - 3', icon: 'bi-cash-stack' },
+  // ];
 
   banks: any[] = [];
 
 
-  onTabSelect(service: string) {
-    this.selectedService = service;
-    this.selectedServiceIcon = this.selectedService === 'FINO' ? 'FINO - Money Transfer' : this.selectedService === 'TRAMO' ? 'Money Transfer - 2' : this.selectedService === 'PPI' ? 'Money-Transfer-3' :
-      this.selectedService === 'Money-Transfer-3' ? 'bi-cash-stack' : '';
-    this.selectedicon = this.selectedService === 'FINO' ? 'bi-cash-stack' : this.selectedService === 'TRAMO' ? 'bi-cash-stack'
-      : this.selectedService === 'Money-Transfer-3' ? 'bi-cash-stack' : '';
+  // onTabSelect(service: string) {
+  //   this.selectedService = service;
+  //   this.selectedServiceIcon = this.selectedService === 'FINO' ? 'FINO - Money Transfer' : this.selectedService === 'TRAMO' ? 'Money Transfer - 2' : this.selectedService === 'PPI' ? 'Money-Transfer-3' :
+  //     this.selectedService === 'Money-Transfer-3' ? 'bi-cash-stack' : '';
+  //   this.selectedicon = this.selectedService === 'FINO' ? 'bi-cash-stack' : this.selectedService === 'TRAMO' ? 'bi-cash-stack'
+  //     : this.selectedService === 'Money-Transfer-3' ? 'bi-cash-stack' : '';
+  //   this.amount = null;
+  //   this.mobileNumber = "";
+  //   this.showVerifyButton = true;
+  //   this.senderName = "";
+  //   this.showRecentTxns = false;
+  //   this.isSenderRegistered = false;
+
+  // }
+
+  onTabSelect(provider: AdminProvider) {
+    this.selectedService = provider.key;
+    this.selectedServiceIcon = provider.label;
+    this.selectedicon = provider.icon;
     this.amount = null;
-    this.mobileNumber = "";
+    this.mobileNumber = '';
     this.showVerifyButton = true;
-    this.senderName = "";
+    this.senderName = '';
     this.showRecentTxns = false;
     this.isSenderRegistered = false;
-
   }
+
+
   selectedTab() {
     return this.selectedService;
   }
@@ -183,9 +217,12 @@ export class MoneyTransferComponent {
   senderForm!: FormGroup;
 
   @ViewChild('invoiceModal') invoiceModal: any;
+  @ViewChild('ppiLoadWalletModal') ppiLoadWalletModal: any;
+  @ViewChild('ppiLoadWalletInvoiceModal') ppiLoadWalletInvoiceModal: any;
   @ViewChild('addNewBeneficary') addNewBeneficaryodal: any;
   @ViewChild('addNewsender') addNewsendermodel: any;
   @ViewChild('previewModal') previewModalobj: any;
+  @ViewChild('previewModalforDeleteBeneficiary') previewModalforDeleteBeneficiary: any;
   @ViewChild('previewModalforSender') previewModalforSenderobj: any;
   @ViewChild('previewModalforBeneficiary') previewModalforBeneficiaryobj: any;
 
@@ -227,7 +264,21 @@ export class MoneyTransferComponent {
       ]
     });
 
+    this.loadProviders();
     this.loadBanks();
+  }
+
+  loadProviders() {
+    const serviceCode = 'DMT'; // Money Transfer service
+
+    this.adminService.getProviders(serviceCode).subscribe(res => {
+      this.services = res.filter(p => p.isEnabled);
+
+      // Auto-select first provider
+      if (this.services.length) {
+        this.onTabSelect(this.services[0]);
+      }
+    });
   }
 
   CheckServiceStatus(userId: number, serviceName: string): void {
@@ -322,7 +373,7 @@ export class MoneyTransferComponent {
   }
 
 
-  constructor(private fb: FormBuilder, private modalService: NgbModal, private toastr: ToastrService, private operatorService: OperatorService, private _MoneyTransferService: MoneyTransferService, private masterService: MasterService) { }
+  constructor(private fb: FormBuilder, private modalService: NgbModal, private toastr: ToastrService, private operatorService: OperatorService, private _MoneyTransferService: MoneyTransferService, private masterService: MasterService, private adminService: AdminConfigService) { }
 
   captureDone = signal(false);
   finalUrl: string = '';
@@ -492,7 +543,7 @@ export class MoneyTransferComponent {
             this._MoneyTransferService.doKyc(senderMobile, merchantMobile, aadharNo, this.xmlBase64, latitude, longitude)
               .subscribe({
                 next: (res: any) => {
-                  debugger
+                  
                   if (res.ResponseCode === 0) {
                     this.fingerprintSuccess = true;
                     this.kycReqId = res.ResponseData;
@@ -555,7 +606,7 @@ export class MoneyTransferComponent {
       if (this.selectedService === 'FINO') {
         await this.loadSenderInfo(latitude, longitude);
       }
-      if (this.selectedService === 'TRAMO') {
+      if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
         await this.loadTramoSenderInfo();
       }
       if (this.selectedService === 'PPI') {
@@ -570,20 +621,26 @@ export class MoneyTransferComponent {
   private loadPPISender(): Promise<void> {
     return new Promise((resolve) => {
       this._MoneyTransferService
-        .checkPPISender(this.authServiceobj.getSessionKey(), this.mobileNumber, "110041", "Chandan")
+        .checkPPISender(
+          this.authServiceobj.getUserId(),
+          this.mobileNumber,
+          this.authServiceobj.getUserPincode() || '110001',
+          this.authServiceobj.getUsername() || 'Agent'
+        )
         .subscribe({
           next: (res) => {
-            if (res.Status_Code === "1") {
-              this.PPI_OTP_TOKEN = res.Data;
+            if (res.status_Code === '1') {
+              this.PPI_OTP_TOKEN = res.data;
               this.PPI_EnteredOTPFlag = true;
-              this.toastr.success("OTP sent to registered mobile");
-              this.isLoading = false;
+              this.toastr.success(res.message || 'OTP sent to registered mobile');
+            } else {
+              this.toastr.error(res.message || 'Failed to send OTP');
             }
+            this.isLoading = false;
             resolve();
           },
-
           error: () => {
-            this.toastr.error("Server error while checking PPI sender");
+            this.toastr.error('Server error while checking PPI sender');
             this.isLoading = false;
             this.PPI_EnteredOTPFlag = false;
             resolve();
@@ -593,57 +650,50 @@ export class MoneyTransferComponent {
   }
 
   validatePPIOtp() {
-    if (this.PPI_EnteredOTP == "") {
-      this.toastr.error('Please Enter Otp');
+    if (this.PPI_EnteredOTP == '') {
+      this.toastr.error('Please Enter OTP');
       return;
     }
     this.isLoading = true;
     this._MoneyTransferService
-      .validatePPIOtp(this.authServiceobj.getSessionKey(), this.PPI_OTP_TOKEN, this.PPI_EnteredOTP)
+      .validatePPIOtp(this.authServiceobj.getUserId(), this.PPI_OTP_TOKEN, this.PPI_EnteredOTP)
       .subscribe({
-
         next: (res) => {
-          if (res.Status_Code === "1") {
-            this.toastr.success("Sender Verified Successfully");
-            this.PPI_TOKEYKEY = res.Data[0].TokeyKey;
-            this.senderName = res.Data[0].SenderName;
-            this.applicationNo = res.Data[0].ApplicationNumber;
-            this.consentContent = res.Data[0].consentContent;
-            this.availableLimit = res.Data[0].WalletLimit;
-            this.isSenderRegistered = true;
-            this.PPI_EnteredOTPFlag = false;
-            this.loadPPIBeneficiaries();
+          if (res.status_Code === '1') {
+            this.PPI_TOKEYKEY = res.data[0].tokeyKey;
+            this.applicationNo = res.data[0].applicationNumber;
+            this.availableLimit = res.data[0].walletLimit;
+            this.walletCurrentBalance = res.data[0].walletCurrentBalance || '0';
+            this.walletLimit = res.data[0].walletLimit || '0';
+            if (res.data[0].walletStatus === 'true') {
+              this.toastr.success('Sender Verified Successfully');
+              this.senderName = (res.data[0].senderName || '');
+              this.isSenderRegistered = true;
+              this.PPI_EnteredOTPFlag = false;
+              this.PPI_EnteredOTP = '';
+              this.showVerifyButton = false;
+              this.loadPPIBeneficiaries();
+            } else {
+              this.handleSenderNotRegistered();
+            }
             this.isLoading = false;
-            this.PPI_EnteredOTP = "";
-            this.showVerifyButton = false;
-          }
-          else if (res.Status_Code === "5") {
-
-            this.PPI_TOKEYKEY = res.Data[0].TokeyKey;
-            this.applicationNo = res.Data[0].ApplicationNumber;
-            this.consentContent = res.Data[0].consentContent;
-            this.handleSenderNotRegistered();
+          } else {
+            this.toastr.error(res.message || 'OTP Verification Failed');
             this.isLoading = false;
-          }
-          else if (res.Status_Code === "0") {
-            this.toastr.error(res.Message);
-            this.isLoading = false;
-            return;
           }
         },
-
-        error: () => { this.toastr.error("OTP validation failed"); this.isLoading = false; }
+        error: () => { this.toastr.error('OTP validation failed'); this.isLoading = false; }
       });
   }
 
   private loadPPIBeneficiaries() {
     this.isLoading = true;
     this._MoneyTransferService
-      .getPPIBeneficiaries(this.authServiceobj.getSessionKey(), this.mobileNumber, this.PPI_TOKEYKEY)
+      .getPPIBeneficiaries(this.authServiceobj.getUserId(), this.mobileNumber, this.PPI_TOKEYKEY)
       .subscribe({
         next: (res) => {
-          if (res.Status_Code === "1") {
-            this.beneficiaries = res.Data.map((b: any) => ({
+          if (res.status_Code === '1') {
+            this.beneficiaries = (res.data || []).map((b: any) => ({
               AccountNo: b.accountNo,
               BeneName: b.beneficiaryName,
               BankName: b.bank,
@@ -651,19 +701,17 @@ export class MoneyTransferComponent {
               beneId: b.beneId,
               isBankVerified: b.isAcValidate
             }));
-            this.PPI_EnteredOTP = "";
-            this.PPI_EnteredOTPFlag = false;
-            this.showRecentTxns = true;
           } else {
             this.beneficiaries = [];
-            this.toastr.info("No beneficiaries found");
-            this.showRecentTxns = true;
+            this.toastr.info(res.message || 'No beneficiaries found');
           }
+          this.PPI_EnteredOTP = '';
+          this.PPI_EnteredOTPFlag = false;
+          this.showRecentTxns = true;
           this.isLoading = false;
         },
-
         error: () => {
-          this.toastr.error("Error fetching PPI beneficiaries");
+          this.toastr.error('Error fetching PPI beneficiaries');
           this.isLoading = false;
         }
       });
@@ -683,14 +731,18 @@ export class MoneyTransferComponent {
 
   private loadTramoSenderInfo(): Promise<void> {
     return new Promise((resolve) => {
-      const sessionKey = this.authServiceobj.getSessionKey();
+      const userId = this.authServiceobj.getUserId();
       this._MoneyTransferService.getTRAMOSenderInfo(
-        this.mobileNumber,
-        sessionKey
+        userId,
+        this.mobileNumber
       ).subscribe({
         next: (res) => {
-          if (res.Status_Code === "1") {
-            this.handleTramoSenderRegistered(res.Data[0]);
+          if (res.status_Code === "1") {
+            this.handleTramoSenderRegistered(res.data[0]);
+          } else if (res.status_Code === "4") {
+            // Sender registered but KYC not completed - OTP sent
+            this.toastr.info(res.message);
+            this.handleTramoSenderNotRegistered();
           } else {
             this.handleTramoSenderNotRegistered();
           }
@@ -744,28 +796,24 @@ export class MoneyTransferComponent {
   }
 
   private loadTramoBeneficiaries(): void {
-    const sessionKey = this.authServiceobj.getSessionKey();
-    this._MoneyTransferService.getTRAMOBeneficiaryInfo(this.mobileNumber, sessionKey)
+    const payload = {
+      customerNumber: this.mobileNumber
+    };
+    this._MoneyTransferService.GetBeneficiaryList(payload)
       .subscribe({
         next: (res) => {
-          if (res.Status_Code === "1") {
-            try {
-              const rawList = JSON.parse(res.Data);
-              this.beneficiaries = rawList.map((b: any) => ({
-                AccountNo: b.account_number,
-                BeneName: b.name,
-                BankName: b.bank_name,
-                IFSCCode: b.ifsc,
-                beneId: b.beneId,
-                isBankVerified: b.is_bank_verified
-              }));
-            } catch (err) {
-              this.toastr.error("Beneficiary parsing error");
-              this.beneficiaries = [];
-            }
-
+          if (res.success) {
+            this.beneficiaries = res.beneficiaries.map((b: any) => ({
+              AccountNo: b.accountNumber,
+              BeneName: b.name,
+              BankName: b.bankName,
+              IFSCCode: b.ifsc,
+              beneId: b.id,
+              Id: b.id,
+              isBankVerified: b.status
+            }));
           } else {
-            this.toastr.info('No TRAMO beneficiaries found');
+            this.toastr.info(res.message || 'No beneficiaries found');
             this.beneficiaries = [];
           }
 
@@ -774,7 +822,7 @@ export class MoneyTransferComponent {
         },
 
         error: () => {
-          this.toastr.error('Error fetching TRAMO beneficiaries');
+          this.toastr.error('Error fetching beneficiaries');
           this.isLoading = false;
         }
       });
@@ -820,13 +868,24 @@ export class MoneyTransferComponent {
 
   /** ✅ Loads beneficiaries */
   private loadBeneficiaries(): void {
-    this._MoneyTransferService.getBeneficiaryInfo(this.mobileNumber).subscribe({
+    const payload = {
+      customerNumber: this.mobileNumber
+    };
+    this._MoneyTransferService.GetBeneficiaryList(payload).subscribe({
       next: (beneRes) => {
-        if (beneRes.Status_Code === '1') {
-          this.beneficiaries = beneRes.Data;
-          this.senderId = beneRes.Data[0]?.SenderId || '';
+        if (beneRes.success) {
+          this.beneficiaries = beneRes.beneficiaries.map((b: any) => ({
+            AccountNo: b.accountNumber,
+            BeneName: b.name,
+            BankName: b.bankName,
+            IFSCCode: b.ifsc,
+            Id: b.id,
+            beneId: b.id,
+            isBankVerified: b.status
+          }));
+          this.senderId = beneRes.beneficiaries[0]?.id || '';
         } else {
-          this.toastr.info('No beneficiaries found');
+          this.toastr.info(beneRes.message || 'No beneficiaries found');
           this.beneficiaries = [];
         }
         this.showRecentTxns = true;
@@ -886,6 +945,90 @@ export class MoneyTransferComponent {
     this.PPI_EnteredOTPFlag = false;
     this.PPI_OTP_TOKEN = "";
     this.PPI_TOKEYKEY = "";
+    this.clearOtpTimer();
+  }
+
+  private clearOtpTimer() {
+    if (this.resendOtpInterval) {
+      clearInterval(this.resendOtpInterval);
+      this.resendOtpInterval = null;
+    }
+    this.resendOtpTimer = 0;
+    this.canResendOtp = true;
+  }
+
+  private startOtpTimer() {
+    this.canResendOtp = false;
+    this.resendOtpTimer = 30;
+    this.resendOtpInterval = setInterval(() => {
+      this.resendOtpTimer--;
+      if (this.resendOtpTimer <= 0) {
+        this.clearOtpTimer();
+      }
+    }, 1000);
+  }
+
+  private sendDeleteOtp(beneId: number) {
+    this.isLoading = true;
+    const payload = {
+      customerNumber: this.mobileNumber
+    };
+    this._MoneyTransferService.SendBeneficiaryOtp(payload).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.success) {
+          this.toastr.success(res.message);
+          this.startOtpTimer();
+        } else {
+          this.toastr.error(res.message || 'Failed to send OTP');
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('Server error while sending OTP');
+      }
+    });
+  }
+
+  public resendDeleteOtp() {
+    if (!this.canResendOtp) {
+      this.toastr.error(`Please wait ${this.resendOtpTimer} seconds before requesting OTP again`);
+      return;
+    }
+    this.sendDeleteOtp(this.deleteBeneficiaryId);
+  }
+
+  public confirmDeleteWithOtp() {
+    if (!this.deleteBeneficiaryOtp || this.deleteBeneficiaryOtp.length !== 6) {
+      this.toastr.error('Please enter valid 6-digit OTP');
+      return;
+    }
+    this.isLoading = true;
+    const payload = {
+      customerNumber: this.mobileNumber,
+      beneficiaryId: this.deleteBeneficiaryId,
+      otp: this.deleteBeneficiaryOtp
+    };
+    this._MoneyTransferService.DeleteBeneficiaryWithOtp(payload).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.success) {
+          this.toastr.success(res.message);
+          this.beneficiaries = this.beneficiaries.filter(b => b.id !== this.deleteBeneficiaryId && b.Id !== this.deleteBeneficiaryId && b.beneId !== this.deleteBeneficiaryId);
+          this.deleteBeneficiaryOtp = '';
+          this.deleteBeneficiaryId = 0;
+          this.showDeleteOtpModal = false;
+          this.clearOtpTimer();
+          this.modalService.dismissAll();
+        } else {
+          this.toastr.error(res.message || 'Failed to delete beneficiary');
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('Server error while deleting beneficiary');
+      }
+    });
   }
 
   generateCustomerRefNo(): string {
@@ -957,14 +1100,107 @@ export class MoneyTransferComponent {
       return;
     }
 
-    //this.validateOTPforBenef = true;
     this.validateOTPforBenef = this.selectedService === "TRAMO";
-    this.modalService.open(this.previewModalforBeneficiaryobj, {
-      size: 'lg',
-      backdrop: 'static',
-      keyboard: false,
+    if (this.selectedService === 'PPI') {
+      this.isLoading = true;
+      const req = {
+        userId: this.authServiceobj.getUserId(),
+        senderMobile: this.mobileNumber,
+        apiKey: 'PPI01',
+        tokeyKey: this.PPI_TOKEYKEY,
+        beneName: this.beneficiaryForm.get('beneficiaryNumber')?.value,
+        accountNo: this.beneficiaryForm.get('accountNumber')?.value,
+        ifscCode: this.beneficiaryForm.get('ifscCode')?.value,
+        bankName: this.getBankName(this.beneficiaryForm.get('branchName')?.value)
+      };
+      this._MoneyTransferService.PPIAddBeneficiary(req).subscribe({
+        next: (res) => {
+          this.isLoading = false;
+          if (res.status_Code === '1') {
+            this.toastr.success(res.message);
+            this.ppiAddbeneOTPToken = res.data;
+            this.modalService.open(this.previewModalforBeneficiaryobj, {
+              size: 'lg',
+              backdrop: 'static',
+              keyboard: false,
+            });
+          } else {
+            this.toastr.error(res.message || 'Failed to add beneficiary');
+          }
+        },
+        error: () => {
+          this.isLoading = false;
+          this.toastr.error('Server error');
+        }
+      });
+
+    }
+    else {
+      // For FINO, TRAMO, ARP, NIFI, FZP - just open preview modal
+      this.modalService.open(this.previewModalforBeneficiaryobj, {
+        size: 'lg',
+        backdrop: 'static',
+        keyboard: false,
+      });
+    }
+  }
+
+  ResendOTPForPPIAddBenf() {
+    this.isLoading = true;
+    const req = {
+      userId: this.authServiceobj.getUserId(),
+      otptoken: this.ppiAddbeneOTPToken,
+      apiKey: 'PPI01',
+      tokenkey: this.PPI_TOKEYKEY
+    };
+    this._MoneyTransferService.PPIAddBeneficiaryResendOTP(req).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.status_Code === '1') {
+          this.toastr.success(res.message || 'OTP Resent Successfully');
+        } else {
+          this.toastr.error(res.message || 'Failed to resend OTP');
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('Server error');
+      }
     });
-    this.isLoading = false;
+  }
+
+  PPIValidateOTPAddBeneficiary() {
+    if (this.ppibeneaddotp === '') {
+      this.toastr.error('Please Enter OTP!');
+      return;
+    }
+    this.isLoading = true;
+    const req = {
+      userId: this.authServiceobj.getUserId(),
+      otp: this.ppibeneaddotp,
+      apiKey: 'PPI01',
+      otptoken: this.ppiAddbeneOTPToken,
+      tokenkey: this.PPI_TOKEYKEY
+    };
+    this._MoneyTransferService.PPIAddBeneficiaryValidateOTP(req).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.status_Code === '1') {
+          this.toastr.success(res.message || 'Beneficiary Added Successfully');
+          this.ResetBenefForm();
+          this.ppiAddbeneOTPToken = '';
+          this.ppibeneaddotp = '';
+          this.loadPPIBeneficiaries();
+          this.modalService.dismissAll();
+        } else {
+          this.toastr.error(res.message || 'OTP Validation Failed');
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('Server error');
+      }
+    });
   }
 
   AddSenderPr() {
@@ -983,7 +1219,7 @@ export class MoneyTransferComponent {
       return;
     }
 
-    if (this.selectedService === 'TRAMO') {
+    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
       this.addTramoSender();
       return;
     }
@@ -1011,85 +1247,80 @@ export class MoneyTransferComponent {
   sendPpiAadharOtp() {
     this.isLoading = true;
     const payload = {
-      SessionKey: this.authServiceobj.getSessionKey(),
-      APIKey: "PPI01",
-      TokeyKey: this.PPI_TOKEYKEY,
-      AadharNo: this.senderForm.value.adharNumber,
-      ConsentId: "c3",
-      ApplicationNumber: this.applicationNo,
+      userId: this.authServiceobj.getUserId(),
+      apiKey: 'PPI01',
+      tokeyKey: this.PPI_TOKEYKEY,
+      aadharNo: this.senderForm.value.adharNumber,
+      consentId: 'c3',
+      applicationNumber: this.applicationNo,
       pincode: this.senderForm.value.pinCode,
-      RTName: this.senderForm.value.senderName
+      rtName: this.senderForm.value.senderName
     };
-
     this._MoneyTransferService.PPISendAadharOTP(payload).subscribe(res => {
-      if (res.Status_Code == "1") {
-        this.otpToken = res.Data;
+      this.isLoading = false;
+      if (res.status_Code == '1') {
+        this.otpToken = res.data;
         this.otpverification = true;
-        this.toastr.success("OTP sent successfully");
-        this.isLoading = false;
+        this.toastr.success(res.message || 'OTP sent successfully');
       } else {
-        this.toastr.error(res.Message);
-        this.isLoading = false;
+        this.toastr.error(res.message || 'Failed to send OTP');
       }
     });
-
   }
 
   validatePpiAadharOtp() {
     this.isLoading = true;
     const payload = {
-      SessionKey: this.authServiceobj.getSessionKey(),
-      SenderMobile: this.senderForm.value.mobileNumber,
-      APIKey: "PPI01",
-      TokeyKey: this.PPI_TOKEYKEY,
-      ApplicationNumber: this.applicationNo,
-      AadharToken: this.otpToken,
-      OTP: this.aadharOtpInput
+      userId: this.authServiceobj.getUserId(),
+      apiKey: 'PPI01',
+      aadharToken: this.otpToken,
+      applicationNumber: this.applicationNo,
+      otp: this.aadharOtpInput,
+      senderMobile: this.senderForm.value.mobileNumber,
+      tokeyKey: this.PPI_TOKEYKEY
     };
-
     this._MoneyTransferService.PPIValidateAadharOTP(payload).subscribe(res => {
-      if (res.Status_Code == "1") {
-        this.toastr.success("Aadhar Verified");
-        this.isLoading = false;
-        this.validatePpiPan();
+      this.isLoading = false;
+      if (res.status_Code == '1') {
+        this.toastr.success(res.message || 'Aadhaar Verified — Sender Registered');
+        if (this.panCardNo) {
+          this.validatePpiPan();
+        } else {
+          this.modalService.dismissAll();
+          this.onCancel();
+        }
       } else {
-        this.toastr.error(res.Message);
-        this.isLoading = false;
+        this.toastr.error(res.message || 'Aadhaar OTP Verification Failed');
       }
     });
-
   }
 
   validatePpiPan() {
     this.isLoading = true;
     const payload = {
-      SessionKey: this.authServiceobj.getSessionKey(),
-      SenderMobile: this.senderForm.value.mobileNumber,
-      APIKey: "PPI01",
-      TokeyKey: this.PPI_TOKEYKEY,
-      PancardNo: this.panCardNo,
-      ApplicationNumber: this.applicationNo,
+      userId: this.authServiceobj.getUserId(),
+      apiKey: 'PPI01',
+      tokeyKey: this.PPI_TOKEYKEY,
+      pancardNo: this.panCardNo,
+      applicationNumber: this.applicationNo,
       pincode: this.senderForm.value.pinCode,
-      RTName: this.senderForm.value.senderName
+      rtName: this.senderForm.value.senderName
     };
-
     this._MoneyTransferService.PPIValidatePan(payload).subscribe(res => {
-      if (res.Status_Code == "1") {
-        this.toastr.success(res.Message);
+      this.isLoading = false;
+      if (res.status_Code == '1') {
+        this.toastr.success(res.message || 'PAN Verified — Sender Registered');
         this.modalService.dismissAll();
-        this.isLoading = false;
-        this.panCardNo = "";
-        this.aadharOtpInput = "";
-        this.selectedKycType = "";
+        this.panCardNo = '';
+        this.aadharOtpInput = '';
+        this.selectedKycType = '';
         this.PPI_EnteredOTPFlag = false;
-        this.mobileNumber = "";
-        this.PPI_EnteredOTP = "";
+        this.mobileNumber = '';
+        this.PPI_EnteredOTP = '';
       } else {
-        this.toastr.error(res.Message);
-        this.isLoading = false;
+        this.toastr.error(res.message || 'PAN Verification Failed');
       }
     });
-
   }
 
   private addTramoSender() {
@@ -1098,25 +1329,25 @@ export class MoneyTransferComponent {
     const fullName = this.senderForm.value.senderName.trim();
     const address = this.senderForm.value.address;
     const pincode = this.senderForm.value.pinCode;
-    const sessionKey = this.authServiceobj.getSessionKey();
+    const userId = this.authServiceobj.getUserId();
     const [firstName, ...rest] = fullName.split(" ");
     const lastName = rest.join(" ") || "";
     this._MoneyTransferService.registerTramoSender(
+      userId,
       mobile,
       firstName,
       lastName,
       address,
-      pincode,
-      sessionKey
+      pincode
     ).subscribe({
       next: (res) => {
-        if (res.Status_Code === "1") {
-          this.tramoState = res.Data[0].state;
-          this.toastr.success(res.Message);
+        if (res.status_Code === "1") {
+          this.tramoState = res.data[0].state || '';
+          this.toastr.success(res.message);
 
           this.isLoading = false;
         } else {
-          this.toastr.error(res.Message || 'Sender registration failed');
+          this.toastr.error(res.message || 'Sender registration failed');
           this.isLoading = false;
         }
         this.fingerprintProcess = true;
@@ -1152,7 +1383,7 @@ export class MoneyTransferComponent {
         .sendOtp(senderMobile, merchantMobile, customerName, latitude, longitude, otptype, benename, accountno, ifsccode)
         .subscribe({
           next: (res: any) => {
-            debugger
+            
             if (res.ResponseCode === 0) {
               this.otpRequestId = res.ResponseData;
               this.toastr.success(res.DisplayMessage || 'OTP Generated Successfully');
@@ -1200,7 +1431,7 @@ export class MoneyTransferComponent {
       this.requestSenderOtp(senderMobile, customerName, '1');
       return;
     }
-    if (this.selectedService === 'TRAMO') {
+    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
       this.addTramoSender();
     }
   }
@@ -1224,7 +1455,7 @@ export class MoneyTransferComponent {
         this.isLoading = false;
         return;
       }
-      debugger
+      
       this._MoneyTransferService.getLocation().then(({ latitude, longitude }) => {
         this._MoneyTransferService.addSender(
           senderMobile,
@@ -1242,12 +1473,7 @@ export class MoneyTransferComponent {
                 this.selectedDevice = '';
                 this.fingerprintProcess = false;
                 this.fingerprintSuccess = false;
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Sender Created',
-                  html: res.DisplayMessage || 'Customer Registration Successful',
-                  confirmButtonText: 'OK'
-                });
+                this.toastr.success(res.DisplayMessage || 'Customer Registration Successful');
                 this.isLoading = false;
                 this.modalService.dismissAll();
 
@@ -1265,66 +1491,129 @@ export class MoneyTransferComponent {
 
     }
 
-    if (this.selectedService === 'TRAMO') {
+    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
       this.finalizeTramoSender();
       return;
     }
 
     if (this.selectedService === 'PPI') {
-      if (this.panCardNo == "") {
-        this.toastr.error('Please Enter valid PAN Number');
-        this.isLoading = false;
-        return;
-      }
       if (this.selectedKycType === 'OTP') {
-        if (this.aadharOtpInput == "") {
-          this.toastr.error('Please Enter valid OTP');
+        if (this.aadharOtpInput == '') {
+          this.toastr.error('Please Enter Aadhaar OTP');
           this.isLoading = false;
           return;
         }
         this.validatePpiAadharOtp();
       }
-
       if (this.selectedKycType === 'BIOMETRIC') {
         this.validatePpiBiometric(this.xmlBase64);
       }
     }
   }
 
-  validatePpiBiometric(bioData: string) {
+  openPpiLoadWallet() {
+    this.ppiLoadWalletAmount = '';
+    this.ppiLoadWalletTxnPin = '';
+    this.showLoadWalletPin = false;
+    this.ppiLoadWalletInvoice = null;
+    this.modalService.open(this.ppiLoadWalletModal, { size: 'md', backdrop: 'static', keyboard: false });
+  }
 
-    if (this.authServiceobj.getUserLat() == "" || this.authServiceobj.getUserLongtitude() == "") {
-      this.toastr.error('Please ask to admin update Latitude and Longtitude');
+  submitPpiLoadWallet() {
+    if (!this.ppiLoadWalletAmount || Number(this.ppiLoadWalletAmount) < 1) {
+      this.toastr.error('Please enter a valid amount');
+      return;
+    }
+    if (!this.ppiLoadWalletTxnPin) {
+      this.toastr.error('Please enter your transaction PIN');
       return;
     }
     this.isLoading = true;
+    this._MoneyTransferService.PPILoadWallet({
+      userId: this.authServiceobj.getUserId(),
+      apiKey: 'PPI01',
+      sendermobile: this.mobileNumber,
+      amount: this.ppiLoadWalletAmount,
+      tokeyKey: this.PPI_TOKEYKEY,
+      comingFrom: 'web',
+      txnPin: this.ppiLoadWalletTxnPin
+    }).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.status_Code === '1') {
+          this.ppiLoadWalletInvoice = res.data[0];
+          this.walletCurrentBalance = res.data[0]?.currentBalance || this.walletCurrentBalance;
+          this.toastr.success(res.message || 'Transaction Successful!');
+          this.modalService.dismissAll();
+          this.modalService.open(this.ppiLoadWalletInvoiceModal, { size: 'md', backdrop: 'static', keyboard: false });
+        } else {
+          this.toastr.error(res.message || 'Transaction Failed');
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('Transaction failed. Please try again.');
+      }
+    });
+  }
 
+  downloadPpiLoadWalletInvoice() {
+    const el = document.getElementById('ppiLoadWalletInvoiceContent');
+    if (el) {
+      html2pdf().set({
+        filename: `PPI_LoadWallet_${this.ppiLoadWalletInvoice?.txnID || 'Invoice'}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(el).save();
+    }
+  }
+
+  printPpiLoadWalletInvoice() {
+    const printArea = document.getElementById('ppiPrintArea');
+    const content = document.getElementById('ppiLoadWalletInvoiceContent');
+    if (printArea && content) {
+      printArea.innerHTML = content.outerHTML;
+      printArea.style.display = 'block';
+      window.print();
+      printArea.style.display = 'none';
+      printArea.innerHTML = '';
+    }
+  }
+
+  validatePpiBiometric(bioData: string) {
+    if (this.authServiceobj.getUserLat() == '' || this.authServiceobj.getUserLongtitude() == '') {
+      this.toastr.error('Please ask admin to update Latitude and Longitude');
+      return;
+    }
+    this.isLoading = true;
     const payload = {
-      SessionKey: this.authServiceobj.getSessionKey(),
-      APIKey: "PPI01",
-      TokeyKey: this.PPI_TOKEYKEY,
-      ApplicationNumber: this.applicationNo,
+      userId: this.authServiceobj.getUserId(),
+      apiKey: 'PPI01',
+      tokeyKey: this.PPI_TOKEYKEY,
+      applicationNumber: this.applicationNo,
       pincode: this.senderForm.value.pinCode,
-      RTName: this.senderForm.value.senderName,
-      AadharNo: this.senderForm.value.adharNumber,
-      SenderMobile: this.senderForm.value.mobileNumber,
+      rtName: this.senderForm.value.senderName,
+      aadharNo: this.senderForm.value.adharNumber,
+      senderMobile: this.senderForm.value.mobileNumber,
       latitude: this.authServiceobj.getUserLat(),
       longitude: this.authServiceobj.getUserLongtitude(),
       biometricdata: bioData,
-      ConsentId: "c3"
+      consentId: 'c3'
     };
-
     this._MoneyTransferService.PPIValidateAadharBiometric(payload).subscribe(res => {
-      if (res.Status_Code == "1") {
-        this.toastr.success("Biometric Verified");
-        this.isLoading = false;
-        this.validatePpiPan();
+      this.isLoading = false;
+      if (res.status_Code == '1') {
+        this.toastr.success(res.message || 'Biometric Verified — Sender Registered');
+        if (this.panCardNo) {
+          this.validatePpiPan();
+        } else {
+          this.modalService.dismissAll();
+          this.onCancel();
+        }
       } else {
-        this.toastr.error(res.Message);
-        this.isLoading = false;
+        this.toastr.error(res.message || 'Biometric Verification Failed');
       }
     });
-
   }
 
 
@@ -1342,24 +1631,18 @@ export class MoneyTransferComponent {
     }
 
     this._MoneyTransferService.validateTramoSenderOtp(
+      this.authServiceobj.getUserId(),
       mobile,
       otp,
-      this.tramoState,
-      this.authServiceobj.getSessionKey()
+      this.tramoState
     ).subscribe({
       next: (res) => {
-        if (res.Status_Code === "1") {
-          Swal.fire({
-            icon: 'success',
-            title: 'Sender Created',
-            html: res.Message,
-            confirmButtonText: 'OK'
-          });
-
+        if (res.status_Code === "1") {
+          this.toastr.success(res.message);
           this.modalService.dismissAll();
           this.ResetSenderForm();
         } else {
-          this.toastr.error(res.Message);
+          this.toastr.error(res.message);
         }
         this.isLoading = false;
       },
@@ -1370,109 +1653,37 @@ export class MoneyTransferComponent {
     })
   }
 
+  checkPpiOtp() {
+    this.validateOTPforBenef = this.ppibeneaddotp?.length === 6;
+  }
+
 
   FinalBeneForCreation() {
 
-    if (this.selectedService === 'TRAMO') {
-      this._MoneyTransferService.addBeneficiary_TRAMO(
-        this.authServiceobj.getSessionKey(),
-        this.mobileNumber,   // Sender Mobile
-        this.beneficiaryForm.get('accountNumber')?.value,
-        this.beneficiaryForm.get('ifscCode')?.value,
-        this.getBankName(this.beneficiaryForm.get('branchName')?.value),
-        this.beneficiaryForm.get('beneficiaryNumber')?.value
-      ).subscribe({
-        next: (res: any) => {
-          if (res.Status_Code === "1") {
-            this.modalService.dismissAll();
-            this.ResetBenefForm();
-
-            Swal.fire({
-              icon: 'success',
-              title: 'Beneficiary Created',
-              text: res.Message
-            });
-
-            this.loadTramoBeneficiaries();
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Failed',
-              text: res.Message
-            });
-          }
-          this.isLoading = false;
-        },
-        error: () => {
-          this.toastr.error('Server Error');
-          this.isLoading = false;
-        }
-      });
-
-      return;
-    }
-
-    if (this.selectedService === 'FINO') {
+    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'FINO' || this.selectedService === 'RKIT') {
+      // Call Save Beneficiary API after preview
       this.isLoading = true;
-      const otp = this.beneficiaryForm.get('otp')?.value;
-      const benePayload = {
-        BeneName: this.beneficiaryForm.get('beneficiaryNumber')?.value,
-        AccountNo: this.beneficiaryForm.get('accountNumber')?.value,
-        IFSCCode: this.beneficiaryForm.get('ifscCode')?.value,
-        BankName: this.getBankName(this.beneficiaryForm.get('branchName')?.value),
+      const payload = {
+        customerNumber: this.mobileNumber,
+        name: this.beneficiaryForm.get('beneficiaryNumber')?.value,
+        accountNumber: this.beneficiaryForm.get('accountNumber')?.value,
+        bankName: this.getBankName(this.beneficiaryForm.get('branchName')?.value),
+        ifsc: this.beneficiaryForm.get('ifscCode')?.value
       };
-
-      this._MoneyTransferService.addBeneficiary(
-        this.mobileNumber,
-        benePayload,
-        this.senderId
-      ).subscribe((res: any) => {
-        if (res.Status_Code === "1") {
-          this.modalService.dismissAll();
-          this.ResetBenefForm();
-          Swal.fire({
-            icon: 'success',
-            title: 'Beneficiary Created',
-            text: res.Message,
-            confirmButtonText: 'OK'
-          });
-          this.loadBeneficiaries(); // ✅ refresh list
-          this.isLoading = false;
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Failed',
-            text: res.Message,
-          });
-          this.isLoading = false;
-        }
-      });
-
-    }
-
-    if (this.selectedService === 'PPI') {
-      this.isLoading = true;
-      const req = {
-        SessionKey: this.authServiceobj.getSessionKey(),
-        SenderMobile: this.mobileNumber,
-        APIKey: "PPI01",
-        TokeyKey: this.PPI_TOKEYKEY,
-        BeneName: this.beneficiaryForm.get('beneficiaryNumber')?.value,
-        AccountNo: this.beneficiaryForm.get('accountNumber')?.value,
-        IfscCode: this.beneficiaryForm.get('ifscCode')?.value,
-        BankName: this.getBankName(this.beneficiaryForm.get('branchName')?.value)
-      };
-      this.isLoading = true;
-      this._MoneyTransferService.PPIAddBeneficiary(req).subscribe({
+      this._MoneyTransferService.SaveBeneficiary(payload).subscribe({
         next: (res) => {
           this.isLoading = false;
-          if (res.Status_Code === "1") {
-            this.toastr.success("Beneficiary added successfully!");
-            this.ResetBenefForm();
+          if (res.success) {
+            this.toastr.success(res.message);
             this.modalService.dismissAll();
-            this.loadPPIBeneficiaries();
+            this.ResetBenefForm();
+            if (this.selectedService === 'FINO') {
+              this.loadBeneficiaries();
+            } else {
+              this.loadTramoBeneficiaries();
+            }
           } else {
-            this.toastr.error(res.Message || "Failed to add beneficiary");
+            this.toastr.error(res.message || "Failed to add beneficiary");
           }
         },
         error: () => {
@@ -1480,7 +1691,11 @@ export class MoneyTransferComponent {
           this.toastr.error("Server error");
         }
       });
+      return;
+    }
 
+    if (this.selectedService === 'PPI') {
+      this.PPIValidateOTPAddBeneficiary();
     }
   }
 
@@ -1570,14 +1785,78 @@ export class MoneyTransferComponent {
       this.validateOTPforPayment = false;
     }
 
-  
+
     this.modalService.open(this.previewModalobj, { size: 'lg', backdrop: 'static', keyboard: false });
     this.isLoading = false;
   }
 
 
-  DeleteBene(bene: any) {
+  ResendOTPForPPIDeleteBenf(beneId: Number) {
+    this.isLoading = true;
+    const payload = {
+      userId: this.authServiceobj.getUserId(),
+      mobilenumber: this.mobileNumber,
+      beneficiaryid: beneId.toString(),
+      apiKey: 'PPI01',
+      tokenkey: this.PPI_TOKEYKEY
+    };
+    this._MoneyTransferService.PPIDeleteBeneficiary(payload)
+      .subscribe({
+        next: (res: any) => {
+          this.isLoading = false;
+          if (res.status_Code === '1') {
+            this.toastr.success(res.message || 'OTP sent for deletion');
+            this.PPIDeleteBeneOTPToken = res.data;
+          } else {
+            this.toastr.error(res.message || 'Unable to send OTP');
+          }
+        },
+        error: () => {
+          this.toastr.error('Something went wrong while sending OTP');
+          this.isLoading = false;
+        }
+      });
+  }
 
+  PPIFinalBeneForDeletion(beneDet: any) {
+    this.isLoading = true;
+    const otp = this.ppideletebeneOTP.trim();
+    if (!otp) {
+      this.toastr.error('Please enter OTP');
+      this.isLoading = false;
+      return;
+    }
+    const payload = {
+      userId: this.authServiceobj.getUserId(),
+      mobilenumber: this.mobileNumber,
+      otpToken: this.PPIDeleteBeneOTPToken,
+      otp: this.ppideletebeneOTP.toString(),
+      apiKey: 'PPI01',
+      tokenkey: this.PPI_TOKEYKEY
+    };
+    this._MoneyTransferService.PPIFinalDeleteBeneficiary(payload)
+      .subscribe({
+        next: (res: any) => {
+          this.isLoading = false;
+          if (res.status_Code === '1') {
+            this.toastr.success(res.message || 'Beneficiary Deleted Successfully');
+            this.PPIDeleteBeneOTPToken = '';
+            this.ppideletebeneOTP = '';
+            this.beneficiaries = this.beneficiaries.filter(b => b.beneId !== beneDet.beneId);
+            this.modalService.dismissAll();
+          } else {
+            this.toastr.error(res.message || 'Unable to delete beneficiary');
+          }
+        },
+        error: () => {
+          this.toastr.error('Something went wrong while deleting beneficiary');
+          this.isLoading = false;
+        }
+      });
+  }
+
+
+  DeleteBene(bene: any) {
     Swal.fire({
       title: 'Are you sure?',
       text: `Do you really want to delete beneficiary: ${bene.BeneName}?`,
@@ -1591,49 +1870,45 @@ export class MoneyTransferComponent {
 
       if (result.isConfirmed) {
 
-        const payload = {
-          SessionKey: this.authServiceobj.getSessionKey(),
-          APIKey: "DelBene001",
-          SenderMobile: bene.SenderMobile,
-          BeneId: bene.Id
-        };
+        if (this.selectedService === 'PPI') {
+          this.ResendOTPForPPIDeleteBenf(bene.beneId);
+          this.benedet = bene;
+          this.modalService.open(this.previewModalforDeleteBeneficiary, { size: 'lg', backdrop: 'static', keyboard: false });
+        }
+        else if (this.selectedService === 'FINO' || this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
+          // Use new OTP-based delete flow
+          this.deleteBeneficiaryId = bene.id || bene.Id || bene.beneId;
+          this.deleteBeneficiaryOtp = '';
+          this.showDeleteOtpModal = true;
+          this.sendDeleteOtp(this.deleteBeneficiaryId);
+          this.benedet = bene;
+          this.modalService.open(this.previewModalforDeleteBeneficiary, { size: 'lg', backdrop: 'static', keyboard: false });
+        }
+        else {
+          // Fallback to old method for other services
+          const payload = {
+            SessionKey: this.authServiceobj.getSessionKey(),
+            APIKey: "DelBene001",
+            SenderMobile: bene.SenderMobile ?? this.mobileNumber,
+            BeneId: bene.Id ?? bene.beneId
+          };
 
-        this._MoneyTransferService.DeleteBeneficiary(payload)
-          .subscribe({
-            next: (res: any) => {
-
-              if (res.status === "SUCCESS" || res.Status_Code === "1") {
-
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Deleted!',
-                  text: 'Beneficiary has been deleted.'
-                });
-
-                // 🔥 Remove beneficiary from UI without refreshing the list
-                this.beneficiaries = this.beneficiaries.filter(b => b.Id !== bene.Id);
-
-              } else {
-
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Failed!',
-                  text: res.message || 'Unable to delete beneficiary.'
-                });
-
+          this._MoneyTransferService.DeleteBeneficiary(payload)
+            .subscribe({
+              next: (res: any) => {
+                if (res.status === "SUCCESS" || res.Status_Code === "1") {
+                  this.toastr.success('Beneficiary has been deleted');
+                  this.beneficiaries = this.beneficiaries.filter(b => b.Id !== bene.Id && b.beneId !== bene.beneId);
+                } else {
+                  this.toastr.error(res.message || 'Unable to delete beneficiary');
+                }
+              },
+              error: () => {
+                this.toastr.error('Something went wrong while deleting beneficiary');
               }
-            },
-            error: () => {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Something went wrong while deleting beneficiary.'
-              });
-            }
-          });
-
+            });
+        }
       }
-
     });
   }
 
@@ -1707,44 +1982,62 @@ export class MoneyTransferComponent {
   }
 
   sendOtpForPaymentForPPI() {
+    const amount = (document.getElementById('amount') as HTMLInputElement)?.value;
+    if (!amount || amount === '0') {
+      this.toastr.warning('Please enter amount first');
+      return;
+    }
     this.isLoading = true;
-    const senderMobile = this.mobileNumber;
-    const senderName = this.senderName;
-    this._MoneyTransferService.PPISendPaymentOTP(
-      this.authServiceobj.getSessionKey(),
-      "PPI01",
-      this.PPI_TOKEYKEY,
-      this.mobileNumber,
-      this.benedet.beneId || this.benedet.BeneId,
-      (document.getElementById('amount') as HTMLInputElement).value || "0",
-      this.benedet.accountNo || this.benedet.AccountNo,
-      this.benedet.ifsCcode || this.benedet.IFSCCode
-    )
+    const payload = {
+      userId: this.authServiceobj.getUserId(),
+      apiKey: 'PPI01',
+      tokeyKey: this.PPI_TOKEYKEY,
+      mobileNumber: this.mobileNumber,
+      bankAccountNumber: this.benedet.accountNo || this.benedet.AccountNo,
+      ifscCode: this.benedet.ifsCcode || this.benedet.IFSCCode,
+      beneficiaryId: (this.benedet.beneId || this.benedet.BeneId).toString(),
+      amount: amount
+    };
+    this._MoneyTransferService.PPISendPaymentOTP(payload)
       .subscribe({
         next: (res) => {
           this.isLoading = false;
-          if (res.Status_Code === "1") {
-            this.toastr.success(res.Message);
-            this.ppiPaymentOtpToken = res.Data;
+          if (res.status_Code === '1') {
+            this.toastr.success(res.message || 'OTP sent for payment');
+            this.ppiPaymentOtpToken = res.data;
             this.showPPIPaymentOtpBlock = true;
-          }
-          else {
-            this.toastr.warning(res.Message || "Unable to send OTP");
+          } else {
+            this.toastr.warning(res.message || 'Unable to send OTP');
           }
         },
-
         error: () => {
           this.isLoading = false;
-          this.toastr.error("Error sending payment OTP");
+          this.toastr.error('Error sending payment OTP');
         }
       });
-    this.isLoading = false;
   }
 
   onAmountEntered() {
-    if (this.selectedService !== 'PPI') return;
-   
-    this.sendOtpForPaymentForPPI();
+    if (this.selectedService === 'PPI') {
+      this.showPPIPaymentOtpBlock = false;
+      this.enteredPaymentOTPForPPI = '';
+      this.ppiPaymentOtpToken = '';
+    }
+  }
+
+  formatTimestamp(value: string): string {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    const yyyy = d.getFullYear();
+    const MM = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const h = d.getHours();
+    const ampm = h >= 12 ? 'pm' : 'am';
+    const hour = h % 12 || 12;
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${yyyy}-${MM}-${dd} ${hour}:${mm}:${ss} ${ampm}`;
   }
 
 
@@ -1752,8 +2045,9 @@ export class MoneyTransferComponent {
 
 
     this.isLoading = true;
-    this.invoicemobno= this.mobileNumber;
-    const txnType = (document.getElementById('txnType') as HTMLSelectElement).value;
+    this.invoicemobno = this.mobileNumber;
+    const txnTypeElement = document.getElementById('txnType') as HTMLSelectElement;
+    const txnType = txnTypeElement ? txnTypeElement.value : 'IMPS';
     const amount = (document.getElementById('amount') as HTMLInputElement).value;
 
     if (amount == "" || amount == "0") {
@@ -1771,7 +2065,7 @@ export class MoneyTransferComponent {
 
     }
 
-    if (this.selectedService === "TRAMO") {
+    if (this.selectedService === "TRAMO" || this.selectedService === "ARP" || this.selectedService === "NIFI" || this.selectedService === "FZP" || this.selectedService === "RKIT") {
       if (!this.enteredMPIN || this.enteredMPIN.length != 4) {
         this.toastr.error("Please enter valid Transaction PIN");
         this.isLoading = false;
@@ -1790,13 +2084,13 @@ export class MoneyTransferComponent {
 
     this._MoneyTransferService.getLocation().then(({ latitude, longitude }) => {
 
-      
+
 
       let payload: any;
       if (this.selectedService === "FINO") {
         payload = {
           SessionKey: this.authServiceobj.getSessionKey(),
-          APIKey: "MoneyTransfer001",
+          APIKey: "MoneyTransfer001|WEB",
           Sendermobile: this.mobileNumber,
           SenderName: this.senderName,
 
@@ -1827,12 +2121,13 @@ export class MoneyTransferComponent {
               this.amount = "";
               this.otpRequestId = "";
               this.invoiceData = {
+                BankName: this.currentBankName,
                 AccountNo: res?.Data[0]?.AccountNo,
                 Amount: res?.Data[0]?.Amount,
                 BR_Id: res?.Data[0]?.BR_Id,
                 BeneName: res?.Data[0]?.BeneName,
                 Status: res?.Data[0]?.Status,
-                TxnDate: res?.Data[0]?.TxnDate,
+                TxnDate: this.formatTimestamp(res?.Data[0]?.TxnDate),
                 TxnID: res?.Data[0]?.TxnID,
                 CurrentBalance: res?.Data[0]?.CurrentBalance
               };
@@ -1852,7 +2147,7 @@ export class MoneyTransferComponent {
       if (this.selectedService === "TRAMO") {
         payload = {
           SessionKey: this.authServiceobj.getSessionKey(),
-          APIKey: "MoneyTransfer001",
+          APIKey: "MoneyTransfer001|WEB",
           Sendermobile: this.mobileNumber,
           BeneName: this.currentBeneName,
           AccountNo: this.currentBankId,
@@ -1860,7 +2155,7 @@ export class MoneyTransferComponent {
           BankName: this.currentBankName,
           BeneId: this.currentBeneId,
           Amount: amount,
-          DMTTYPE: "DMT2",
+          DMTTYPE: this.selectedService,
           TXNMode: txnType,
           MPIN: this.enteredMPIN
         };
@@ -1876,12 +2171,13 @@ export class MoneyTransferComponent {
               this.amount = "";
               this.otpRequestId = "";
               this.invoiceData = {
+                BankName: this.currentBankName,
                 AccountNo: res?.Data[0]?.AccountNo,
                 Amount: res?.Data[0]?.Amount,
                 BR_Id: res?.Data[0]?.BR_Id,
                 BeneName: res?.Data[0]?.BeneName,
                 Status: res?.Data[0]?.Status,
-                TxnDate: res?.Data[0]?.TxnDate,
+                TxnDate: this.formatTimestamp(res?.Data[0]?.TxnDate),
                 TxnID: res?.Data[0]?.TxnID,
                 CurrentBalance: res?.Data[0]?.CurrentBalance,
               };
@@ -1900,48 +2196,144 @@ export class MoneyTransferComponent {
         return;
       }
 
-      if (this.selectedService === "PPI") {
+      if (this.selectedService === "ARP") {
         payload = {
-          SessionKey: this.authServiceobj.getSessionKey(),
-          APIKey: "MoneyTransfer001",
-          TokeyKey: this.PPI_TOKEYKEY,
-          Sendermobile: this.mobileNumber,
-          BeneName: this.currentBeneName,
-          AccountNo: this.currentBankId,
-          IfscCode: this.currentBankIfscCode,
-          BankName: this.currentBankName,
-          BeneId: this.currentBeneId,
-          Amount: amount,
-          TXNMode: txnType,
+          userId: this.authServiceobj.getUserId().toString(),
+          transactionPin: this.enteredMPIN,
+          amount: amount,
+          accountNumber: this.currentBankId,
+          beneficiaryName: this.currentBeneName,
+          beneficiaryMobile: this.mobileNumber,
+          bankName: this.currentBankName,
+          ifsc: this.currentBankIfscCode,
+          remark: "Payout Txn",
+          comingFrom: "web"
+        };
+
+        this._MoneyTransferService.ARPMoneyTransfer(payload).subscribe({
+          next: (res: any) => {
+            this.isLoading = false;
+            this.enteredMPIN = "";
+            if (res.status_Code === "1") {
+              this.toastr.success("Transaction Successful");
+              this.enteredPaymentOTP = "";
+              this.amount = "";
+              this.otpRequestId = "";
+              this.invoiceData = {
+                BankName: this.currentBankName,
+                AccountNo: res?.data[0]?.accountNo,
+                Amount: res?.data[0]?.amount,
+                BR_Id: res?.data[0]?.bR_Id,
+                BeneName: res?.data[0]?.beneName,
+                Status: res?.data[0]?.status,
+                TxnDate: this.formatTimestamp(res?.data[0]?.txnDate),
+                TxnID: res?.data[0]?.txnID,
+                CurrentBalance: res?.data[0]?.currentBalance,
+              };
+              this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false });
+            } else {
+              this.toastr.error(res.message || "Transaction Failed");
+            }
+          },
+          error: () => {
+            this.isLoading = false;
+            this.toastr.error("Server Error");
+          }
+        });
+        return;
+      }
+
+      if (this.selectedService === 'PPI') {
+        payload = {
+          userId: this.authServiceobj.getUserId(),
+          apiKey: 'PPI01',
+          tokeyKey: this.PPI_TOKEYKEY,
+          sendermobile: this.mobileNumber,
+          beneName: this.currentBeneName,
+          accountNo: this.currentBankId,
+          ifscCode: this.currentBankIfscCode,
+          beneId: this.currentBeneId.toString(),
+          amount: amount,
+          txnMode: txnType,
+          bankName: this.currentBankName,
           otpToken: this.ppiPaymentOtpToken,
-          OTP: this.enteredPaymentOTPForPPI
+          otp: this.enteredPaymentOTPForPPI,
+          comingFrom: 'web'
         };
         this._MoneyTransferService.PPIMoneyTransfer(payload).subscribe({
           next: (res: any) => {
             this.isLoading = false;
-            this.enteredPaymentOTPForPPI = "";
-            if (res.Status_Code === "1") {
-              this.toastr.success("Transaction Successful");
-              this.amount = "";
+            this.enteredPaymentOTPForPPI = '';
+            if (res.status_Code === '1') {
+              this.toastr.success('Transaction Successful');
+              this.amount = '';
+              this.showPPIPaymentOtpBlock = false;
               this.invoiceData = {
-                AccountNo: res?.Data[0]?.AccountNo,
-                Amount: res?.Data[0]?.Amount,
-                BR_Id: res?.Data[0]?.BR_Id,
-                BeneName: res?.Data[0]?.BeneName,
-                Status: res?.Data[0]?.Status,
-                TxnDate: res?.Data[0]?.TxnDate,
-                TxnID: res?.Data[0]?.TxnID,
-                CurrentBalance: res?.Data[0]?.CurrentBalance
+                BankName: this.currentBankName,
+                AccountNo: res?.data[0]?.accountNo,
+                Amount: res?.data[0]?.amount,
+                BR_Id: res?.data[0]?.bR_Id,
+                BeneName: res?.data[0]?.beneName,
+                Status: res?.data[0]?.status,
+                TxnDate: this.formatTimestamp(res?.data[0]?.txnDate),
+                TxnID: res?.data[0]?.txnID,
+                CurrentBalance: res?.data[0]?.currentBalance
               };
-
               this.modalService.open(this.invoiceModal, {
                 size: 'lg',
                 backdrop: 'static',
                 keyboard: false
               });
+            } else {
+              this.toastr.error(res.message || 'Transaction Failed');
+            }
+          },
+          error: () => {
+            this.isLoading = false;
+            this.toastr.error('Server Error');
+          }
+        });
+        return;
+      }
+
+      if (this.selectedService === "NIFI") {
+        payload = {
+          userId: this.authServiceobj.getUserId().toString(),
+          transactionPin: this.enteredMPIN,
+          amount: amount,
+          accountNumber: this.currentBankId,
+          beneficiaryName: this.currentBeneName,
+          bankName: this.currentBankName,
+          ifsc: this.currentBankIfscCode,
+          mobile: this.mobileNumber,
+          email: "krishany365@gmail.com",
+          remark: "IMPS Payout"
+        };
+
+        this._MoneyTransferService.NifiMoneyTransfer(payload).subscribe({
+          next: (res: any) => {
+            this.isLoading = false;
+            this.enteredMPIN = "";
+            if (res.status_Code === "1") {
+              this.toastr.success("Transaction Successful");
+              this.enteredPaymentOTP = "";
+              this.amount = "";
+              this.otpRequestId = "";
+              this.invoiceData = {
+                BankName: this.currentBankName,
+                AccountNo: res?.data[0]?.accountNo,
+                Amount: res?.data[0]?.amount,
+                BR_Id: res?.data[0]?.bR_Id,
+                BeneName: res?.data[0]?.beneName,
+                Status: res?.data[0]?.status,
+                TxnDate: this.formatTimestamp(res?.data[0]?.txnDate),
+                TxnID: res?.data[0]?.txnID,
+                CurrentBalance: res?.data[0]?.currentBalance,
+              };
+              this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false });
 
             } else {
-              this.toastr.error(res.Message || "Transaction Failed");
+              this.toastr.error(res.message || "Transaction Failed");
             }
           },
           error: () => {
@@ -1951,19 +2343,116 @@ export class MoneyTransferComponent {
 
         });
         return;
+
       }
 
+      if (this.selectedService === "FZP") {
+        payload = {
+          userId: this.authServiceobj.getUserId().toString(),
+          transactionPin: this.enteredMPIN,
+          amount: amount,
+          accountNumber: this.currentBankId,
+          beneficiaryName: this.currentBeneName,
+          beneficiaryMobile: this.mobileNumber,
+          bankName: this.currentBankName,
+          ifsc: this.currentBankIfscCode,
+          remark: "Payout Txn Successfull",
+          comingFrom: "web"
+        };
+
+        this._MoneyTransferService.FZPMoneyTransfer(payload).subscribe({
+          next: (res: any) => {
+            this.isLoading = false;
+            this.enteredMPIN = "";
+            if (res.status_Code === "1") {
+              this.toastr.success("Transaction Successful");
+              this.enteredPaymentOTP = "";
+              this.amount = "";
+              this.otpRequestId = "";
+              this.invoiceData = {
+                BankName: this.currentBankName,
+                AccountNo: res?.data[0]?.accountNo,
+                Amount: res?.data[0]?.amount,
+                BR_Id: res?.data[0]?.bR_Id,
+                BeneName: res?.data[0]?.beneName,
+                Status: res?.data[0]?.status,
+                TxnDate: this.formatTimestamp(res?.data[0]?.txnDate),
+                TxnID: res?.data[0]?.txnID,
+                CurrentBalance: res?.data[0]?.currentBalance,
+              };
+              this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false });
+
+            } else {
+              this.toastr.error(res.message || "Transaction Failed");
+            }
+          },
+          error: () => {
+            this.isLoading = false;
+            this.toastr.error("Server Error");
+          }
+
+        });
+        return;
+
+      }
+
+      if (this.selectedService === "RKIT") {
+        payload = {
+          userId: this.authServiceobj.getUserId().toString(),
+          transactionPin: this.enteredMPIN,
+          amount: amount,
+          accountNumber: this.currentBankId,
+          beneficiaryName: this.currentBeneName,
+          beneficiaryMobile: this.mobileNumber,
+          bankName: this.currentBankName,
+          ifsc: this.currentBankIfscCode,
+          remark: "Payout Txn",
+          comingFrom: "web"
+        };
+
+        this._MoneyTransferService.RKITMoneyTransfer(payload).subscribe({
+          next: (res: any) => {
+            this.isLoading = false;
+            this.enteredMPIN = "";
+            if (res.status_Code === "1") {
+              this.toastr.success("Transaction Successful");
+              this.enteredPaymentOTP = "";
+              this.amount = "";
+              this.otpRequestId = "";
+              this.invoiceData = {
+                BankName: this.currentBankName,
+                AccountNo: res?.data[0]?.accountNo,
+                Amount: res?.data[0]?.amount,
+                BR_Id: res?.data[0]?.bR_Id,
+                BeneName: res?.data[0]?.beneName,
+                Status: res?.data[0]?.status,
+                TxnDate: this.formatTimestamp(res?.data[0]?.txnDate),
+                TxnID: res?.data[0]?.txnID,
+                CurrentBalance: res?.data[0]?.currentBalance,
+              };
+              this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false });
+            } else {
+              this.toastr.error(res.message || "Transaction Failed");
+            }
+          },
+          error: () => {
+            this.isLoading = false;
+            this.toastr.error("Server Error");
+          }
+        });
+        return;
+
+      }
 
     })
   }
-
 
   printInvoice() {
     const content = document.getElementById('invoiceContent');
     const printArea = document.getElementById('printArea');
 
     if (!content || !printArea) return;
-    printArea.innerHTML =  content.innerHTML; 
+    printArea.innerHTML = content.innerHTML;
 
     printArea.style.display = 'inline-block';
 

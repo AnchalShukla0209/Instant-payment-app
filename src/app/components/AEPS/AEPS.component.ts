@@ -17,11 +17,16 @@ import { BankService } from '../../services/bank.service';
 import { MasterService, ServiceStatusResponse } from '../../services/master.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { FinoAepsRequest } from '../../models/FinoDailyLoginResponse';
+import { FinoAepsRequest, FinoMerchantEKYCRequest } from '../../models/FinoDailyLoginResponse';
 import { BankModel } from '../../models/BankModel';
 import { PidConfig, PID_OPTIONS_CONFIG } from '../../services/pid-options.config';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { JIODailyTokenResponse } from '../../models/FinoDailyLoginResponse';
+import { AdminFeature, AdminProvider } from '../../models/AdminFeature'
+import { AdminConfigService } from '../../services/admin.service';
+import { firstValueFrom } from 'rxjs';
+import { dobValidator } from '../../services/Validator/dob.validator';
+
 
 @Component({
   selector: 'app-AEPS',
@@ -35,22 +40,23 @@ export class AEPSComponent {
 
   @ViewChild('invoiceModal') invoiceModal: any;
 
-  constructor(private modalService: NgbModal, private toastr: ToastrService, private operatorService: OperatorService, private masterService: MasterService, private fb: FormBuilder, private zone: NgZone) { }
+  constructor(private modalService: NgbModal, private toastr: ToastrService, private operatorService: OperatorService, private masterService: MasterService, private fb: FormBuilder, private zone: NgZone, private _adminconfig: AdminConfigService) { }
 
   private rechargeService = inject(RechargeService);
   private authServiceobj = inject(AuthService);
   private aepsService = inject(AEPSService);
   private router = inject(Router);
   private bankService = inject(BankService);
-  selectedService: string = 'Cash Withdrawal';
-  selectedAEPSChannelKey: string = 'AEPSCHANNEL2';
-  selectedAEPSProvider: string = 'JPB';  // FINO / JPB
-  selectedAEPSLabel: string = 'JPB AEPS';
-  selectedicon: string = 'bi-phone';
+  selectedService: string = '';
+  selectedAEPSChannelKey: string = '';
+  selectedAEPSProvider: string = '';  // FINO / JPB
+  selectedAEPSLabel: string = '';
+  selectedicon: string = '';
   showRecentTxns = false;
   isDailyRegistrationPopupVisible = false;
   amount: any = null;
   dailyLoginForm!: FormGroup;
+  dailyRegistrationFormFino!: FormGroup;
   JPBdailyLoginForm!: FormGroup;
   JPBAgentRegistrationForm!: FormGroup;
   JPBAgentEKYCForm!: FormGroup;
@@ -66,6 +72,7 @@ export class AEPSComponent {
   applicationNumber: string = "";
   accessToken: string = "";
   appIdentifierToken: string = "";
+  isEKYCProceedForFino: boolean = false;
 
   //For KYC
   capturedPidXmlForKYC: string = "";
@@ -74,27 +81,31 @@ export class AEPSComponent {
   //END
 
 
-  services = [
-    { key: 'WITHDRAW', label: 'Cash Withdrawal', icon: 'bi-cash-stack' },
-    { key: 'PREPAID', label: 'Balance Enquiry', icon: 'bi-phone' },
-    { key: 'STATEMENT', label: 'Mini Statement', icon: 'bi-receipt-cutoff' }
-  ];
+  services: AdminFeature[] = [];
+  aepschannels: AdminProvider[] = [];
 
-  aepschannels = [
-    { key: 'AEPSCHANNEL2', label: 'JPB AEPS', icon: 'bi-fingerprint', provider: 'JPB' },
-    { key: 'AEPSCHANNEL1', label: 'FINO AEPS', icon: 'bi-fingerprint', provider: 'FINO' }
 
-  ];
+  // services = [
+  //   { key: 'WITHDRAW', label: 'Cash Withdrawal', icon: 'bi-cash-stack' },
+  //   { key: 'PREPAID', label: 'Balance Enquiry', icon: 'bi-phone' },
+  //   { key: 'STATEMENT', label: 'Mini Statement', icon: 'bi-receipt-cutoff' }
+  // ];
+
+  // aepschannels = [
+  //   { key: 'AEPSCHANNEL2', label: 'JPB AEPS', icon: 'bi-fingerprint', provider: 'JPB' },
+  //   { key: 'AEPSCHANNEL1', label: 'FINO AEPS', icon: 'bi-fingerprint', provider: 'FINO' }
+
+  // ];
   banks: BankModel[] = [];
   selectedBank: string = "";
 
 
 
 
-  ngOnInit() {
-
-
+  async ngOnInit() {
     this.isLoading = true;
+    const serviceCode = 'AEPS'; // replace with dynamic service code if needed
+    await this.loadServicesAndProviders(serviceCode);
     this.sessionKey = this.authServiceobj.getSessionKey();
     const userId = this.authServiceobj.getUserId();
     const userName = this.authServiceobj.getUsername();
@@ -110,7 +121,7 @@ export class AEPSComponent {
     if (this.selectedAEPSProvider === 'FINO') {
       this.loadBanks();
       this.checkDailyLoginFino();
-      this.mobileNumber = this.authServiceobj.getUserPhoneNo();
+      this.mobileNumber = '';
     }
 
     if (this.selectedAEPSProvider === 'JPB') {
@@ -131,6 +142,54 @@ export class AEPSComponent {
 
   }
 
+  async filterFeaturesByProvider(providerCode: string) {
+
+    const featuresPromise = firstValueFrom(this._adminconfig.getFeatures("AEPS"));
+    const [features] = await Promise.all([featuresPromise]);
+    const safeFeatures = features ?? [];
+    this.services = safeFeatures.filter(f => f.isEnabled);
+
+    this.services = this.services.filter(f => f.providerCode === providerCode);
+
+    if (this.services.length > 0) {
+      this.onTabSelect(this.services[0].label);
+    }
+  }
+
+
+  async loadServicesAndProviders(serviceCode: string): Promise<void> {
+    try {
+      // Convert observables to promises
+      const featuresPromise = firstValueFrom(this._adminconfig.getFeatures(serviceCode));
+      const providersPromise = firstValueFrom(this._adminconfig.getProviders(serviceCode));
+
+      const [features, providers] = await Promise.all([featuresPromise, providersPromise]);
+
+      // Use empty array fallback if undefined
+      const safeFeatures = features ?? [];
+      const safeProviders = providers ?? [];
+
+      // Set services
+      this.services = safeFeatures.filter(f => f.isEnabled);
+      if (this.services.length > 0) {
+        this.onTabSelect(this.services[0].label);
+      }
+
+      // Set providers/channels
+      this.aepschannels = safeProviders.filter(p => p.isEnabled);
+      if (this.aepschannels.length > 0) {
+        this.selectedAEPSChannelKey = this.aepschannels[0].key;
+        this.selectedAEPSProvider = this.aepschannels[0].key;
+        this.selectedAEPSLabel = this.aepschannels[0].label;
+        this.filterFeaturesByProvider(this.selectedAEPSProvider);
+      }
+    } catch (error) {
+      this.services = [];
+      this.aepschannels = [];
+    }
+  }
+
+
 
 
   getLocation() {
@@ -139,20 +198,13 @@ export class AEPSComponent {
         (position) => {
           this.latitude = "28.6201416" //position.coords.latitude.toString();
           this.longitude = "76.9879671" //position.coords.longitude.toString();
-
-          console.log("Latitude:", this.latitude);
-          console.log("Longitude:", this.longitude);
         },
         (error) => {
-          console.warn("GPS Permission Denied or Unavailable", error);
-
-          // Fallback
           this.latitude = "0.0";
           this.longitude = "0.0";
         }
       );
     } else {
-      console.warn("Geolocation is not supported");
       this.latitude = "0.0";
       this.longitude = "0.0";
     }
@@ -166,7 +218,6 @@ export class AEPSComponent {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error loading bank list', err);
       }
     });
   }
@@ -198,27 +249,41 @@ export class AEPSComponent {
   onTabSelectAEPSChannel(channel: any) {
 
     this.selectedAEPSChannelKey = channel.key;     // Unique channel key
-    this.selectedAEPSProvider = channel.provider;  // FINO or JPB
+    this.selectedAEPSProvider = channel.key;  // FINO or JPB
     this.selectedAEPSLabel = channel.label;        // For UI if needed
-    if (this.selectedAEPSChannelKey === 'AEPSCHANNEL1') {
+    if (this.selectedAEPSChannelKey === 'FINO') {
       this.selectedicon = 'FINO';
       this.loadBanks();
       this.checkDailyLoginFino();
-      this.mobileNumber = this.authServiceobj.getUserPhoneNo().toString();
+      this.mobileNumber = '';
+      this.filterFeaturesByProvider(this.selectedAEPSProvider);
     } else {
       this.selectedicon = 'JPB';
       this.loadBanksForJPB();
       this.checkDailyLoginJPB();
       this.mobileNumber = "";
+      this.filterFeaturesByProvider(this.selectedAEPSProvider);
     }
     console.log("Selected Channel Key:", this.selectedAEPSChannelKey);
     console.log("Using Provider:", this.selectedAEPSProvider);
   }
 
   initDailyLoginForm() {
+
     this.dailyLoginForm = this.fb.group({
-      aadharno: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
-      mobileno: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]]
+      aadharno: [this.authServiceobj.getUserAadharNumber(), [Validators.required, Validators.pattern(/^\d{12}$/)]],
+      mobileno: [this.authServiceobj.getUserPhoneNo(), [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
+    })
+
+    this.dailyRegistrationFormFino = this.fb.group({
+      FirstName: [this.authServiceobj.getUserName(), [Validators.required]],
+      finoMiddleName: [''],
+      LastName: ['', [Validators.required]],
+      aadharno: [this.authServiceobj.getUserAadharNumber(), [Validators.required, Validators.pattern(/^\d{12}$/)]],
+      mobileno: [this.authServiceobj.getUserPhoneNo(), [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
+      PANNo: [this.authServiceobj.getUserPanCard(), [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
+      NameAsPerPANNumber: ['', Validators.required],
+      dob: ['', [Validators.required, dobValidator]]
     });
   }
 
@@ -229,6 +294,20 @@ export class AEPSComponent {
       agentrefno: [this.authServiceobj.getUserPhoneNo(), Validators.required]
     });
   }
+
+  formatDOB(event: any) {
+    let value = event.target.value.replace(/\D/g, '');
+
+    if (value.length >= 2)
+      value = value.substring(0, 2) + '/' + value.substring(2);
+
+    if (value.length >= 5)
+      value = value.substring(0, 5) + '/' + value.substring(5, 9);
+
+    event.target.value = value;
+    this.dailyLoginForm.get('finodob')?.setValue(value, { emitEvent: false });
+  }
+
 
   showFormErrors(form: FormGroup) {
     Object.keys(form.controls).forEach(field => {
@@ -362,7 +441,8 @@ export class AEPSComponent {
       longitude: this.longitude,
       fingerdata: this.capturedFingerData,
       DeviceSrNo: this.deviceSerialNumber,
-      deviceType: this.selectedDevice
+      deviceType: this.selectedDevice,
+      comingFrom: "Web",
     };
     this.isLoading = true;
     this.aepsService.finoLogin(requestPayload).subscribe(response => {
@@ -708,7 +788,7 @@ export class AEPSComponent {
       this.toastr.error('Please Enter Aadhar Number');
       return;
     }
-    if (this.selectedService === 'Cash Withdrawal') {
+    if (['Cash Withdrawal', 'Cash Deposit'].includes(this.selectedService)) {
       if (this.amount == "" || this.amount <= 0) {
         this.toastr.error('Please Enter Amount');
         return;
@@ -768,6 +848,71 @@ export class AEPSComponent {
     this.isDailyLoginPopupVisible = false;
   }
 
+  ProceedForEKYCFino() {
+    if (this.dailyRegistrationFormFino.invalid) {
+      this.showFormErrors(this.dailyRegistrationFormFino);
+      return;
+    }
+    this.isDailyRegistrationPopupVisible = true;
+    this.isEKYCProceedForFino = true;
+    this.fingurdataKYCforJPB = true;
+    this.fingerprintSuccess = false;
+  }
+
+  CompleteForEKYCFino() {
+
+    if (this.dailyRegistrationFormFino.invalid) {
+      this.showFormErrors(this.dailyRegistrationFormFino);
+      return;
+    }
+
+    if (!this.fingerprintSuccess) {
+      this.toastr.error("Please capture fingerprint first");
+      return;
+    }
+
+    const f = this.dailyRegistrationFormFino.value;
+
+    const requestPayload: FinoMerchantEKYCRequest = {
+      SessionKey: this.sessionKey,
+      APIKey: "FinoAEPS001",
+      aadharno: f.aadharno,
+      NameasperPan: f.NameAsPerPANNumber,
+      mobileno: f.mobileno,
+      DOB: f.dob,
+      Pancardno: f.PANNo,
+      Firstname: f.FirstName,
+      LastName: f.finoMiddleName + " " + f.LastName,
+      fingerdata: this.capturedFingerData,
+      deviceType: this.selectedDevice
+    };
+    this.isLoading = true;
+    this.aepsService.finoMerchantEKYC(requestPayload).subscribe(response => {
+      if (response.Status_Code === "1") {
+        this.toastr.success(response.Message);
+        this.isDailyRegistrationPopupVisible = false;
+        this.isEKYCProceedForFino = false;
+        this.fingurdataKYCforJPB = false;
+        this.fingerprintSuccess = true;
+        this.closeDailyRegistrationPopup();
+      }
+      else if (response.Status_Code === "2") {
+        this.toastr.error(response.Message);
+        this.router.navigate(['/login']);
+      }
+      else {
+        this.toastr.error(response.Message);
+        if (response?.Message?.toLowerCase()?.includes("hmac already exit,transaction aborted") || response?.Message?.toLowerCase()?.includes("pid conversion failed: invalid pid xml structure. missing required elements.") || response?.Message?.toLowerCase()?.includes("npci timeout, please try after sometime.(96)")) {
+          this.fingerprintSuccess = false;
+          this.originalFingerXml = "";
+          this.capturedFingerData = "";
+        }
+      }
+      this.isLoading = false;
+    });
+
+  }
+
   FinoLoginPopupShow() {
     this.fingerprintSuccess = false;
     this.isDailyRegistrationPopupVisible = false;
@@ -801,8 +946,8 @@ export class AEPSComponent {
       return;
     }
 
-    // Amount needed only for withdrawal
-    if (this.selectedService === 'Cash Withdrawal' && (!this.amount || this.amount <= 0)) {
+    // Amount needed only for withdrawal / deposit
+    if (['Cash Withdrawal', 'Cash Deposit'].includes(this.selectedService) && (!this.amount || this.amount <= 0)) {
       this.toastr.error("Enter valid amount");
       this.isLoading = false;
       return;
@@ -812,14 +957,17 @@ export class AEPSComponent {
     let txntype = '';
     if (this.selectedService === 'Balance Enquiry') txntype = 'be';
     if (this.selectedService === 'Cash Withdrawal') txntype = 'cw';
+    if (this.selectedService === 'Cash Deposit') txntype = 'cd';
     if (this.selectedService === 'Mini Statement') txntype = 'ms';
+    if (this.selectedService === 'Aadhar Pay') txntype = 'ap';
 
     if (this.selectedAEPSProvider == 'FINO') {
       const payload: FinoAepsRequest = {
         SessionKey: this.sessionKey,
         APIKey: "FinoAEPS001",
         aadharno: this.mobileAadhar,
-        mobileno: this.mobileNumber,
+        mobileno: this.authServiceobj.getUserPhoneNo().toString(),
+        customermobileno: this.mobileNumber,
         bankiinno: this.bankname,
         BankName: this.getBankName(this.bankname),
         amount: this.amount?.toString() ?? "0",
@@ -828,16 +976,25 @@ export class AEPSComponent {
         fingerdata: this.capturedFingerData,
         DeviceSrNo: this.deviceSerialNumber,
         deviceType: "2",
-        txntype: txntype
+        txntype: txntype,
+        comingFrom: "Web",
       };
       this.aepsService.finoLogin(payload).subscribe({
         next: (res) => {
           this.isLoading = false;
           if (res?.Status_Code != "1") {
-            this.toastr.error(res?.Message || "Transaction Failed");
-            if (res?.Message?.toLowerCase()?.includes("hmac already exit,transaction aborted") || res?.Message?.toLowerCase()?.includes("finger print data is missing") || res?.Message?.toLowerCase()?.includes("pid conversion failed: invalid pid xml structure. missing required elements.") || res?.Message?.toLowerCase()?.includes("npci timeout, please try after sometime.(96)") || res?.Message?.toLowerCase()?.includes("biometric mismatch. please try again with different finger.(u3)")) {
+            if (res?.Message?.toLowerCase()?.includes("uidai technical error")) {
+              this.toastr.error("Finger mismatch, please try again");
               this.fingerprintSuccess = false;
               this.originalFingerXml = "";
+              this.capturedFingerData = "";
+              this.selectedDevice = '';
+            } else {
+              this.toastr.error(res?.Message || "Transaction Failed");
+              if (res?.Message?.toLowerCase()?.includes("hmac already exit,transaction aborted") || res?.Message?.toLowerCase()?.includes("finger print data is missing") || res?.Message?.toLowerCase()?.includes("pid conversion failed: invalid pid xml structure. missing required elements.") || res?.Message?.toLowerCase()?.includes("npci timeout, please try after sometime.(96)") || res?.Message?.toLowerCase()?.includes("biometric mismatch. please try again with different finger.(u3)")) {
+                this.fingerprintSuccess = false;
+                this.originalFingerXml = "";
+              }
             }
             return;
           }
@@ -893,8 +1050,8 @@ export class AEPSComponent {
           appIdentifierToken: this.authServiceobj.getAgentAppIdentifierToken().toString(),
           comingFrom: "WEB",
           serviceId: 5,
-          userId: this.authServiceobj.getUserId().toString()
-
+          userId: this.authServiceobj.getUserId().toString(),
+          AuthType: "FINGER"
         };
 
         this.aepsService.jpbBalanceEnquiry(payload).subscribe({
@@ -902,16 +1059,23 @@ export class AEPSComponent {
             this.isLoading = false;
 
             if (!res?.success) {
-              this.toastr.error(res?.message || "Transaction Failed");
-              debugger
               let resData: JIODailyTokenResponse = {
                 aepsauthtoken: res.accessToken,
                 appidentifiertoken: res.appIdentifierToken,
               };
               this.authServiceobj.SaveTokenForJPB(resData);
-              if (res?.message?.toLowerCase()?.includes("finger print data is missing") || res?.message?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again") || res?.responseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
+              if (res?.message?.toLowerCase()?.includes("uidai technical error") || res?.responseMessage?.toLowerCase()?.includes("uidai technical error")) {
+                this.toastr.error("Finger mismatch, please try again");
                 this.fingerprintSuccess = false;
                 this.originalFingerXml = "";
+                this.capturedFingerData = "";
+                this.selectedDevice = '';
+              } else {
+                this.toastr.error(res?.message || "Transaction Failed");
+                if (res?.message?.toLowerCase()?.includes("finger print data is missing") || res?.message?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again") || res?.responseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
+                  this.fingerprintSuccess = false;
+                  this.originalFingerXml = "";
+                }
               }
               this.isLoading = false;
               return;
@@ -933,7 +1097,7 @@ export class AEPSComponent {
               Message: res.message
             };
 
-            debugger
+
             let resData: JIODailyTokenResponse = {
               aepsauthtoken: res.accessToken,
               appidentifiertoken: res.appIdentifierToken,
@@ -969,7 +1133,8 @@ export class AEPSComponent {
           appIdentifierToken: this.authServiceobj.getAgentAppIdentifierToken().toString(),
           comingFrom: "WEB",
           amount: this.amount,
-          userId: this.authServiceobj.getUserId().toString()
+          userId: this.authServiceobj.getUserId().toString(),
+          AuthType: "FINGER"
         };
 
         this.aepsService.jpbCashWithdrawal(payload).subscribe({
@@ -977,16 +1142,23 @@ export class AEPSComponent {
             this.isLoading = false;
 
             if (!res?.success) {
-              this.toastr.error(res?.responseMessage || "Transaction Failed");
-              debugger
               let resData: JIODailyTokenResponse = {
                 aepsauthtoken: res.accessToken,
                 appidentifiertoken: res.appIdentifierToken,
               };
               this.authServiceobj.SaveTokenForJPB(resData);
-              if (res?.message?.toLowerCase()?.includes("finger print data is missing") || res?.message?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again") || res?.responseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
+              if (res?.message?.toLowerCase()?.includes("uidai technical error") || res?.responseMessage?.toLowerCase()?.includes("uidai technical error")) {
+                this.toastr.error("Finger mismatch, please try again");
                 this.fingerprintSuccess = false;
                 this.originalFingerXml = "";
+                this.capturedFingerData = "";
+                this.selectedDevice = '';
+              } else {
+                this.toastr.error(res?.responseMessage || "Transaction Failed");
+                if (res?.message?.toLowerCase()?.includes("finger print data is missing") || res?.message?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again") || res?.responseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
+                  this.fingerprintSuccess = false;
+                  this.originalFingerXml = "";
+                }
               }
               return;
             }
@@ -1011,7 +1183,90 @@ export class AEPSComponent {
             };
 
             this.openInvoice(invoiceData);
-            debugger
+
+            let resData: JIODailyTokenResponse = {
+              aepsauthtoken: res.accessToken,
+              appidentifiertoken: res.appIdentifierToken,
+            };
+            this.authServiceobj.SaveTokenForJPB(resData);
+            this.isLoading = false;
+          },
+          error: () => {
+            this.isLoading = false;
+            this.toastr.error("API Error");
+          }
+        });
+
+        return;
+
+      }
+
+      if (this.selectedService === 'Cash Deposit') {
+        const payload = {
+          agentLoginId: this.authServiceobj.getAgentLoginId().toString(),
+          agentPin: this.authServiceobj.getAgentPinCode().toString(),
+          aadhaar: this.mobileAadhar.toString(),
+          bankId: this.bankname.toString(),
+          bankName: this.getBankName(this.bankname).toString(),
+          mobile: this.mobileNumber.toString(),
+          latitude: parseFloat(Number(this.authServiceobj.getAgentLattitude()).toFixed(4)).toString(),
+          longitude: parseFloat(Number(this.authServiceobj.getAgentLongtitude()).toFixed(4)).toString(),
+          fingerprintXml: this.originalFingerXml.toString(),
+          accessToken: this.authServiceobj.getAgentAccessToken().toString(),
+          appIdentifierToken: this.authServiceobj.getAgentAppIdentifierToken().toString(),
+          comingFrom: "WEB",
+          amount: this.amount,
+          userId: this.authServiceobj.getUserId().toString(),
+          AuthType: "FINGER"
+        };
+
+        this.aepsService.jpbCashDeposit(payload).subscribe({
+          next: (res) => {
+            this.isLoading = false;
+
+            if (!res?.success) {
+              let resData: JIODailyTokenResponse = {
+                aepsauthtoken: res.accessToken,
+                appidentifiertoken: res.appIdentifierToken,
+              };
+              this.authServiceobj.SaveTokenForJPB(resData);
+              if (res?.message?.toLowerCase()?.includes("uidai technical error") || res?.responseMessage?.toLowerCase()?.includes("uidai technical error")) {
+                this.toastr.error("Finger mismatch, please try again");
+                this.fingerprintSuccess = false;
+                this.originalFingerXml = "";
+                this.capturedFingerData = "";
+                this.selectedDevice = '';
+              } else {
+                this.toastr.error(res?.responseMessage || "Transaction Failed");
+                if (res?.message?.toLowerCase()?.includes("finger print data is missing") || res?.message?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again") || res?.responseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
+                  this.fingerprintSuccess = false;
+                  this.originalFingerXml = "";
+                }
+              }
+              return;
+            }
+
+            this.toastr.success(res.responseMessage);
+
+            const data = res.responseData;
+
+            const invoiceData = {
+              RRN: data?.Transaction?.RRN || data?.Transaction?.rrn || data?.transaction?.rrn,
+              ApiTxnId: data?.Transaction?.TransactionId || data?.Transaction?.transactionId || data?.transaction?.transactionId,
+              TxnId: data?.Transaction?.Invoice || data?.Transaction?.TransactionId || data?.Transaction?.TransactionId || data?.Transaction?.transactionId || data?.transaction?.transactionId,
+              AvailableBalance: data?.Account?.Balance || data?.Account?.balance || data?.account?.balance,
+              AccountExists: "YES",
+              amount: this.amount,
+              BankName: this.getBankName(this.bankname),
+              AdhaarNo: this.mobileAadhar,
+              Mobile: this.mobileNumber,
+              Date: new Date(),
+              Message: res?.responseMessage,
+              traceId: res?.traceid
+            };
+
+            this.openInvoice(invoiceData);
+
             let resData: JIODailyTokenResponse = {
               aepsauthtoken: res.accessToken,
               appidentifiertoken: res.appIdentifierToken,
@@ -1044,7 +1299,8 @@ export class AEPSComponent {
           accessToken: this.authServiceobj.getAgentAccessToken().toString(),
           appIdentifierToken: this.authServiceobj.getAgentAppIdentifierToken().toString(),
           comingFrom: "WEB",
-          userId: this.authServiceobj.getUserId().toString()
+          userId: this.authServiceobj.getUserId().toString(),
+          AuthType: "FINGER"
         };
 
         this.aepsService.jpbMiniStatement(payload).subscribe({
@@ -1052,16 +1308,23 @@ export class AEPSComponent {
             this.isLoading = false;
 
             if (!res?.success) {
-              this.toastr.error(res?.responseMessage || res?.message || "Transaction Failed");
-              debugger
               let resData: JIODailyTokenResponse = {
                 aepsauthtoken: res.accessToken,
                 appidentifiertoken: res.appIdentifierToken,
               };
               this.authServiceobj.SaveTokenForJPB(resData);
-              if (res?.message?.toLowerCase()?.includes("finger print data is missing") || res?.message?.toLowerCase()?.includes("invalid application access token format") || res?.message?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again") || res?.responseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
+              if (res?.message?.toLowerCase()?.includes("uidai technical error") || res?.responseMessage?.toLowerCase()?.includes("uidai technical error")) {
+                this.toastr.error("Finger mismatch, please try again");
                 this.fingerprintSuccess = false;
                 this.originalFingerXml = "";
+                this.capturedFingerData = "";
+                this.selectedDevice = '';
+              } else {
+                this.toastr.error(res?.responseMessage || res?.message || "Transaction Failed");
+                if (res?.message?.toLowerCase()?.includes("finger print data is missing") || res?.message?.toLowerCase()?.includes("invalid application access token format") || res?.message?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again") || res?.responseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
+                  this.fingerprintSuccess = false;
+                  this.originalFingerXml = "";
+                }
               }
               return;
             }
@@ -1087,7 +1350,7 @@ export class AEPSComponent {
 
 
             this.openInvoice(invoiceData);
-            debugger
+
             let resData: JIODailyTokenResponse = {
               aepsauthtoken: res.accessToken,
               appidentifiertoken: res.appIdentifierToken,
@@ -1113,7 +1376,9 @@ export class AEPSComponent {
     let txntype = '';
     if (this.selectedService === 'Balance Enquiry') txntype = 'be';
     if (this.selectedService === 'Cash Withdrawal') txntype = 'cw';
+    if (this.selectedService === 'Cash Deposit') txntype = 'cd';
     if (this.selectedService === 'Mini Statement') txntype = 'ms';
+    if (this.selectedService === 'Aadhar Pay') txntype = 'ap';
     this.invoiceData = {
       txntype: txntype,
       aadharno: apiData?.AdhaarNo,
@@ -1223,7 +1488,8 @@ export class AEPSComponent {
       pidXml: this.originalFingerXml.toString(),
       accessToken: this.accessToken ?? this.authServiceobj.getAgentAccessToken(),
       appIdentifierToken: this.appIdentifierToken ?? this.authServiceobj.getAgentAppIdentifierToken(),
-      mobile: this.JPBAgentRegistrationForm.get('mobile')?.value.toString()
+      mobile: this.JPBAgentRegistrationForm.get('mobile')?.value.toString(),
+      AuthType: "FINGER"
     };
     this.aepsService.agentEKYC(ekycReq).subscribe({
       next: (res) => {
@@ -1291,7 +1557,7 @@ export class AEPSComponent {
         else {
           this.toastr.error(res.message);
         }
-        debugger
+
         let resData: JIODailyTokenResponse = {
           aepsauthtoken: res.accessToken,
           appidentifiertoken: res.appIdentifierToken,
@@ -1304,12 +1570,10 @@ export class AEPSComponent {
   }
 
   extractDuplicateInfo(message: string) {
-    const appRegex = /ApplicationNumber\s*=\s*(\d+)/i;
-    const agentRegex = /Agent ID\s*=\s*(\d+)/i;
-
-    const applicationNumber = message.match(appRegex)?.[1] || "";
-    const agentId = message.match(agentRegex)?.[1] || "";
-
+    const appRegex = /ApplicationNumber\s*=\s*([^,\]]+)/i;
+    const agentRegex = /Agent ID\s*=\s*([^,\]]+)/i;
+    const applicationNumber = message.match(appRegex)?.[1]?.trim() || "";
+    const agentId = message.match(agentRegex)?.[1]?.trim() || "";
     return { applicationNumber, agentId };
   }
 

@@ -1,4 +1,4 @@
-<div class="container-fluid" >
+<div class="container-fluid">
   <app-loader *ngIf="isLoading"></app-loader>
 
   <!-- Filters -->
@@ -98,41 +98,55 @@
             <tr>
               <th>Sr No</th>
               <th>User Name</th>
-              <th>User Type</th>
-              <th>Bank Details</th>
+              <th>Opening Bal</th>
               <th>Amount</th>
+              <th>Closing Bal</th>
+              <th>Bank Details</th>
               <th>Txn Id</th>
               <th>Deposite Mode</th>
               <th>Txn Slip</th>
               <th>Status</th>
+              <th>Admin Remarks</th>
+              <th>User Remarks</th>
+              <th>Requested Date</th>
+              <th>Approved Date</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngIf="paginatedPayments.length === 0">
-              <td colspan="10" class="text-muted">No payment requests found.</td>
+              <td colspan="15" class="text-muted">No payment requests found.</td>
             </tr>
-            <tr *ngFor="let payment of paginatedPayments; let i = index">
+            <tr *ngFor="let payment of paginatedPayments; let i = index" (click)="selectRow(i)"
+            [ngClass]="{'selected-row': i === selectedRowIndex}" style="cursor: pointer;">
               <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
               <td>{{ payment.userName }}</td>
-              <td>{{ payment.userType }}</td>
+              <td>₹ {{ payment.openingBalance }}</td>
+              <td>₹ {{ payment.amount }}</td>
+              <td>₹ {{ payment.closingBalance }}</td>
               <td>
                 <div>{{ payment.bankName }}</div>
                 <div>{{ payment.accountNo }}</div>
               </td>
-              <td>₹ {{ payment.amount }}</td>
-              <td>{{ payment.txnId }}</td>
+
+              <td>{{ payment.paymentTxnId }}</td>
               <td>{{ payment.depositeMode }}</td>
               <td>
-                <button class="btn btn-outline-secondary btn-sm" (click)="downloadTxnSlip(payment)">
+                <a *ngIf="payment?.txnSlipPath?.trim()" class="btn btn-outline-secondary btn-sm"
+                  [href]="'https://api.instantpayment.co.in/' + (payment?.txnSlipPath || '').trim()" target="_blank">
                   <i class="bi bi-download"></i>
-                </button>
+                </a>
               </td>
               <td>
-                <span [class.text-success]="payment.status=='Approved'" [class.text-danger]="payment.status=='Rejected'" [class.text-warning]="payment.status=='Pending'">
-                    {{ payment.status }}
-                  </span>
-                </td>
+                <span [class.text-success]="payment.status=='Approved'" [class.text-danger]="payment.status=='Rejected'"
+                  [class.text-warning]="payment.status=='Pending'">
+                  {{ payment.status }}
+                </span>
+              </td>
+              <td>{{ payment.adminRemarks }}</td>
+              <td>{{ payment.userRemarks }}</td>
+              <td>{{ payment.txnDate }}</td>
+              <td>{{ payment.txnApprovedDate }}</td>
               <td>
                 <button *ngIf="payment.status === 'Pending'" class="btn btn-primary btn-sm"
                   (click)="openModal(paymentModalRef, payment, 'Approve')">
@@ -147,7 +161,12 @@
           </tbody>
         </table>
 
-        <!-- Pagination -->
+       
+      </div>
+    </div>
+  </div>
+
+   <!-- Pagination -->
         <nav *ngIf="totalPages > 1" class="mt-2">
           <ul class="pagination justify-content-end">
             <li class="page-item" [class.disabled]="currentPage === 1">
@@ -166,97 +185,96 @@
             </li>
           </ul>
         </nav>
-      </div>
-    </div>
-  </div>
 
 
 
   <!-- Payment Modal -->
   <ng-template #paymentModalRef let-modal>
-  <div class="modal-header bg-purple text-white">
-    <h5 class="modal-title d-flex align-items-center" id="titleh">
-      <i class="bi bi-wallet2 me-2"></i> {{ actionType }} Payment / {{ selectedPayment?.txnId }}
-    </h5>
-    <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
-  </div>
-
-  <div class="modal-body" *ngIf="selectedPayment">
-    <!-- Table Section -->
-    <div class="table-responsive mb-3">
-      <table class="table table-bordered table-hover text-center" id="infoDetail">
-        <thead>
-          <tr>
-            <th><i class="bi bi-person-circle me-1"></i>User Name</th>
-            <th><i class="bi bi-people me-1"></i>User Type</th>
-            <th><i class="bi bi-bank me-1"></i>Bank Details</th>
-            <th><i class="bi bi-currency me-1"></i>Amount</th>
-            <th><i class="bi bi-wallet2 me-1"></i>Deposit Mode</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ selectedPayment.userName }}</td>
-            <td>{{ selectedPayment.userType }}</td>
-            <td>{{ selectedPayment.bankName }} / {{ selectedPayment.accountNo }}</td>
-            <td>₹ {{ selectedPayment.amount }}</td>
-            <td>{{ selectedPayment.depositeMode }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="modal-header bg-purple text-white">
+      <h5 class="modal-title d-flex align-items-center" id="titleh">
+        <i class="bi bi-wallet2 me-2"></i> {{ actionType }} Payment / {{ selectedPayment?.txnId }}
+      </h5>
+      <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
     </div>
 
-    <!-- Action -->
-    <div class="mb-3 row align-items-center">
-      <label class="col-sm-3 fw-bold text-muted"><i class="bi bi-flag me-2 icon-label"></i>Action</label>
-      <div class="col-sm-9 d-flex gap-2">
-        <button class="btn flex-fill py-2 rounded-1 btn-sm"
-                [ngClass]="{'btn-danger': actionType==='Reject', 'btn-outline-danger': actionType!=='Reject'}"
-                (click)="actionType='Reject'">
-          <i class="bi bi-x-circle"></i> REJECT
-        </button>
-        <button class="btn flex-fill py-2 rounded-1 btn-sm"
-                [ngClass]="{'btn-success': actionType==='Approve', 'btn-outline-success': actionType!=='Approve'}"
-                (click)="actionType='Approve'">
-          <i class="bi bi-check-circle"></i> APPROVE
-        </button>
+    <div class="modal-body" *ngIf="selectedPayment">
+      <!-- Table Section -->
+      <div class="table-responsive mb-3">
+        <table class="table table-bordered table-hover text-center" id="infoDetail">
+          <thead>
+            <tr>
+              <th><i class="bi bi-person-circle me-1"></i>User Name</th>
+              <th><i class="bi bi-people me-1"></i>User Type</th>
+              <th><i class="bi bi-bank me-1"></i>Bank Details</th>
+              <th><i class="bi bi-currency me-1"></i>Amount</th>
+              <th><i class="bi bi-wallet2 me-1"></i>Deposit Mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ selectedPayment.userName }}</td>
+              <td>{{ selectedPayment.userType }}</td>
+              <td>{{ selectedPayment.bankName }} / {{ selectedPayment.accountNo }}</td>
+              <td>₹ {{ selectedPayment.amount }}</td>
+              <td>{{ selectedPayment.depositeMode }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Action -->
+      <div class="mb-3 row align-items-center">
+        <label class="col-sm-3 fw-bold text-muted"><i class="bi bi-flag me-2 icon-label"></i>Action</label>
+        <div class="col-sm-9 d-flex gap-2">
+          <button class="btn flex-fill py-2 rounded-1 btn-sm"
+            [ngClass]="{'btn-danger': actionType==='Reject', 'btn-outline-danger': actionType!=='Reject'}"
+            (click)="actionType='Reject'">
+            <i class="bi bi-x-circle"></i> REJECT
+          </button>
+          <button class="btn flex-fill py-2 rounded-1 btn-sm"
+            [ngClass]="{'btn-success': actionType==='Approve', 'btn-outline-success': actionType!=='Approve'}"
+            (click)="actionType='Approve'">
+            <i class="bi bi-check-circle"></i> APPROVE
+          </button>
+        </div>
+      </div>
+
+      <!-- Current Status -->
+      <div class="mb-3 row align-items-center">
+        <label class="col-sm-3 fw-bold text-muted"><i class="bi bi-info-circle me-2 icon-label"></i>Current
+          Status</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" [value]="selectedPayment.status" readonly />
+        </div>
+      </div>
+
+      <!-- Remarks -->
+      <div class="mb-3 row align-items-center" *ngIf="actionType === 'Reject'">
+        <label class="col-sm-3 fw-bold text-muted"><i class="bi bi-chat-dots me-2 icon-label"></i>Remarks</label>
+        <div class="col-sm-9">
+          <textarea class="form-control shadow-sm" [(ngModel)]="remarks" rows="3"
+            placeholder="Enter remarks"></textarea>
+        </div>
+      </div>
+
+      <!-- Txn Slip -->
+      <div class="mb-3 row align-items-center">
+        <label class="col-sm-3 fw-bold text-muted"><i class="bi bi-receipt me-2 icon-label"></i>Txn Slip</label>
+        <div class="col-sm-9">
+          <button class="btn btn-outline-primary btn-sm rounded-pill" (click)="downloadTxnSlip(selectedPayment)">
+            <i class="bi bi-download"></i> Download
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Current Status -->
-    <div class="mb-3 row align-items-center">
-      <label class="col-sm-3 fw-bold text-muted"><i class="bi bi-info-circle me-2 icon-label"></i>Current Status</label>
-      <div class="col-sm-9">
-        <input type="text" class="form-control" [value]="selectedPayment.status" readonly />
-      </div>
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary btn-sm px-4" (click)="modal.dismiss()">
+        <i class="bi bi-x-circle"></i> CLOSE
+      </button>
+      <button class="btn btn-primary btn-sm px-4" (click)="confirmAction()">
+        <i class="bi bi-send-check"></i> SUBMIT
+      </button>
     </div>
-
-    <!-- Remarks -->
-    <div class="mb-3 row align-items-center" *ngIf="actionType === 'Reject'">
-      <label class="col-sm-3 fw-bold text-muted"><i class="bi bi-chat-dots me-2 icon-label"></i>Remarks</label>
-      <div class="col-sm-9">
-        <textarea class="form-control shadow-sm" [(ngModel)]="remarks" rows="3" placeholder="Enter remarks"></textarea>
-      </div>
-    </div>
-
-    <!-- Txn Slip -->
-    <div class="mb-3 row align-items-center">
-      <label class="col-sm-3 fw-bold text-muted"><i class="bi bi-receipt me-2 icon-label"></i>Txn Slip</label>
-      <div class="col-sm-9">
-        <button class="btn btn-outline-primary btn-sm rounded-pill" (click)="downloadTxnSlip(selectedPayment)">
-          <i class="bi bi-download"></i> Download
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <div class="modal-footer">
-    <button class="btn btn-outline-secondary btn-sm px-4" (click)="modal.dismiss()">
-      <i class="bi bi-x-circle"></i> CLOSE
-    </button>
-    <button class="btn btn-primary btn-sm px-4" (click)="confirmAction()">
-      <i class="bi bi-send-check"></i> SUBMIT
-    </button>
-  </div>
-</ng-template>
+  </ng-template>

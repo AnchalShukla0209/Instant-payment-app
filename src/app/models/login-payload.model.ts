@@ -6,7 +6,8 @@ export interface LoginPayload {
   ApiKey: string;
   DeviceID: string;
   TokenKey: string;
-  DeviceInfo: string
+  DeviceInfo: string;
+  BrowserFingerprint: string;
 }
 export interface JwtPayload {
   userid: string;
@@ -16,4 +17,5 @@ export interface JwtPayload {
 export interface OTPPayload {
   usertype: string;
   userid: string;
+  otp: string;
 }

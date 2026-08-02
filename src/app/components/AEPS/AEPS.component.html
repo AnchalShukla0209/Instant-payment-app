@@ -65,7 +65,7 @@
                 <label class="form-label d-flex align-items-center">
                   <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
                 </label>
-                <input type="text" [ngClass]="disableclass" class="form-control" [(ngModel)]="mobileNumber"
+                <input type="text" class="form-control" [(ngModel)]="mobileNumber"
                   (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
                   maxlength="10" placeholder="Enter Mobile Number" />
               </div>
@@ -85,7 +85,7 @@
                 <label class="form-label d-flex align-items-center">
                   <i class="bi bi-currency-rupee form-icon icon-label"></i> Amount
                 </label>
-                <input type="text"
+                <input type="text" maxlength="5"
                   (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
                   class="form-control" [(ngModel)]="amount" placeholder="Enter Amount" />
               </div>
@@ -190,7 +190,7 @@
         <div class="form-group mb-2">
           <label><i class="bi bi-key"></i> Txn PIN</label>
           <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
-            placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
+            placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" autocomplete="off" />
           <div *ngIf="showPinError" class="invalid-feedback d-block">
             Txn PIN is required
           </div>
@@ -198,7 +198,7 @@
 
         <div class="form-group mb-2">
           <label><i class="bi bi-shield-lock"></i> OTP (if required)</label>
-          <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" />
+          <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
 
 
@@ -228,7 +228,7 @@
       <div class="bg-purple text-white text-center p-3 rounded-top mb-3">
         <h5 class="m-0">
           {{ invoiceData?.txntype === 'be' ? 'Balance Enquiry Invoice' : invoiceData?.txntype === 'ms' ? 'Mini Statement
-          Invoice' : 'Cash Withdrawal Invoice' }}
+          Invoice' : invoiceData?.txntype === 'ap' ? 'Aadhar Pay Invoice' : invoiceData?.txntype === 'cd' ? 'Cash Deposit Invoice' : 'Cash Withdrawal Invoice' }}
         </h5>
       </div>
 
@@ -238,8 +238,7 @@
           <i class="bi bi-check-circle-fill text-success success-icon"></i>
           <div class="text-success mt-2 fs-5 fw-bold">
             {{ invoiceData?.txntype === 'be' ? 'Balance Enquiry Invoice' : invoiceData?.txntype === 'ms' ? 'Mini
-            Statement
-            Invoice' : 'Cash Withdrawal Invoice' }}
+            Statement Invoice' : invoiceData?.txntype === 'ap' ? 'Aadhar Pay Invoice' : invoiceData?.txntype === 'cd' ? 'Cash Deposit Invoice' : 'Cash Withdrawal Invoice' }}
           </div>
         </div>
       </div>
@@ -251,8 +250,7 @@
           <tbody>
             <tr>
               <th class="text-purple">Transaction Type</th>
-              <td class="text-end text-capitalize"> {{ invoiceData?.txntype === 'be' ? 'Balance Enquiry' : 'Cash
-                Withdrawal' }}</td>
+              <td class="text-end text-capitalize"> {{ invoiceData?.txntype === 'be' ? 'Balance Enquiry' : invoiceData?.txntype === 'ap' ? 'Aadhar Pay' : invoiceData?.txntype === 'cd' ? 'Cash Deposit' : 'Cash Withdrawal' }}</td>
             </tr>
 
             <tr>
@@ -266,7 +264,7 @@
             </tr>
 
             <tr *ngIf="invoiceData?.amount">
-              <th class="text-purple">Withdrawal Amount</th>
+              <th class="text-purple">{{ invoiceData?.txntype === 'ap' ? 'Txn Amount' : invoiceData?.txntype === 'cd' ? 'Deposit Amount' : ' Withdrawal Amount' }}</th>
               <td class="text-end">₹{{ invoiceData?.amount }}</td>
             </tr>
 
@@ -388,9 +386,6 @@
 
   <div class="modal" [ngClass]="{ 'show d-block': isDailyLoginPopupVisible }">
 
-
-
-
     <div class="modal-dialog">
       <div class="modal-content">
 
@@ -405,7 +400,7 @@
         <div class="modal-body">
           <!-- Stage 1: Basic Details & Fingerprint -->
           <div>
-            <form [formGroup]="dailyLoginForm">
+            <form *ngIf="dailyLoginForm" [formGroup]="dailyLoginForm">
               <div class="row">
                 <div class="col-md-6">
                   <label>Aadhar Number</label>
@@ -445,7 +440,7 @@
             <div class="form-group mb-2">
               <label><i class="bi bi-key"></i> Txn PIN</label>
               <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
-                placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
+                placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" autocomplete="off" />
               <div *ngIf="showPinError" class="invalid-feedback d-block">
                 Txn PIN is required
               </div>
@@ -453,7 +448,7 @@
 
             <div class="form-group mb-2">
               <label><i class="bi bi-shield-lock"></i> OTP (if required)</label>
-              <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" />
+              <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" autocomplete="one-time-code" />
             </div>
 
 
@@ -463,13 +458,11 @@
         <div class="modal-footer d-flex justify-content-between flex-wrap">
           <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2"
             (click)="closeDailyLoginPopup()">Cancel</button>
-          <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitDailyLogin()"
+          <button type="button" class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitDailyLogin()"
             [disabled]="!fingerprintSuccess">
             <i class="bi bi-check-circle"></i> Confirm & Proceed
           </button>
         </div>
-
-
       </div>
     </div>
   </div>
@@ -477,10 +470,6 @@
 
 
   <div class="modal" [ngClass]="{ 'show d-block': isDailyRegistrationPopupVisible }">
-
-
-
-
     <div class="modal-dialog">
       <div class="modal-content">
 
@@ -494,23 +483,131 @@
 
         <div class="modal-body">
           <!-- Stage 1: Basic Details & Fingerprint -->
-          <div>
-            <form [formGroup]="dailyLoginForm">
+          <div *ngIf="isDailyRegistrationPopupVisible && !isEKYCProceedForFino">
+            <form *ngIf="dailyRegistrationFormFino" [formGroup]="dailyRegistrationFormFino">
               <div class="row">
+
+                <div class="col-md-6">
+                  <label>First Name</label>
+                  <input class="form-control" formControlName="FirstName">
+                  <div
+                    *ngIf="dailyRegistrationFormFino?.get('FirstName')?.touched && dailyRegistrationFormFino?.get('FirstName')?.invalid"
+                    class="text-danger" style="font-size: 10px;">
+                    Invalid First Name
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label>Middle Name</label>
+                  <input class="form-control" formControlName="finoMiddleName" placeholder="Middle Name">
+                  <div
+                    *ngIf="dailyRegistrationFormFino.get('finoMiddleName')?.touched && dailyRegistrationFormFino.get('finoMiddleName')?.invalid"
+                    class="text-danger" style="font-size: 10px;">
+                    Invalid Middle Name
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label>Last Name</label>
+                  <input class="form-control" formControlName="LastName" placeholder="Last Name">
+                  <div
+                    *ngIf="dailyRegistrationFormFino.get('LastName')?.touched && dailyRegistrationFormFino.get('LastName')?.invalid"
+                    class="text-danger" style="font-size: 10px;">
+                    Invalid Last Name
+                  </div>
+                </div>
+
                 <div class="col-md-6">
                   <label>Aadhar Number</label>
-                  <input class="form-control" formControlName="aadharno">
+                  <input class="form-control" formControlName="aadharno"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()">
+                  <div
+                    *ngIf="dailyRegistrationFormFino.get('aadharno')?.touched && dailyRegistrationFormFino.get('aadharno')?.invalid"
+                    class="text-danger" style="font-size: 10px;">
+                    Invalid Aadhaar Number (must be 12 digits)
+                  </div>
                 </div>
+
                 <div class="col-md-6">
                   <label>Mobile Number</label>
-                  <input class="form-control" formControlName="mobileno">
+                  <input class="form-control" formControlName="mobileno"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()">
+                  <div
+                    *ngIf="dailyRegistrationFormFino.get('mobileno')?.touched && dailyRegistrationFormFino.get('mobileno')?.invalid"
+                    class="text-danger" style="font-size: 10px;">
+                    Enter valid Indian mobile number
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label>PAN Card</label>
+                  <input class="form-control" formControlName="PANNo">
+                  <div
+                    *ngIf="dailyRegistrationFormFino.get('PANNo')?.touched && dailyRegistrationFormFino.get('PANNo')?.invalid"
+                    class="text-danger" style="font-size: 10px;">
+                    Invalid PAN format (ABCDE1234F)
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label>Name as per PAN</label>
+                  <input class="form-control" formControlName="NameAsPerPANNumber" placeholder="Name as per PAN">
+                  <div
+                    *ngIf="dailyRegistrationFormFino.get('NameAsPerPANNumber')?.touched && dailyRegistrationFormFino.get('NameAsPerPANNumber')?.invalid"
+                    class="text-danger" style="font-size: 10px;">
+                    Please Enter Your Name as per PAN
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label>Date Of Birth</label>
+                  <input type="text" class="form-control" formControlName="dob" placeholder="dd/MM/yyyy" maxlength="10"
+                    (input)="formatDOB($event)">
+                  <div
+                    *ngIf="dailyRegistrationFormFino.get('dob')?.touched && dailyRegistrationFormFino.get('dob')?.invalid"
+                    class="text-danger" style="font-size: 10px;">
+                    Please Enter DOB
+                  </div>
+
+                  <div class="text-danger"
+                    *ngIf="dailyRegistrationFormFino.get('dob')?.touched && dailyRegistrationFormFino.get('dob')?.errors">
+
+                    <div *ngIf="dailyRegistrationFormFino.get('dob')?.errors?.['invalidFormat']"
+                      style="font-size: 10px;">
+                      Format must be dd/MM/yyyy
+                    </div>
+
+                    <div *ngIf="dailyRegistrationFormFino.get('dob')?.errors?.['invalidDate']" style="font-size: 10px;">
+                      Invalid calendar date
+                    </div>
+
+                    <div *ngIf="dailyRegistrationFormFino.get('dob')?.errors?.['underAge']" style="font-size: 10px;">
+                      Age must be 18 years or above
+                    </div>
+
+                    <div *ngIf="dailyRegistrationFormFino.get('dob')?.errors?.['invalidAge']" style="font-size: 10px;">
+                      Enter valid birth date
+                    </div>
+
+                  </div>
+
 
                 </div>
+
               </div>
             </form>
 
+            <div class="modal-footer d-flex justify-content-between flex-wrap">
+              <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2"
+                (click)="closeDailyRegistrationPopup()">Cancel</button>
+              <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="ProceedForEKYCFino()">
+                <i class="bi bi-check-circle"></i>Proceed For E-KYC
+              </button>
+            </div>
+          </div>
 
-            <div class="finger-section mt-3 text-center" *ngIf="!fingerprintSuccess">
+          <div *ngIf="isDailyRegistrationPopupVisible && isEKYCProceedForFino">
+            <div class="finger-section mt-3 text-center">
               <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
               <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
                 <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
@@ -530,30 +627,14 @@
             </div>
           </div>
 
-          <!-- Stage 2: PIN and OTP -->
-          <div *ngIf="captureDone()">
-            <div class="form-group mb-2">
-              <label><i class="bi bi-key"></i> Txn PIN</label>
-              <input type="password" [(ngModel)]="txnPin" class="form-control" maxlength="6"
-                placeholder="Enter 4 or 6-digit PIN" [class.is-invalid]="showPinError" />
-              <div *ngIf="showPinError" class="invalid-feedback d-block">
-                Txn PIN is required
-              </div>
-            </div>
 
-            <div class="form-group mb-2">
-              <label><i class="bi bi-shield-lock"></i> OTP (if required)</label>
-              <input type="text" [(ngModel)]="otp" class="form-control" maxlength="6" placeholder="Enter OTP" />
-            </div>
-
-
-          </div>
         </div>
 
-        <div class="modal-footer d-flex justify-content-between flex-wrap">
+        <div class="modal-footer d-flex justify-content-between flex-wrap"
+          *ngIf="isDailyRegistrationPopupVisible && isEKYCProceedForFino">
           <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2"
             (click)="closeDailyRegistrationPopup()">Cancel</button>
-          <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitDailyLogin()"
+          <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="CompleteForEKYCFino()"
             [disabled]="!fingerprintSuccess">
             <i class="bi bi-check-circle"></i> Confirm & Proceed
           </button>
@@ -564,10 +645,8 @@
     </div>
   </div>
 
-
   <!--For Jio Payment Integration-->
   <div class="modal" [ngClass]="{ 'show d-block': showAgentLoginModalJPB }">
-
     <div class="modal-dialog">
       <div class="modal-content">
 
@@ -582,7 +661,7 @@
         <div class="modal-body">
           <!-- Stage 1: Basic Details & Fingerprint -->
           <div>
-            <form [formGroup]="JPBdailyLoginForm">
+            <form [formGroup]="JPBdailyLoginForm" *ngIf="JPBdailyLoginForm">
               <div class="row">
                 <div class="col-md-12">
                   <label>Agent Ref No</label>
@@ -613,8 +692,6 @@
     </div>
   </div>
 
-
-
   <div class="modal" [ngClass]="{ 'show d-block': showAgentRegistrationModalJPB }">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -630,7 +707,7 @@
         <div class="modal-body">
           <!-- Stage 1: Basic Details & Fingerprint -->
           <div>
-            <form [formGroup]="JPBAgentRegistrationForm">
+            <form [formGroup]="JPBAgentRegistrationForm" *ngIf="JPBAgentRegistrationForm">
               <div class="row">
                 <div class="col-md-6">
                   <label>External Ref No</label>
@@ -682,7 +759,7 @@
 
 
             <div class="finger-section mt-3 text-center" *ngIf="fingurdataKYCforJPB">
-              <form [formGroup]="JPBAgentEKYCForm">
+              <form [formGroup]="JPBAgentEKYCForm" *ngIf="JPBAgentEKYCForm">
                 <div class="row">
                   <div class="col-md-12">
                     <label>Aadhar Number</label>

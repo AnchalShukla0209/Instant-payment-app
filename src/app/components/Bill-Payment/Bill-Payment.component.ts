@@ -17,7 +17,10 @@ import { MasterService, ServiceStatusResponse } from '../../services/master.serv
 import Swal from 'sweetalert2';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { IQoreService } from '../../services/IQoreService.service';
+import { CreditCardBillPaymentService } from '../../services/credit-card-bill-payment.service';
 import { UpcityService, District } from '../../services/UpcityService'
+import { AdminProvider, AdminFeature } from '../../models/AdminFeature';
+import { AdminConfigService } from '../../services/admin.service';
 
 
 
@@ -39,12 +42,28 @@ export class BillPaymentComponent {
       this.router.navigate(['/login']);
       return;
     }
+    this.loadCategories();
 
     this.BindCity();
 
     this.CheckServiceStatus(Number(userId), userName)
     this.loadOperatorsList();
+
   }
+
+  loadCategories() {
+    const serviceCode = 'BILLPAY';
+
+    this.adminService.getFeatures(serviceCode).subscribe(res => {
+      this.categories = res.filter(c => c.isEnabled);
+
+      // Auto-select first category
+      if (this.categories.length) {
+        this.onTabSelect(this.categories[0]);
+      }
+    });
+  }
+
 
   BindCity() {
     this.upcityService.getDistricts().subscribe(
@@ -55,19 +74,21 @@ export class BillPaymentComponent {
     );
   }
 
-  constructor(private modalservice: NgbModal, private masterService: MasterService, private router: Router, private authServiceobj: AuthService, private operatorService: OperatorService, private _IQoreService: IQoreService, private upcityService: UpcityService, private rechargeService: RechargeService, private toastr: ToastrService) { }
+  constructor(private modalservice: NgbModal, private masterService: MasterService, private router: Router, private authServiceobj: AuthService, private operatorService: OperatorService, private _IQoreService: IQoreService, private upcityService: UpcityService, private rechargeService: RechargeService, private creditCardService: CreditCardBillPaymentService, private toastr: ToastrService, private adminService: AdminConfigService) { }
 
   isLoading = false;
   billpaymentStatus: string = 'SUCCESS';
   @ViewChild('billPopup') billPopup: any;
   @ViewChild('invoiceModal') invoiceModal: any;
 
-  categories = [
-    { label: 'Electricity', icon: 'bi-lightning', accountLabel: 'Account Number' },
-    { label: 'Insurance Bill', icon: 'bi-bank', accountLabel: 'Policy Number' },
-    { label: 'Fast Tag Bill Payment', icon: 'bi-credit-card', accountLabel: 'Vehicle No' },
-    { label: 'Credit Card Bill Payment', icon: 'bi-credit-card', accountLabel: 'Credit Card No' }
-  ];
+  // categories = [
+  //   { label: 'Electricity', icon: 'bi-lightning', accountLabel: 'Account Number' },
+  //   { label: 'Insurance Bill', icon: 'bi-bank', accountLabel: 'Policy Number' },
+  //   { label: 'Fast Tag Bill Payment', icon: 'bi-credit-card', accountLabel: 'Vehicle No' },
+  //   { label: 'Credit Card Bill Payment', icon: 'bi-credit-card', accountLabel: 'Credit Card No' }
+  // ];
+
+  categories: AdminProvider[] = [];
 
   operators = [];
   operatorData = 'Electricity';
@@ -85,6 +106,7 @@ export class BillPaymentComponent {
   billNumber = '123456';
   reqId = '250913132929020';
   dueDate = '06-09-2025';
+  billDate = '';
   billResponse: any;
   insuranceResponse: any;
   operatorList: any[] = [];
@@ -98,20 +120,61 @@ export class BillPaymentComponent {
   brid = '';
   transactiondatetime = '';
 
-  onTabSelect(label: string) {
-    const category = this.categories.find(c => c.label === label);
-    if (category) {
-      this.selectedCategory = category.label;
-      this.selectedIcon = category.icon;
-      this.accountLabel = category.accountLabel;
-    }
+  // onTabSelect(label: string) {
+  //   const category = this.categories.find(c => c.label === label);
+  //   if (category) {
+  //     this.selectedCategory = category.label;
+  //     this.selectedIcon = category.icon;
+  //     this.accountLabel = category.accountLabel;
+  //   }
+  //   this.loadOperatorsList();
+  //   this.BindCity();
+  //   this.ResetForm();
+  // }
+
+  onTabSelect(category: AdminProvider) {
+    this.selectedCategory = category.label;
+    this.selectedIcon = category.icon;
+    this.operatorData = category.key;
+
+    // Account label mapping (only thing NOT coming from backend)
+    this.accountLabel =
+      category.key === 'ELECTRICITY' ? 'Account Number' :
+        category.key === 'INSURANCE' ? 'Policy Number' :
+          category.key === 'FASTAG' ? 'Vehicle No' :
+            category.key === 'CC' || category.key === 'CREDITCARD' ? 'Credit Card No' :
+              'Account Number';
+
     this.loadOperatorsList();
     this.BindCity();
     this.ResetForm();
   }
 
+
   loadOperatorsList() {
     this.isLoading = true;
+
+    if (this.selectedCategory === 'Credit Card Bill Payment') {
+      this.creditCardService.getOperators().subscribe({
+        next: (res) => {
+          this.operatorList = res?.operatorList?.map((op: any) => ({
+            label: op.operator_name,
+            value: op.operator_id,
+            providerid: op.providerid,
+            operator_ifsc: op.operator_ifsc,
+            operator_name: op.operator_name
+          })) || [];
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Failed to load credit card operators', err);
+          this.operatorList = [];
+          this.isLoading = false;
+        }
+      });
+      return;
+    }
+
     this.operatorData = this.selectedCategory === 'Electricity' ? 'BILLPAYMENT' : this.selectedCategory === 'Insurance Bill' ? 'Insurance' : 'fastag';
     this.operatorService.getOperators(this.operatorData).subscribe({
       next: (res) => {
@@ -234,6 +297,12 @@ export class BillPaymentComponent {
         return;
       }
     }
+    else if (this.selectedCategory === 'Credit Card Bill Payment') {
+      if (!this.accountNumber || !this.mobileNumber || !this.operator?.value) {
+        this.toastr.error('Credit Card No, Mobile Number & Operator are mandatory!');
+        return;
+      }
+    }
     else {
       if (!this.accountNumber || !this.mobileNumber || !this.operator.value || !this.amount) {
         this.toastr.error('All fields are mandatory!');
@@ -268,6 +337,15 @@ export class BillPaymentComponent {
       });
     }
 
+    else if (this.selectedCategory === 'Credit Card Bill Payment') {
+      const lastFour = this.accountNumber.slice(-4);
+      apiCall$ = this.creditCardService.fetchBill({
+        provider: this.operator.providerid,
+        number: lastFour,
+        customerMobileNumber: this.mobileNumber
+      });
+    }
+
     else {
       if (this.operator.value === "TPEB" || this.operator.value === "UPSEB") {
         if (!this.city) {
@@ -290,6 +368,36 @@ export class BillPaymentComponent {
     apiCall$.subscribe({
       next: (res: any) => {
 
+        if (this.selectedCategory === 'Credit Card Bill Payment') {
+          if (res?.status != 1 || !res?.billInfo) {
+            this.toastr.error(res?.message || 'No bill information found!');
+            this.isLoading = false;
+            return;
+          }
+
+          const billInfo = res.billInfo;
+          this.customerName = billInfo.customerName || 'NA';
+          this.billDate = billInfo.billDate || 'NA';
+
+          const outstandingNum = billInfo.currentOutstandingAmount ? Number(billInfo.currentOutstandingAmount) : 0;
+          if (outstandingNum > 0) {
+            this.amount = outstandingNum.toFixed(2);
+          } else {
+            this.amount = billInfo.billamount !== undefined ? Number(billInfo.billamount).toFixed(2) : '0';
+          }
+
+          this.dueDate = billInfo.duedate || 'NA';
+          this.billNumber = this.accountNumber;
+
+          this.modalservice.open(this.billPopup, {
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: false
+          });
+          this.isLoading = false;
+          return;
+        }
+
         if (!res?.rdata || res.rdata.length === 0) {
           this.toastr.error('No bill information found!');
           this.isLoading = false;
@@ -297,11 +405,12 @@ export class BillPaymentComponent {
         }
 
         const billData = res.rdata[0];
-        if (billData.status === 0) {
+        if (billData.status === 0 ||(billData.desc != null && billData.desc !== '')) {
           this.toastr.info(billData.desc);
           this.isLoading = false;
           return;
         }
+
         this.customerName = billData.CustomerName || billData.customerName || 'NA';
         this.amount = billData.Billamount || billData.netamount || billData.billamount || '0';
         this.dueDate = billData.Duedate || billData.duedatefromto || billData.duedate || 'NA';
@@ -328,7 +437,13 @@ export class BillPaymentComponent {
   }
 
   confirmPayment() {
-    if (!this.txnpin) {
+    if (this.selectedCategory === 'Credit Card Bill Payment' && (!this.amount || Number(this.amount) <= 0 || isNaN(Number(this.amount)))) {
+      this.toastr.error('Amount is required.');
+      this.isLoading = false;
+      return;
+    }
+
+    if (!this.txnpin || this.txnpin.trim().length === 0) {
       this.toastr.error('Please enter Txn Pin to proceed!');
       return;
     }
@@ -346,17 +461,59 @@ export class BillPaymentComponent {
       if (result.isConfirmed) {
 
         this.isLoading = true;
-
-        if (!this.txnpin || this.txnpin.trim().length === 0) {
-          this.isLoading = false;
-          return;
-        }
         const userId = this.authServiceobj.getUserId();
         const userName = this.authServiceobj.getUsername();
 
         if (!userId || !userName) {
           this.toastr.error('Session expired. Please login!');
           this.router.navigate(['/login']);
+          return;
+        }
+
+        if (this.selectedCategory === 'Credit Card Bill Payment') {
+          const payPayload = {
+            userId: userId,
+            transactionPin: this.txnpin,
+            mobileNo: this.mobileNumber,
+            accountNo: this.accountNumber,
+            ifsc: this.operator.operator_ifsc,
+            bankName: this.operator.operator_name,
+            beneficiaryName: this.customerName,
+            amount: Number(this.amount),
+            operatorCode: this.operator.value ? String(this.operator.value) : '',
+            comingFrom: 'web'
+          };
+
+          this.creditCardService.payBill(payPayload).subscribe({
+            next: (res: any) => {
+              this.isLoading = false;
+              if (res?.status_Code === '1' && res?.data?.length) {
+                const d = res.data[0];
+                this.billpaymentStatus = d.status || 'PENDING';
+                this.txnid = d.txnID;
+                this.brid = d.bR_Id;
+                this.transactiondatetime = d.txnDate;
+
+                Swal.fire({
+                  title: 'Success',
+                  text: `Credit Card Bill Payment Submitted for ${this.mobileNumber} | ₹${this.amount}`,
+                  icon: 'success',
+                  confirmButtonColor: '#5e2f82'
+                });
+
+                const modalRef = this.modalservice.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false });
+                modalRef.closed.subscribe(() => window.location.reload());
+                modalRef.dismissed.subscribe(() => window.location.reload());
+              } else {
+                this.billpaymentStatus = 'FAILURE';
+                this.toastr.error(res?.message || 'Credit Card Bill Payment failed');
+              }
+            },
+            error: () => {
+              this.isLoading = false;
+              this.toastr.error('API error. Try again later');
+            }
+          });
           return;
         }
 
@@ -467,19 +624,29 @@ export class BillPaymentComponent {
     }
   }
 
-  ResetForm() {
+  ResetForm(resetCategory: boolean = false) {
     this.billpaymentStatus = 'SUCCESS';
-    this.selectedCategory = 'Electricity';
-    this.selectedIcon = 'bi bi-lightning';
-    this.accountLabel = 'Account Number';
+
+    if (resetCategory && this.categories.length) {
+      const first = this.categories[0];
+      this.selectedCategory = first.label;
+      this.selectedIcon = first.icon;
+      this.accountLabel = first.key === 'ELECTRICITY' ? 'Account Number' :
+        first.key === 'INSURANCE' ? 'Policy Number' :
+          first.key === 'FASTAG' ? 'Vehicle No' :
+            first.key === 'CC' || first.key === 'CREDITCARD' ? 'Credit Card No' : 'Account Number';
+    }
+
     this.accountNumber = '';
     this.mobileNumber = '';
     this.operator = '';
     this.amount = '';
+    this.billDate = '';
     this.txnpin = '';
     this.city = '';
     this.CityVisible = false;
   }
+
 
   ClosePopup() {
 

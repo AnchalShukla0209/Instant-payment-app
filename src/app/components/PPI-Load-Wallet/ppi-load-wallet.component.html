@@ -1,0 +1,548 @@
+<div class="container-fluid ppi-page">
+
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <!-- Page Header -->
+  <div class="page-header mb-1">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon">
+          <i class="bi bi-wallet2"></i>
+        </div>
+        <div>
+          <h4 class="mb-0 fw-bold">PPI Load Wallet</h4>
+          <p class="mb-0">Load money into customer's PPI wallet securely</p>
+        </div>
+      </div>
+      <div class="header-done-badge">
+        <i class="bi bi-check-lg"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step Progress Bar -->
+  <div class="step-tracker mb-1" *ngIf="currentStep !== 'invoice'">
+    <div class="step-item" [class.active]="true" [class.done]="currentStep !== 'mobile' && currentStep !== 'otp'">
+      <div class="step-bubble">
+        <i class="bi bi-check-lg" *ngIf="currentStep !== 'mobile' && currentStep !== 'otp'"></i>
+        <span *ngIf="currentStep === 'mobile' || currentStep === 'otp'">1</span>
+      </div>
+      <div class="step-label">Verify Mobile</div>
+    </div>
+
+    <div class="step-connector" [class.done]="currentStep === 'create-sender' || currentStep === 'load-wallet'"></div>
+
+    <div class="step-item" [class.active]="currentStep === 'create-sender' || currentStep === 'load-wallet'"
+      [class.done]="currentStep === 'load-wallet'">
+      <div class="step-bubble">
+        <i class="bi bi-check-lg" *ngIf="currentStep === 'load-wallet'"></i>
+        <span *ngIf="currentStep !== 'load-wallet'">2</span>
+      </div>
+      <div class="step-label">Sender KYC</div>
+    </div>
+
+    <div class="step-connector" [class.done]="currentStep === 'load-wallet'"></div>
+
+    <div class="step-item" [class.active]="currentStep === 'load-wallet'">
+      <div class="step-bubble">3</div>
+      <div class="step-label">Load Wallet</div>
+    </div>
+  </div>
+
+  <!-- ── STEP 1 & 2 : Mobile + OTP ──────────────────────────────────── -->
+  <div class="row justify-content-center" *ngIf="currentStep === 'mobile' || currentStep === 'otp'">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm main-card">
+        <div class="card-header bg-gradient-indigo text-white d-flex align-items-center gap-2">
+          <i class="bi bi-person-lines-fill fs-5"></i>
+          <strong>Sender Verification</strong>
+        </div>
+        <div class="card-body p-3">
+
+          <!-- Mobile -->
+          <div class="form-group mb-3">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-phone icon-label"></i> Mobile Number
+            </label>
+            <input type="text" class="form-control form-control-custom"
+              [(ngModel)]="mobileNumber"
+              [readonly]="currentStep === 'otp'"
+              maxlength="10"
+              (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+              placeholder="Enter 10-digit Mobile Number" />
+          </div>
+
+          <!-- OTP -->
+          <div class="form-group mb-3" *ngIf="currentStep === 'otp'">
+            <label class="form-label d-flex align-items-center">
+              <i class="bi bi-shield-lock icon-label"></i> OTP
+            </label>
+            <input type="text" class="form-control form-control-custom"
+              [(ngModel)]="enteredOtp"
+              maxlength="6"
+              (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+              placeholder="Enter OTP"
+              autocomplete="one-time-code" />
+            <div class="otp-hint mt-1">
+              <i class="bi bi-info-circle me-1"></i>OTP sent to <strong>+91 {{ mobileNumber }}</strong>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-chandan btn-sm flex-grow-1"
+              *ngIf="currentStep === 'mobile'" (click)="sendOtp()">
+              <i class="bi bi-send me-1"></i> Send OTP
+            </button>
+
+            <button class="btn btn-chandan btn-sm flex-grow-1"
+              *ngIf="currentStep === 'otp'" (click)="verifyOtp()">
+              <i class="bi bi-shield-check me-1"></i> Verify OTP
+            </button>
+
+            <button class="btn btn-outline-secondary btn-sm"
+              *ngIf="currentStep === 'otp'" (click)="sendOtp()">
+              <i class="bi bi-arrow-repeat me-1"></i> Resend
+            </button>
+
+            <button class="btn btn-default btn-sm"
+              *ngIf="currentStep === 'otp'" (click)="reset()">
+              <i class="bi bi-x-circle me-1"></i> Cancel
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 3 : Create Sender ─────────────────────────────────────── -->
+  <div class="row justify-content-center" *ngIf="currentStep === 'create-sender'">
+    <div class="col-md-7 col-lg-6">
+
+      <!-- Warning Banner -->
+      <div class="alert alert-warning d-flex align-items-center mb-3 py-2">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div>
+          Sender <strong>{{ mobileNumber }}</strong> is not registered.
+          Complete KYC to register and load wallet.
+        </div>
+      </div>
+
+      <div class="card shadow-sm main-card">
+        <div class="card-header bg-gradient-indigo text-white d-flex align-items-center gap-2">
+          <i class="bi bi-person-check-fill fs-5"></i>
+          <strong>Create Sender – KYC Verification</strong>
+          <span class="ms-auto back-link" *ngIf="kycType !== ''" (click)="kycType = ''; createSenderSubStep = 'form'">
+            <i class="bi bi-arrow-left me-1"></i>Change Method
+          </span>
+        </div>
+
+        <div class="card-body p-3">
+
+          <!-- ── KYC Method Selection ── -->
+          <div *ngIf="kycType === ''" class="kyc-selection">
+            <p class="text-center text-muted mb-4 fw-semibold">
+              Choose your preferred KYC method
+            </p>
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="kyc-method-card" (click)="kycType = 'OTP'">
+                  <div class="kyc-icon-wrapper">
+                    <i class="bi bi-phone"></i>
+                  </div>
+                  <div class="kyc-method-title">Aadhar EKYC</div>
+                  <div class="kyc-method-desc">OTP on Aadhar linked mobile</div>
+                  <div class="kyc-select-arrow"><i class="bi bi-arrow-right-circle"></i></div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="kyc-method-card" (click)="kycType = 'BIOMETRIC'">
+                  <div class="kyc-icon-wrapper">
+                    <i class="bi bi-fingerprint"></i>
+                  </div>
+                  <div class="kyc-method-title">Biometric EKYC</div>
+                  <div class="kyc-method-desc">Fingerprint device verification</div>
+                  <div class="kyc-select-arrow"><i class="bi bi-arrow-right-circle"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="text-center mt-3">
+              <button class="btn btn-default btn-sm" (click)="reset()">
+                <i class="bi bi-x-circle me-1"></i> Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Aadhar OTP: Form ── -->
+          <div *ngIf="kycType === 'OTP' && createSenderSubStep === 'form'">
+
+            <div class="form-group mb-3">
+              <label class="form-label d-flex align-items-center">
+                <i class="bi bi-credit-card icon-label"></i>
+                Aadhar Number <span class="text-danger ms-1">*</span>
+              </label>
+              <input type="text" class="form-control form-control-custom"
+                [(ngModel)]="aadharNo"
+                maxlength="12"
+                (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                placeholder="Enter 12-digit Aadhar Number" />
+            </div>
+
+            <!-- PAN (Optional) -->
+            <div class="pan-section mb-3">
+              <div class="pan-section-header">
+                <label class="form-label d-flex align-items-center mb-0">
+                  <i class="bi bi-card-text icon-label"></i>
+                  PAN Number
+                </label>
+                <span class="optional-badge">Optional</span>
+              </div>
+              <div class="input-group mt-1">
+                <input type="text" class="form-control form-control-custom"
+                  [(ngModel)]="panCardNo"
+                  maxlength="10"
+                  style="text-transform:uppercase"
+                  placeholder="Enter PAN Number (optional)" />
+                <button class="btn btn-outline-secondary btn-sm verify-pan-btn"
+                  (click)="validatePan()"
+                  [disabled]="!panCardNo || panCardNo.length < 10">
+                  <i class="bi bi-patch-check me-1"></i> Verify
+                </button>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-chandan btn-sm flex-grow-1" (click)="generateAadharOtp()">
+                <i class="bi bi-send me-1"></i> Send Aadhar OTP
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Aadhar OTP: Enter OTP ── -->
+          <div *ngIf="kycType === 'OTP' && createSenderSubStep === 'aadhar-otp-sent'">
+
+            <div class="alert alert-info d-flex align-items-center mb-3 py-2">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              OTP has been sent to your Aadhar linked mobile number
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="form-label d-flex align-items-center">
+                <i class="bi bi-shield-lock icon-label"></i> Aadhar OTP
+              </label>
+              <div class="input-group">
+                <input type="text" class="form-control form-control-custom"
+                  [(ngModel)]="aadharOtp"
+                  maxlength="6"
+                  (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                  placeholder="Enter 6-digit OTP"
+                  autocomplete="one-time-code" />
+                <button class="btn btn-outline-secondary btn-sm" (click)="generateAadharOtp()">
+                  <i class="bi bi-arrow-repeat"></i> Resend
+                </button>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-chandan btn-sm flex-grow-1" (click)="validateAadharOtp()">
+                <i class="bi bi-check-circle me-1"></i> Verify & Register
+              </button>
+              <button class="btn btn-default btn-sm" (click)="createSenderSubStep = 'form'">
+                <i class="bi bi-arrow-left me-1"></i> Back
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Biometric Flow ── -->
+          <div *ngIf="kycType === 'BIOMETRIC'">
+
+            <div class="form-group mb-3">
+              <label class="form-label d-flex align-items-center">
+                <i class="bi bi-credit-card icon-label"></i>
+                Aadhar Number <span class="text-danger ms-1">*</span>
+              </label>
+              <input type="text" class="form-control form-control-custom"
+                [(ngModel)]="aadharNo"
+                maxlength="12"
+                (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                placeholder="Enter 12-digit Aadhar Number" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-usb-plug icon-label"></i> Select Fingerprint Device
+              </label>
+              <div class="device-list d-flex gap-3 flex-wrap">
+                <div *ngFor="let device of devices"
+                  class="device-card"
+                  [class.active]="selectedDevice === device.id"
+                  (click)="selectDevice(device.id)">
+                  <img [src]="'../../../assets/images/' + device.icon"
+                    [alt]="device.label"
+                    style="height:45px;width:45px;object-fit:contain" />
+                  <span>{{ device.label }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Capture Status -->
+            <div class="capture-status" *ngIf="fingerprintCaptured">
+              <i class="bi bi-check-circle-fill text-success me-2"></i>
+              <span>Fingerprint captured successfully</span>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-chandan btn-sm flex-grow-1"
+                (click)="startBiometricCapture()"
+                [disabled]="!selectedDevice || !aadharNo">
+                <i class="bi bi-fingerprint me-1"></i> Scan & Register
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 4 : Load Wallet ───────────────────────────────────────── -->
+  <div class="row g-3" *ngIf="currentStep === 'load-wallet'">
+
+    <!-- Left: Sender Card -->
+    <div class="col-md-4">
+      <div class="wsc-outer">
+
+        <!-- Dark Gradient Section -->
+        <div class="wsc-dark">
+          <div class="wsc-avatar">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div class="wsc-name">{{ senderName || 'Registered Sender' }}</div>
+          <div class="wsc-mobile"><i class="bi bi-phone-fill me-1"></i>+91 {{ mobileNumber }}</div>
+          <div class="wsc-badge">
+            <i class="bi bi-check-circle-fill me-1"></i>Wallet Active
+          </div>
+          <div class="wsc-bal-row">
+            <div class="wsc-bal-card purple">
+              <div class="wsc-bal-icon"><i class="bi bi-credit-card-fill"></i></div>
+              <div class="wsc-bal-label">Current Balance</div>
+              <div class="wsc-bal-amount">₹{{ walletCurrentBalance }}</div>
+            </div>
+            <div class="wsc-bal-card teal">
+              <div class="wsc-bal-icon"><i class="bi bi-bar-chart-fill"></i></div>
+              <div class="wsc-bal-label">Wallet Limit</div>
+              <div class="wsc-bal-amount">₹{{ walletLimit }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Light Features Strip -->
+        <div class="wsc-features">
+          <div class="wsc-feat">
+            <div class="wsc-feat-icon green"><i class="bi bi-shield-check"></i></div>
+            <div class="wsc-feat-title">100% Secure</div>
+            <div class="wsc-feat-desc">Bank-level security</div>
+          </div>
+          <div class="wsc-feat">
+            <div class="wsc-feat-icon blue"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div class="wsc-feat-title">Instant Transfer</div>
+            <div class="wsc-feat-desc">Real-time processing</div>
+          </div>
+          <div class="wsc-feat">
+            <div class="wsc-feat-icon teal"><i class="bi bi-headset"></i></div>
+            <div class="wsc-feat-title">24/7 Support</div>
+            <div class="wsc-feat-desc">We're here to help</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right: Load Wallet Form -->
+    <div class="col-md-8">
+      <div class="lw-card">
+
+        <!-- Form Header -->
+        <div class="lw-card-header">
+          <div class="d-flex align-items-center gap-3">
+            <div class="lw-icon-box"><i class="bi bi-wallet2"></i></div>
+            <div>
+              <div class="lw-title">Load Wallet</div>
+              <div class="lw-subtitle">Enter amount and confirm transaction</div>
+            </div>
+          </div>
+          <div class="lw-illus">
+            <i class="bi bi-currency-rupee lw-illus-rupee"></i>
+            <i class="bi bi-wallet2 lw-illus-wallet"></i>
+            <i class="bi bi-stars lw-illus-star"></i>
+          </div>
+        </div>
+
+        <!-- Form Body -->
+        <div class="lw-card-body">
+          <!-- Inputs + info note grouped -->
+          <div>
+            <div class="row">
+              <div class="col-md-6 form-group mb-3">
+                <label class="form-label"><i class="bi bi-currency-rupee icon-label"></i> Amount</label>
+                <div class="input-icon-wrap">
+                  <input type="text" class="form-control form-control-custom"
+                    [(ngModel)]="amount" maxlength="6"
+                    autocomplete="off"
+                    (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
+                    placeholder="Min ₹5,000 – Max ₹1,00,000" />
+                  <span class="input-right-icon" *ngIf="amount">
+                    <i class="bi bi-check-circle-fill" style="color:#10b981"></i>
+                  </span>
+                </div>
+              </div>
+              <div class="col-md-6 form-group mb-3">
+                <label class="form-label"><i class="bi bi-lock icon-label"></i> Transaction PIN</label>
+                <div class="input-icon-wrap">
+                  <input [type]="showPin ? 'text' : 'password'" class="form-control form-control-custom"
+                    [(ngModel)]="txnPin" maxlength="6"
+                    placeholder="Enter Transaction PIN"
+                    autocomplete="off" />
+                  <span class="input-right-icon clickable" (click)="showPin = !showPin">
+                    <i class="bi" [ngClass]="showPin ? 'bi-eye-fill' : 'bi-eye-slash-fill'"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-note">
+              <div class="info-note-icon"><i class="bi bi-info-circle"></i></div>
+              <div>
+                <div class="info-note-line1">Amount must be between ₹5,000 and ₹1,00,000.</div>
+                <div class="info-note-line2">Transaction is non-reversible.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons inline col-6 each -->
+          <div class="row g-2">
+            <div class="col-6">
+              <button class="btn btn-chandan btn-sm w-100" style="padding:10px 0" (click)="loadWallet()">
+                <i class="bi bi-lock-fill me-1"></i> Load Wallet
+              </button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-default btn-sm w-100" style="padding:10px 0" (click)="reset()">
+                <i class="bi bi-x-circle me-1"></i> Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── STEP 5 : Invoice ───────────────────────────────────────────── -->
+  <div class="row justify-content-center" *ngIf="currentStep === 'invoice'">
+    <div class="col-md-6 col-lg-5">
+
+      <!-- Invoice Card (printable) -->
+      <div class="card shadow-sm main-card" id="ppiInvoiceContent">
+        <div class="card-header bg-gradient-indigo text-white text-center">
+          <strong><i class="bi bi-receipt me-2"></i>Transaction Receipt</strong>
+        </div>
+        <div class="card-body invoice-wrapper">
+
+          <!-- Status Banner -->
+          <div class="text-center mb-3">
+            <div class="txn-status-badge"
+              [ngClass]="invoiceData?.status?.toUpperCase() === 'SUCCESS' ? 'status-success' : 'status-pending'">
+              <i class="bi me-2"
+                [ngClass]="invoiceData?.status?.toUpperCase() === 'SUCCESS' ? 'bi-check-circle-fill' : 'bi-clock-fill'"></i>
+              {{ invoiceData?.status?.toUpperCase() === 'SUCCESS' ? 'Transaction Successful' : 'Transaction Pending' }}
+            </div>
+          </div>
+
+          <!-- Company Name -->
+          <div class="text-center mb-3">
+            <div class="invoice-brand">Instant Payment</div>
+            <div class="invoice-sub">PPI Wallet Load Receipt</div>
+          </div>
+
+          <!-- Details Table -->
+          <div class="invoice p-2">
+            <table class="table table-bordered table-sm mb-0">
+              <tbody>
+                <tr>
+                  <th class="text-purple">Account No</th>
+                  <td class="text-end">{{ invoiceData?.accountNo }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">RT Name</th>
+                  <td class="text-end">{{ invoiceData?.beneName }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Amount Loaded</th>
+                  <td class="text-end fw-bold text-success">₹{{ invoiceData?.amount }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Charges</th>
+                  <td class="text-end">₹{{ invoiceData?.charge }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Current Wallet Balance</th>
+                  <td class="text-end">₹{{ invoiceData?.currentBalance }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Status</th>
+                  <td class="text-end">
+                    <span class="badge"
+                      [ngClass]="invoiceData?.status?.toUpperCase() === 'SUCCESS' ? 'bg-success' : 'bg-warning text-dark'">
+                      {{ invoiceData?.status }}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Txn ID</th>
+                  <td class="text-end text-muted small">{{ invoiceData?.txnID }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">BR ID</th>
+                  <td class="text-end text-muted small">{{ invoiceData?.bR_Id }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Txn Date</th>
+                  <td class="text-end">{{ invoiceData?.txnDate }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="text-center mt-3 invoice-footer">
+            <small class="text-muted">
+              This is a digitally generated document. No signature required.<br />
+              © InstantPayment – PPI Wallet Services
+            </small>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Action Buttons (outside printable zone) -->
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-chandan btn-sm flex-grow-1" (click)="downloadInvoice()">
+          <i class="bi bi-download me-1"></i> Download
+        </button>
+        <button class="btn btn-chandan btn-sm flex-grow-1" (click)="printInvoice()">
+          <i class="bi bi-printer me-1"></i> Print
+        </button>
+        <button class="btn btn-default btn-sm flex-grow-1" (click)="reset()">
+          <i class="bi bi-plus-circle me-1"></i> New Transaction
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Print Area (hidden) -->
+<div id="ppiPrintArea" style="display:none;"></div>

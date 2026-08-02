@@ -1,5 +1,3 @@
-
-
 .header-container {
   background-color: #ffffff;
   border-bottom: 1px solid #e0e0e0;
@@ -7,12 +5,12 @@
 }
 
 .bg-purple {
-  background: linear-gradient(to right, #7f5af0, #a04bdc);
+  background: #5e2f82;
   color: #fff;
 }
 
 .bg-purple:hover {
-  background: linear-gradient(to right, #6e4cd1, #943fc9);
+  background: linear-gradient(to right, #5e2f82, #5e2f82);
 }
 
 button.btn {
@@ -27,7 +25,7 @@ button.btn i {
 }
 
 .themed-notification {
-  background: linear-gradient(135deg, #5f2c82, #49a09d);
+  background: #5e2f82;
   color: #fff;
   border-radius: 8px;
   padding: 2px 20px;
@@ -59,9 +57,9 @@ button.btn i {
     align-items: center;
     gap: 0px;
 
-    
+
   }
-  
+
 }
 
 @keyframes fadeInDown {
@@ -69,6 +67,7 @@ button.btn i {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -78,40 +77,44 @@ button.btn i {
 .welcome-box {
   h6 {
     margin-bottom: 0.2rem; // reduce gap under heading
+
     .greet {
       font-style: italic;
-      font-size: 15px ;
+      font-size: 15px;
     }
+
     .username {
       font-weight: 700;
-      font-size: 15px ;
+      font-size: 15px;
       font-style: italic;
     }
   }
 
   .subtext {
-    margin: 0;              // remove default p margin
-    font-size: 0.875rem;    // smaller font
+    margin: 0; // remove default p margin
+    font-size: 0.875rem; // smaller font
     font-style: italic;
     color: #555;
-    font-size: 13px;            // subtle color
+    font-size: 13px; // subtle color
   }
 }
 
 .header-wrap {
   height: 130px;
   display: flex;
-  flex-direction: column;   // stack greeting + subtext
-  justify-content: center;  // vertical center
+  flex-direction: column; // stack greeting + subtext
+  justify-content: center; // vertical center
   padding: 0 1rem;
   box-sizing: border-box;
 
-  h6, p, .subtext {
-    margin: 0;              // remove default margins
+  h6,
+  p,
+  .subtext {
+    margin: 0; // remove default margins
   }
 
   @media (max-width: 768px) {
-    height: auto;           // allow natural growth on smaller screens
+    height: auto; // allow natural growth on smaller screens
     padding: 0.5rem 1rem;
     text-align: center;
   }
@@ -119,7 +122,7 @@ button.btn i {
 
 
 .balance-btn {
-  background: linear-gradient(to right, #6a1b9a, #8e24aa);
+  background: #5e2f82;
   border: none;
   border-radius: 12px;
   min-width: 160px; // keeps consistent width
@@ -150,10 +153,13 @@ button.btn i {
 
 .contact-dropdown .dropdown-menu {
   white-space: nowrap;
-  width: max-content;   /* fit content */
+  width: max-content;
+  /* fit content */
   min-width: 290px;
-  left: auto;           /* reset default */
-  right: 0;             /* stick to button's right edge */
+  left: auto;
+  /* reset default */
+  right: 0;
+  /* stick to button's right edge */
 }
 
 
@@ -167,7 +173,7 @@ button.btn i {
     display: block;
     margin-top: 0.3rem;
     animation: fadeIn 0.2s ease-in-out;
-     width: 340px;
+    width: 340px;
   }
 
   .dropdown-menu {
@@ -194,6 +200,7 @@ button.btn i {
     opacity: 0;
     transform: translateY(-5px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -201,6 +208,334 @@ button.btn i {
 }
 
 
+/* MODAL CONTAINER */
+.upi-payment-modal .modal-content {
+  border: none;
+  border-radius: 18px;
+  overflow: hidden;
+  height: 540px !important;
+}
+
+/* HEADER */
+.payment-header {
+  background: #5e2f82;
+  color: #fff;
+  border: none;
+}
+
+.logo-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ffffff22;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+/* LEFT PANEL */
+.payment-left {
+  background: #faf7fc;
+  min-height: 520px;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #6a1b9a;
+}
+
+/* INPUTS */
+.form-control {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.form-control:focus {
+  border-color: #5e2f82;
+  box-shadow: 0 0 0 2px #8e24aa22;
+}
+
+/* AMOUNT BOX */
+.amount-box {
+  display: flex;
+  align-items: center;
+  border: 2px solid #5e2f82;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #5e2f82;
+}
+
+.amount-box input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 20px;
+  margin-left: 8px;
+  background: transparent;
+}
+
+/* PAY BUTTON */
+.btn-pay {
+  background: #5e2f82;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 12px;
+  transition: .25s;
+}
+
+.btn-pay:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px #5e2f82;
+}
+
+.upi-frame {
+  width: 100%;
+  height: 680px;
+  /* THIS removes scrollbar */
+  border: 0;
+  overflow: hidden;
+}
+
+.payment-right {
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.qr-card {
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid #eee;
+  background: #fff;
+}
+
+.success-box {
+  margin-top: 20px;
+  color: #2e7d32;
+}
+
+.success-box i {
+  font-size: 48px;
+}
+
+.amount-display {
+  font-size: 34px;
+  font-weight: 700;
+  color: #5e2f82;
+}
+
+.status-wait {
+  margin-top: 20px;
+}
+
+.text-purple {
+  color: #5e2f82;
+}
+
+.upi-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
 
 
+
+.start-hint {
+  color: #5e2f82;
+  font-size: 18px;
+}
+
+.start-hint i {
+  font-size: 60px;
+  margin-bottom: 12px;
+}
+
+/* ===== FORCE FULL PAYMENT MODAL ===== */
+
+.upi-payment-modal .modal-dialog {
+  max-width: 50% !important;
+  width: 50% !important;
+  margin: auto;
+}
+
+.upi-payment-modal .modal-dialog {
+  max-width: 1000px !important;
+  width: 50% !important;
+  margin: auto;
+}
+
+.upi-payment-modal .modal-content {
+  height: 620px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* remove bootstrap padding bug */
+.upi-payment-modal .modal-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* fix row full height */
+.payment-container .row {
+  height: 100%;
+}
+
+/* left & right equal height */
+.payment-left,
+.payment-right {
+  height: 100%;
+}
+
+/* proper overlay */
+.modal-backdrop.show {
+  opacity: 0.65;
+  background: #1a0826;
+}
+
+/* prevent page scroll behind modal */
+body.modal-open {
+  overflow: hidden !important;
+}
+
+.payment-header {
+  padding: 5px 10px;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+}
+
+.payment-right {
+  padding: 20px;
+  background: #ffffff;
+}
+
+.qr-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.qr-card {
+  width: 360px;
+  height: 500px;
+  
+  background: #5e2f82;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+}
+
+.qr-card iframe {
+  background: white;
+}
+
+.payment-left {
+  border-right: 1px solid #eee;
+}
+
+.modal-backdrop {
+  z-index: 20000 !important;
+  background: rgba(26, 8, 38, 0.75) !important;
+}
+
+/* Modal container */
+.modal {
+  z-index: 20010 !important;
+}
+
+/* Ensure modal dialog stays above everything */
+.modal-dialog {
+  z-index: 20020 !important;
+}
+
+/* Fix fixed sidebar/header overlap */
+.sidebar,
+app-sidebar,
+app-header,
+.navbar,
+.header,
+.topbar {
+  z-index: 1000 !important;
+}
+
+/* RED BORDER INPUT */
+.input-error {
+  border: 2px solid #e53935 !important;
+  background: #fff5f5 !important;
+  box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.15);
+}
+
+/* Amount box error */
+.amount-error {
+  border: 2px solid #e53935 !important;
+  background: #fff5f5 !important;
+}
+
+/* smooth animation */
+.input-error,
+.amount-error {
+  animation: shake 0.25s;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0)
+  }
+
+  25% {
+    transform: translateX(-4px)
+  }
+
+  50% {
+    transform: translateX(4px)
+  }
+
+  75% {
+    transform: translateX(-3px)
+  }
+
+  100% {
+    transform: translateX(0)
+  }
+}
+
+$primary-theme: #5e2f82;
+
+:root {
+  --theme-color: #5e2f82;
+}
+
+.btn-theme {
+  background-color: $primary-theme;
+  color: #fff;
+  border: none;
+  &:hover {
+    background-color: darken($primary-theme, 8%);
+  }
+}
+
+.upi-card {
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.upi-header {
+  background: #5e2f82;
+  color: white;
+  padding: 15px;
+  border-radius: 15px 15px 0 0;
+}
 

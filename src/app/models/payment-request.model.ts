@@ -2,9 +2,10 @@ export interface PaymentRequestDto {
   bankId: string;
   userId: number;
   amount: number;
-  txnId: string;
+  paymentTxnId: string;
   deposideMode?: string;
   txnSlip?: File | null;
+  userRemarks?: string;
 }
 
 export interface PaymentResponse {
@@ -12,6 +13,8 @@ export interface PaymentResponse {
   txnId?: string;
   userName?: string;
   userType?: string;
+  openingBalance?: string;
+  closingBalance?: string;
   bankName?: string;
   accountNo?: string;
   amount: number;
@@ -20,6 +23,10 @@ export interface PaymentResponse {
   txnSlipPath?: string;
   status?: string;
   adminRemarks?: string;
+  userRemarks?: string;
+  paymentTxnId?: string;
+  txnDate?: Date;
+  txnApprovedDate?: Date;
 }
 
 export interface PaymentUpdateRequest {

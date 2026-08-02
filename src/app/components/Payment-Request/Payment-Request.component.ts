@@ -51,7 +51,7 @@ export class PaymentRequestComponent implements OnInit {
       txnId: ['', Validators.required],
       depositMode: ['', Validators.required],
       txnSlip: [null, Validators.required],
-      remarks: ['']
+      userRemarks: ['', Validators.required]
     });
 
     // When bank changes, set bank details
@@ -115,9 +115,10 @@ export class PaymentRequestComponent implements OnInit {
       bankId: this.paymentForm.value.bankId,
       userId: 0,
       amount: this.paymentForm.value.amount,
-      txnId: this.paymentForm.value.txnId,
+      paymentTxnId: this.paymentForm.value.txnId,
       deposideMode: this.paymentForm.value.depositMode,
-      txnSlip: this.txnSlipFile
+      txnSlip: this.txnSlipFile,
+      userRemarks: this.paymentForm.value.userRemarks
     };
     console.log('✅ Submitting payment request:', this.PaymentRequestDtoRequest);
     this.paymentService.create(this.PaymentRequestDtoRequest).subscribe({
@@ -147,12 +148,12 @@ export class PaymentRequestComponent implements OnInit {
 
   onReset() {
     this.paymentForm.reset({
-      bankId: '',        // 👈 forces dropdown back to "Select"
+      bankId: '',
       amount: '',
       txnId: '',
       depositMode: '',
       txnSlip: null,
-      remarks: ''
+      userRemarks: ''
     });
 
     if (this.txnFileInput) {

@@ -1,0 +1,44 @@
+<div class="row mb-3">
+  <div class="col-md-4">
+    <select class="form-select" [(ngModel)]="selectedService" (change)="onServiceChange()">
+      <option value="" disabled selected>Select Service</option>
+      <option *ngFor="let s of services" [value]="s">{{ s }}</option>
+    </select>
+  </div>
+
+  <div class="col-md-4">
+    <select class="form-select" [(ngModel)]="selectedProvider" (change)="onProviderChange()">
+      <option value="">All Providers</option>
+      <option *ngFor="let p of providers" [value]="p.key">{{ p.label }}</option>
+    </select>
+  </div>
+</div>
+
+<table class="table table-bordered table-hover">
+  <thead class="table-light">
+    <tr>
+      <th>Feature</th>
+      <th>Icon</th>
+      <th>Status</th>
+      <th>Enable / Disable</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let f of features">
+      <td>{{ f.label }}</td>
+      <td><i class="bi" [ngClass]="f.icon"></i></td>
+      <td>
+        <span class="badge" [ngClass]="f.isEnabled ? 'bg-success' : 'bg-danger'">
+          {{ f.isEnabled ? 'Enabled' : 'Disabled' }}
+        </span>
+      </td>
+      <td>
+        <input type="checkbox"
+               class="form-check-input"
+               [checked]="f.isEnabled"
+               (change)="toggleFeature(f, $event.target.checked)">
+      </td>
+    </tr>
+  </tbody>
+</table>
