@@ -84,5 +84,9 @@ export class AEPSService {
     finoMerchantEKYC(payload: FinoMerchantEKYCRequest) {
         return this.http.post<FinoAepsResponse>(this.FINO_EKYC_URL, payload);
     }
+
+    checkTransactionStatus(payload: any): Observable<any> {
+        return this.http.post(`${this.FINO_AEPS_URL}/TransactionStatus`, payload);
+    }
 }
 

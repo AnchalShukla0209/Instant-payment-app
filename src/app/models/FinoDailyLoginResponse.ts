@@ -43,6 +43,12 @@ export interface FinoAepsResponse {
   Data: any[];
 }
 
+export interface FinoAepsTransactionStatusRequest {
+  userid: string;
+  APIKey: string;
+  ClientRefID: string;
+}
+
 export interface JIODailyLoginResponse {
   success: boolean;
   message: string;

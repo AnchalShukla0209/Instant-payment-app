@@ -5,6 +5,7 @@ import { TxnReportService } from '../../services/Txn.report.service';
 import { MasterService, UserMasterDataForDD } from '../../services/master.service';
 import { AuthService } from '../../services/auth.service';
 import { MoneyTransferService } from '../../services/money-transfer.service';
+import { AEPSService } from '../../services/aeps.service';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe, CommonModule } from '@angular/common';
@@ -109,7 +110,7 @@ export class TxnReportComponent implements OnInit {
     this.selectedRowIndex = index;
   }
 
-  constructor(private fb: FormBuilder, private txnService: TxnReportService, private modalService: NgbModal, private _MasterService: MasterService, private _authservice: AuthService, private _moneyTransferService: MoneyTransferService) { }
+  constructor(private fb: FormBuilder, private txnService: TxnReportService, private modalService: NgbModal, private _MasterService: MasterService, private _authservice: AuthService, private _moneyTransferService: MoneyTransferService, private aepsService: AEPSService) { }
 
   formatDateLocal(date: Date) {
     const dd = String(date.getDate()).padStart(2, '0');
@@ -713,6 +714,43 @@ export class TxnReportComponent implements OnInit {
         this.isLoading = false;
         Swal.fire('Error', 'Server Error. Please try again.', 'error');
         console.error('Error checking DMT status:', err);
+      }
+    });
+  }
+
+  checkFinoAepsStatus(row: any) {
+    if (!row.Transactionid) {
+      Swal.fire('Validation Error', 'TxnId is required!', 'warning');
+      return;
+    }
+
+    const userId = this._authservice.getUserId();
+    if (!userId) {
+      Swal.fire('Session Error', 'Please login again', 'error');
+      return;
+    }
+
+    this.isLoading = true;
+    const payload = {
+      userid: userId,
+      APIKey: 'FinoAEPS001',
+      ClientRefID: row.Transactionid
+    };
+
+    this.aepsService.checkTransactionStatus(payload).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (res?.Status_Code === '1') {
+          Swal.fire('Success', res?.Message || 'Transaction status checked successfully!', 'success');
+          this.loadData(1, this.pageSize);
+        } else {
+          Swal.fire('Warning', res?.Message || 'Unable to check status', 'warning');
+        }
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        Swal.fire('Error', 'Server Error. Please try again.', 'error');
+        console.error('Error checking FINO AEPS status:', err);
       }
     });
   }

@@ -175,6 +175,10 @@
                   <i class="bi bi-check-circle" style="cursor:pointer" (click)="checkDMTStatus(row)">
                   </i>
                 </ng-container>
+                <ng-container *ngIf="row.servicename === 'AEPS' && row.APIName === 'FINO' && (row.Status === 'Pending' || row.Status === 'PENDING')">
+                  <i class="bi bi-check-circle" style="cursor:pointer" (click)="checkFinoAepsStatus(row)">
+                  </i>
+                </ng-container>
               </ng-container>
             </ng-container>
           </td>
