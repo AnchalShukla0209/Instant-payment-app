@@ -208,7 +208,7 @@
     <div class="modal-footer d-flex justify-content-between flex-wrap">
       <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2"
         (click)="CancelTransection()">Cancel</button>
-      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitAeps()" [disabled]="!fingerprintSuccess">
+      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitAeps()" [disabled]="!fingerprintSuccess && !isFinoHighValueOtp()">
         <i class="bi bi-check-circle"></i> Confirm & Proceed
       </button>
     </div>

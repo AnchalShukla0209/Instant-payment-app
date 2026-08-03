@@ -516,6 +516,8 @@ export class AEPSComponent {
   showAmountError = false;
   operatorList: any[] = [];
   originalFingerXml = '';
+  npciTxnId = '';
+  npciTxnRefNo = '';
 
   errors = {
     mobileNumber: '',
@@ -523,9 +525,10 @@ export class AEPSComponent {
     mobileAadhar: ''
   };
 
-  buildPidXml(config: PidConfig): string {
-    const attrs = Object.entries(config)
-      .filter(([_, value]) => value !== undefined && value !== null)
+  buildPidXml(config: PidConfig, overrides?: Partial<PidConfig>): string {
+    const merged = { ...config, ...overrides } as PidConfig;
+    const attrs = Object.entries(merged)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
       .map(([key, value]) => `${key}="${value}"`)
       .join(" ");
 
@@ -652,7 +655,7 @@ export class AEPSComponent {
     });
   }
 
-  async captureRdData(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<string> {
+  async captureRdData(deviceType: 'Mantra' | 'Morpho' | 'Startek', otp?: string): Promise<string> {
     this.isLoading = true;
     try {
       await this.discoverRdService(deviceType);
@@ -666,9 +669,9 @@ export class AEPSComponent {
         console.log('ℹ️ DeviceInfo Response:', deviceInfoXml);
       }
 
-      // ✅ Different PidOptions depending on device
+      // ✅ Different PidOptions depending on device / OTP
       const config = PID_OPTIONS_CONFIG[this.selectedAEPSProvider][this.fingurdataKYCforJPB ? "EKYC" : "BALANCE"];
-      const pidXml = this.buildPidXml(config);
+      const pidXml = this.buildPidXml(config, otp ? { otp } : undefined);
 
       const captureUrl = this.buildFullUrl(this.MethodCapture, isHttps);
       console.log('📡 Calling CAPTURE →', captureUrl);
@@ -711,12 +714,12 @@ export class AEPSComponent {
     const match = xml.match(/srno="([^"]+)"/i);
     return match ? match[1] : "";
   }
-  startCapture(event?: Event): void {
+  startCapture(event?: Event, onComplete?: (xml: string) => void, otp?: string): void {
     event?.preventDefault();
     event?.stopPropagation();
     this.isLoading = true;
 
-    this.captureRdData(this.selectedDevice as 'Mantra' | 'Morpho' | 'Startek')
+    this.captureRdData(this.selectedDevice as 'Mantra' | 'Morpho' | 'Startek', otp)
       .then(xml => {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xml, 'text/xml');
@@ -742,6 +745,7 @@ export class AEPSComponent {
         this.fingerprintSuccess = true;
         this.toastr.success('Fingurprint Captured');
         this.selectedDevice = '';
+        if (onComplete) onComplete(xml);
       })
       .catch(err => {
         this.fingerprintSuccess = false;
@@ -922,7 +926,7 @@ export class AEPSComponent {
   submitAeps() {
     this.isLoading = true;
 
-    if (!this.fingerprintSuccess) {
+    if (!this.fingerprintSuccess && !this.isFinoHighValueOtp()) {
       this.toastr.error("Please capture fingerprint first");
       this.isLoading = false;
       return;
@@ -961,6 +965,11 @@ export class AEPSComponent {
     if (this.selectedService === 'Mini Statement') txntype = 'ms';
     if (this.selectedService === 'Aadhar Pay') txntype = 'ap';
 
+    if (this.isFinoHighValueOtp()) {
+      this.processFinoOtpFlow(txntype);
+      return;
+    }
+
     if (this.selectedAEPSProvider == 'FINO') {
       const payload: FinoAepsRequest = {
         SessionKey: this.sessionKey,
@@ -979,59 +988,7 @@ export class AEPSComponent {
         txntype: txntype,
         comingFrom: "Web",
       };
-      this.aepsService.finoLogin(payload).subscribe({
-        next: (res) => {
-          this.isLoading = false;
-          if (res?.Status_Code != "1") {
-            if (res?.Message?.toLowerCase()?.includes("uidai technical error")) {
-              this.toastr.error("Finger mismatch, please try again");
-              this.fingerprintSuccess = false;
-              this.originalFingerXml = "";
-              this.capturedFingerData = "";
-              this.selectedDevice = '';
-            } else {
-              this.toastr.error(res?.Message || "Transaction Failed");
-              if (res?.Message?.toLowerCase()?.includes("hmac already exit,transaction aborted") || res?.Message?.toLowerCase()?.includes("finger print data is missing") || res?.Message?.toLowerCase()?.includes("pid conversion failed: invalid pid xml structure. missing required elements.") || res?.Message?.toLowerCase()?.includes("npci timeout, please try after sometime.(96)") || res?.Message?.toLowerCase()?.includes("biometric mismatch. please try again with different finger.(u3)")) {
-                this.fingerprintSuccess = false;
-                this.originalFingerXml = "";
-              }
-            }
-            return;
-          }
-          this.toastr.success(res.Message || "Transaction Success");
-
-          if (txntype === 'ms') {
-            const invoiceData = {
-              RRN: res.Data[0].UTRNO,
-              ApiTxnId: res.Data[0].ApiTxnId,
-              TxnId: res.Data[0].TxnId,
-              AvailableBalance: res.Data[0].AvailableBalance,
-              BankName: this.getBankName(this.bankname),
-              AdhaarNo: res.Data[0].AdhaarNo,
-              Mobile: this.mobileNumber,
-              Date: new Date(),
-              Message: res.Message,
-              miniStatement: res.Data[0].TransactionList.map((x: any) => ({
-                transactionType: x.DebitCredit,
-                transactionTime: x.Date,
-                amount: x.Amount,
-                transactionDetails: x.Type
-              })),
-              balance: res.Data[0].AvailableBalance
-            };
-
-            this.openInvoice(invoiceData);
-
-          }
-          else {
-            this.openInvoice(res.Data[0]);
-          }
-        },
-        error: () => {
-          this.isLoading = false;
-          this.toastr.error("API Error. Try again.");
-        }
-      });
+      this.callFinoAeps(payload, txntype);
     }
 
     else {
@@ -1640,5 +1597,164 @@ export class AEPSComponent {
     }, 500);
   }
 
+  isFinoHighValueOtp(): boolean {
+    return this.selectedAEPSProvider === 'FINO' &&
+      (this.selectedService === 'Cash Withdrawal' || this.selectedService === 'Aadhar Pay') &&
+      Number(this.amount) > 5000;
+  }
+
+  // FINO high-value (> ₹5000) NPCI step-up OTP flow
+  processFinoOtpFlow(txntype: string) {
+    const npciPayload: FinoAepsRequest = {
+      SessionKey: this.sessionKey,
+      APIKey: "FinoAEPS001",
+      aadharno: this.mobileAadhar,
+      mobileno: this.authServiceobj.getUserPhoneNo().toString(),
+      customermobileno: this.mobileNumber,
+      bankiinno: this.bankname,
+      BankName: this.getBankName(this.bankname),
+      amount: this.amount?.toString() ?? "0",
+      latitude: this.authServiceobj.getUserLat() == "" || this.authServiceobj.getUserLat() == null ? this.latitude : this.authServiceobj.getUserLat(),
+      longitude: this.authServiceobj.getUserLongtitude() == "" || this.authServiceobj.getUserLongtitude() == null ? this.longitude : this.authServiceobj.getUserLongtitude(),
+      fingerdata: "",
+      DeviceSrNo: this.deviceSerialNumber,
+      deviceType: "2",
+      txntype: "npciotp",
+      npciOtpFor: txntype === 'cw' ? "CASHWAEPS" : "AdharPay",
+      comingFrom: "Web"
+    };
+
+    this.aepsService.finoLogin(npciPayload).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (res?.Status_Code != "1") {
+          this.toastr.error(res?.Message || "NPCI OTP generation failed");
+          return;
+        }
+        this.npciTxnId = res?.Data?.TransactionId ?? "";
+        this.npciTxnRefNo = res?.Data?.TxnReferenceNo ?? "";
+        if (!this.npciTxnId || !this.npciTxnRefNo) {
+          this.toastr.error("Invalid OTP response from server");
+          return;
+        }
+        this.promptForOtpAndCapture(txntype);
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error("NPCI OTP API error. Try again.");
+      }
+    });
+  }
+
+  promptForOtpAndCapture(txntype: string) {
+    Swal.fire({
+      title: 'Enter NPCI OTP',
+      input: 'text',
+      inputPlaceholder: 'Enter OTP received on Aadhaar linked mobile',
+      allowOutsideClick: false,
+      showCancelButton: true,
+      confirmButtonText: 'Scan Fingerprint & Submit',
+      cancelButtonText: 'Cancel'
+    }).then((result: any) => {
+      if (!result.isConfirmed || !result.value) {
+        this.isLoading = false;
+        this.toastr.warning("Transaction cancelled");
+        return;
+      }
+      const otp = result.value.toString().trim();
+      if (!otp) {
+        this.isLoading = false;
+        this.toastr.error("OTP is required");
+        return;
+      }
+      this.otp = otp;
+      if (!this.selectedDevice) {
+        this.isLoading = false;
+        this.toastr.error("Please select fingerprint device");
+        return;
+      }
+      this.isLoading = true;
+      this.startCapture(undefined, () => this.submitFinoFinalWithOtp(txntype), otp);
+    });
+  }
+
+  submitFinoFinalWithOtp(txntype: string) {
+    const payload: FinoAepsRequest = {
+      SessionKey: this.sessionKey,
+      APIKey: "FinoAEPS001",
+      aadharno: this.mobileAadhar,
+      mobileno: this.authServiceobj.getUserPhoneNo().toString(),
+      customermobileno: this.mobileNumber,
+      bankiinno: this.bankname,
+      BankName: this.getBankName(this.bankname),
+      amount: this.amount?.toString() ?? "0",
+      latitude: this.authServiceobj.getUserLat() == "" || this.authServiceobj.getUserLat() == null ? this.latitude : this.authServiceobj.getUserLat(),
+      longitude: this.authServiceobj.getUserLongtitude() == "" || this.authServiceobj.getUserLongtitude() == null ? this.longitude : this.authServiceobj.getUserLongtitude(),
+      fingerdata: this.capturedFingerData,
+      DeviceSrNo: this.deviceSerialNumber,
+      deviceType: "2",
+      txntype: txntype,
+      npciTxnId: this.npciTxnId,
+      npciTxnRefNo: this.npciTxnRefNo,
+      comingFrom: "Web"
+    };
+    this.callFinoAeps(payload, txntype);
+  }
+
+  callFinoAeps(payload: FinoAepsRequest, txntype: string) {
+    this.aepsService.finoLogin(payload).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (res?.Status_Code != "1") {
+          if (res?.Message?.toLowerCase()?.includes("uidai technical error")) {
+            this.toastr.error("Finger mismatch, please try again");
+            this.fingerprintSuccess = false;
+            this.originalFingerXml = "";
+            this.capturedFingerData = "";
+            this.selectedDevice = '';
+          } else {
+            this.toastr.error(res?.Message || "Transaction Failed");
+            if (res?.Message?.toLowerCase()?.includes("hmac already exit,transaction aborted") || res?.Message?.toLowerCase()?.includes("finger print data is missing") || res?.Message?.toLowerCase()?.includes("pid conversion failed: invalid pid xml structure. missing required elements.") || res?.Message?.toLowerCase()?.includes("npci timeout, please try after sometime.(96)") || res?.Message?.toLowerCase()?.includes("biometric mismatch. please try again with different finger.(u3)")) {
+              this.fingerprintSuccess = false;
+              this.originalFingerXml = "";
+            }
+          }
+          return;
+        }
+        this.toastr.success(res.Message || "Transaction Success");
+
+        if (txntype === 'ms') {
+          const invoiceData = {
+            RRN: res.Data[0].UTRNO,
+            ApiTxnId: res.Data[0].ApiTxnId,
+            TxnId: res.Data[0].TxnId,
+            AvailableBalance: res.Data[0].AvailableBalance,
+            BankName: this.getBankName(this.bankname),
+            AdhaarNo: res.Data[0].AdhaarNo,
+            Mobile: this.mobileNumber,
+            Date: new Date(),
+            Message: res.Message,
+            miniStatement: res.Data[0].TransactionList.map((x: any) => ({
+              transactionType: x.DebitCredit,
+              transactionTime: x.Date,
+              amount: x.Amount,
+              transactionDetails: x.Type
+            })),
+            balance: res.Data[0].AvailableBalance
+          };
+
+          this.openInvoice(invoiceData);
+
+        }
+        else {
+          this.openInvoice(res.Data[0]);
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error("API Error. Try again.");
+      }
+    });
+  }
 
 }
