@@ -20,6 +20,10 @@ export interface FinoAepsRequest {
   DeviceSrNo: string;
   deviceType: string;
   comingFrom: string;
+  merAuthTxnId?: string;
+  npciTxnId?: string;
+  npciTxnRefNo?: string;
+  npciOtpFor?: string;
 }
 
 export interface FinoMerchantEKYCRequest {
