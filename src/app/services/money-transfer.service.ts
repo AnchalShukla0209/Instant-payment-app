@@ -315,6 +315,10 @@ export class MoneyTransferService {
     return this.http.post<any>(`${environment.apiBaseUrl}/MoneyTransfer/rkit/transfer`, payload);
   }
 
+  RBLMoneyTransfer(payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/MoneyTransfer/rbl/transfer`, payload);
+  }
+
   CheckStatusRKITMoneyTransfer(txnId: string) {
     return this.http.get<any>(`${environment.apiBaseUrl}/MoneyTransfer/rkit/status/${txnId}`);
   }

@@ -264,7 +264,7 @@
           </div>
         </div>
 
-        <div *ngIf="selectedService == 'TRAMO' || selectedService == 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT'" class="col-md-6 form-group mb-2">
+        <div *ngIf="selectedService == 'TRAMO' || selectedService == 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT' || selectedService === 'RBL'" class="col-md-6 form-group mb-2">
           <label><i class="bi bi-key"></i> Transaction PIN</label>
           <input type="password" [(ngModel)]="enteredMPIN" maxlength="4" class="form-control"
             placeholder="Enter Txn PIN" autocomplete="off">
@@ -982,7 +982,7 @@
               <th style="white-space: nowrap;">Benificiary Name</th>
               <th style="white-space: nowrap;">IFSC Code</th>
               <th style="white-space: nowrap;">Bank Name</th>
-              <th style="white-space: nowrap;" *ngIf="selectedService==='PPI' || selectedService==='FINO' || selectedService==='TRAMO' || selectedService==='ARP' || selectedService==='NIFI' || selectedService==='FZP' || selectedService==='RKIT'">OTP</th>
+              <th style="white-space: nowrap;" *ngIf="selectedService==='PPI' || selectedService==='FINO' || selectedService==='TRAMO' || selectedService==='ARP' || selectedService==='NIFI' || selectedService==='FZP' || selectedService==='RKIT' || selectedService==='RBL'">OTP</th>
 
             </tr>
           </thead>
@@ -1003,7 +1003,7 @@
                   </button>
                 </div>
               </td>
-              <td style="white-space: nowrap;" *ngIf="selectedService === 'FINO' || selectedService === 'TRAMO' || selectedService === 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT'">
+              <td style="white-space: nowrap;" *ngIf="selectedService === 'FINO' || selectedService === 'TRAMO' || selectedService === 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT' || selectedService === 'RBL'">
                 <div class="input-group input-group-sm">
                   <input type="text" class="form-control" placeholder="Enter OTP" maxlength="6"
                     [(ngModel)]="deleteBeneficiaryOtp"
@@ -1026,7 +1026,7 @@
       <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" *ngIf="selectedService === 'PPI'" (click)="PPIFinalBeneForDeletion(benedet)">
         <i class="bi bi-check-circle"></i> Confirm & Delete
       </button>
-      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" *ngIf="selectedService === 'FINO' || selectedService === 'TRAMO' || selectedService === 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT' " (click)="confirmDeleteWithOtp()">
+      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" *ngIf="selectedService === 'FINO' || selectedService === 'TRAMO' || selectedService === 'ARP' || selectedService === 'NIFI' || selectedService === 'FZP' || selectedService === 'RKIT' || selectedService === 'RBL'" (click)="confirmDeleteWithOtp()">
         <i class="bi bi-check-circle"></i> Confirm & Delete
       </button>
     </div>

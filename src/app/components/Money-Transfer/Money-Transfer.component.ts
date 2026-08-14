@@ -606,7 +606,7 @@ export class MoneyTransferComponent {
       if (this.selectedService === 'FINO') {
         await this.loadSenderInfo(latitude, longitude);
       }
-      if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
+      if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT' || this.selectedService === 'RBL') {
         await this.loadTramoSenderInfo();
       }
       if (this.selectedService === 'PPI') {
@@ -1219,7 +1219,7 @@ export class MoneyTransferComponent {
       return;
     }
 
-    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
+    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT' || this.selectedService === 'RBL') {
       this.addTramoSender();
       return;
     }
@@ -1431,7 +1431,7 @@ export class MoneyTransferComponent {
       this.requestSenderOtp(senderMobile, customerName, '1');
       return;
     }
-    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
+    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT' || this.selectedService === 'RBL') {
       this.addTramoSender();
     }
   }
@@ -1491,7 +1491,7 @@ export class MoneyTransferComponent {
 
     }
 
-    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
+    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT' || this.selectedService === 'RBL') {
       this.finalizeTramoSender();
       return;
     }
@@ -1660,7 +1660,7 @@ export class MoneyTransferComponent {
 
   FinalBeneForCreation() {
 
-    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'FINO' || this.selectedService === 'RKIT') {
+    if (this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'FINO' || this.selectedService === 'RKIT' || this.selectedService === 'RBL') {
       // Call Save Beneficiary API after preview
       this.isLoading = true;
       const payload = {
@@ -1875,7 +1875,7 @@ export class MoneyTransferComponent {
           this.benedet = bene;
           this.modalService.open(this.previewModalforDeleteBeneficiary, { size: 'lg', backdrop: 'static', keyboard: false });
         }
-        else if (this.selectedService === 'FINO' || this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT') {
+        else if (this.selectedService === 'FINO' || this.selectedService === 'TRAMO' || this.selectedService === 'ARP' || this.selectedService === 'NIFI' || this.selectedService === 'FZP' || this.selectedService === 'RKIT' || this.selectedService === 'RBL') {
           // Use new OTP-based delete flow
           this.deleteBeneficiaryId = bene.id || bene.Id || bene.beneId;
           this.deleteBeneficiaryOtp = '';
@@ -2065,7 +2065,7 @@ export class MoneyTransferComponent {
 
     }
 
-    if (this.selectedService === "TRAMO" || this.selectedService === "ARP" || this.selectedService === "NIFI" || this.selectedService === "FZP" || this.selectedService === "RKIT") {
+    if (this.selectedService === "TRAMO" || this.selectedService === "ARP" || this.selectedService === "NIFI" || this.selectedService === "FZP" || this.selectedService === "RKIT" || this.selectedService === "RBL") {
       if (!this.enteredMPIN || this.enteredMPIN.length != 4) {
         this.toastr.error("Please enter valid Transaction PIN");
         this.isLoading = false;
@@ -2391,7 +2391,7 @@ export class MoneyTransferComponent {
 
       }
 
-      if (this.selectedService === "RKIT") {
+      if (this.selectedService === "RKIT" || this.selectedService === "RBL") {
         payload = {
           userId: this.authServiceobj.getUserId().toString(),
           transactionPin: this.enteredMPIN,
@@ -2405,7 +2405,11 @@ export class MoneyTransferComponent {
           comingFrom: "web"
         };
 
-        this._MoneyTransferService.RKITMoneyTransfer(payload).subscribe({
+        const transferRequest = this.selectedService === "RBL"
+          ? this._MoneyTransferService.RBLMoneyTransfer(payload)
+          : this._MoneyTransferService.RKITMoneyTransfer(payload);
+
+        transferRequest.subscribe({
           next: (res: any) => {
             this.isLoading = false;
             this.enteredMPIN = "";

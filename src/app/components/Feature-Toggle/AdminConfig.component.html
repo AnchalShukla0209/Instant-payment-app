@@ -1,5 +1,16 @@
-<div class="row mb-3">
+<section class="config-shell">
+<div class="config-hero">
+  <div>
+    <span class="eyebrow">CONTROL CENTRE</span>
+    <h2>Feature orchestration</h2>
+    <p>Manage live service providers and capabilities from one secure workspace.</p>
+  </div>
+  <div class="hero-mark"><i class="bi bi-toggles2"></i></div>
+</div>
+
+<div class="selector-panel row g-3 mb-4">
   <div class="col-md-4">
+    <label class="form-label">Service</label>
     <select class="form-select" [(ngModel)]="selectedService" (change)="onServiceChange()">
       <option value="" disabled selected>Select Service</option>
       <option *ngFor="let s of services" [value]="s">{{ s }}</option>
@@ -7,6 +18,7 @@
   </div>
 
   <div class="col-md-4">
+    <label class="form-label">Provider</label>
     <select class="form-select" [(ngModel)]="selectedProvider" (change)="onProviderChange()">
       <option value="">All Providers</option>
       <option *ngFor="let p of providers" [value]="p.key">{{ p.label }}</option>
@@ -14,7 +26,28 @@
   </div>
 </div>
 
-<table class="table table-bordered table-hover">
+<div class="settlement-panel" *ngIf="isSettlement">
+  <div class="panel-heading">
+    <div><span class="eyebrow">SETTLEMENT ROUTING</span><h4>Choose the active banking rail</h4></div>
+    <span class="live-pill"><span></span> Live configuration</span>
+  </div>
+  <div class="provider-grid">
+    <button type="button" class="provider-card" *ngFor="let provider of providers"
+      [class.active]="provider.isEnabled" [disabled]="!!switchingProvider"
+      (click)="selectSettlementProvider(provider)">
+      <span class="provider-icon"><i class="bi" [ngClass]="provider.key === 'RBL' ? 'bi-bank2' : 'bi-lightning-charge-fill'"></i></span>
+      <span class="provider-copy"><strong>{{ provider.key }}</strong><small>{{ provider.label }}</small></span>
+      <span class="provider-state" [class.on]="provider.isEnabled">
+        <i class="bi" [ngClass]="provider.isEnabled ? 'bi-check-circle-fill' : 'bi-arrow-right-circle'"></i>
+        {{ provider.isEnabled ? 'Active rail' : (switchingProvider === provider.key ? 'Switching…' : 'Set active') }}
+      </span>
+    </button>
+  </div>
+  <div class="routing-note"><i class="bi bi-shield-check"></i> Only one provider can be active. New settlement requests are routed immediately after switching.</div>
+</div>
+
+<div class="table-panel" *ngIf="!isSettlement && selectedService">
+<table class="table align-middle mb-0">
   <thead class="table-light">
     <tr>
       <th>Feature</th>
@@ -42,3 +75,5 @@
     </tr>
   </tbody>
 </table>
+</div>
+</section>
