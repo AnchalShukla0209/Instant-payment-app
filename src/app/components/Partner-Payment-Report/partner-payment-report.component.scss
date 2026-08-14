@@ -1,0 +1,23 @@
+.bg-purple {
+  background-color: #5e2f82 !important;
+}
+
+#tblClientData th {
+  background: #5e2f82 !important;
+  color: white;
+  font-size: 13px;
+}
+
+#tblClientData td {
+  font-size: 13px;
+}
+
+.selected-row {
+  background-color: #97c8fb !important;
+  font-weight: 500;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #5e2f82;
+  border-color: #5e2f82;
+}

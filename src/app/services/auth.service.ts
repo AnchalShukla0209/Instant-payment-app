@@ -212,7 +212,10 @@ export class AuthService {
 
   logout(): Observable<any> {
     return this.http.post('https://instantpayment.co.in/api/Login/logout', {}).pipe(
-      finalize(() => localStorage.clear())
+      finalize(() => {
+        localStorage.clear();
+        sessionStorage.removeItem('instantpay.distributor.session');
+      })
     );
   }
 
@@ -221,11 +224,12 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('token') || !!this.getDistributorSession();
   }
 
   getUsername(): string {
-    return this.encryptor.decrypt(localStorage.getItem('username') || '');
+    return this.getDistributorSession()?.username
+      || this.encryptor.decrypt(localStorage.getItem('username') || '');
   }
 
   getUserPhoneNo(): string {
@@ -233,7 +237,8 @@ export class AuthService {
   }
 
   getUsertype(): string {
-    return this.encryptor.decrypt(localStorage.getItem('userType') || '');
+    return this.getDistributorSession()?.userType
+      || this.encryptor.decrypt(localStorage.getItem('userType') || '');
   }
 
   getUserOTP(): string {
@@ -245,7 +250,8 @@ export class AuthService {
   }
 
   getUserId(): string {
-    return this.encryptor.decrypt(localStorage.getItem('userid') || '');
+    return this.getDistributorSession()?.userId
+      || this.encryptor.decrypt(localStorage.getItem('userid') || '');
   }
 
   getUserTxnPin(): string {
@@ -265,6 +271,8 @@ export class AuthService {
   }
 
   getToken(): string | null {
+    const distributorToken = this.getDistributorSession()?.accessToken;
+    if (distributorToken) return distributorToken;
     const t = localStorage.getItem('token');
     if (!t) return null;
     return this.encryptor.decrypt(t);
@@ -392,6 +400,29 @@ export class AuthService {
       `${environment.apiBaseUrl}/Auth/ValidateUserInfoAndSentOTP`,
       payload
     );
+  }
+
+  private getDistributorSession(): {
+    accessToken: string;
+    userId: string;
+    username: string;
+    userType: string;
+    expiresAt: number;
+  } | null {
+    const value = sessionStorage.getItem('instantpay.distributor.session');
+    if (!value) return null;
+
+    try {
+      const session = JSON.parse(value);
+      if (!session.accessToken || session.expiresAt <= Date.now()) {
+        sessionStorage.removeItem('instantpay.distributor.session');
+        return null;
+      }
+      return session;
+    } catch {
+      sessionStorage.removeItem('instantpay.distributor.session');
+      return null;
+    }
   }
 
 }

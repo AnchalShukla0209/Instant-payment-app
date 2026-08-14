@@ -1,0 +1,29 @@
+.bg-purple {
+  background-color: #5e2f82 !important;
+}
+
+.input-disabled {
+  background-color: #f5f2f2 !important;
+  color: #6c757d !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.card {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card-header {
+  font-size: 14px;
+}
+
+.btn {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+}

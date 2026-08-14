@@ -19,7 +19,10 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.encryptor.decrypt(localStorage.getItem('token') || '') || '';
+    const distributorSession = this.getDistributorSession();
+    const token = distributorSession?.accessToken
+      || this.encryptor.decrypt(localStorage.getItem('token') || '')
+      || '';
      const skipUrls = [
       '/DMTSenderinfo',
       '/DMTKYCProcess',
@@ -32,6 +35,8 @@ export class AuthInterceptor implements HttpInterceptor {
       '/api/verifyotp',
       '/Login/verifyotp',
       '/VerifyLoginOTP',
+      '/v1/distributor/auth/',
+      '/v1/master-distributor/auth/',
       '/Login'
     ];
 
@@ -40,8 +45,10 @@ export class AuthInterceptor implements HttpInterceptor {
     let plateform = 'web';
 
     try {
-      userid = String(this.encryptor.decrypt(localStorage.getItem('userid') || '') || '');
-      username = String(localStorage.getItem('crUserName') || '');
+      userid = distributorSession?.userId
+        || String(this.encryptor.decrypt(localStorage.getItem('userid') || '') || '');
+      username = distributorSession?.username
+        || String(localStorage.getItem('crUserName') || '');
       plateform = 'web';
     } catch (e) {
       userid = '';
@@ -52,6 +59,7 @@ export class AuthInterceptor implements HttpInterceptor {
     const modifiedReq = req.clone({
       setHeaders: {
         token: token || '',
+        Authorization: token ? `Bearer ${token}` : '',
         userid: userid || '',
         username: username || '',
         platform: plateform || 'web',
@@ -68,22 +76,52 @@ export class AuthInterceptor implements HttpInterceptor {
     // Check OTP verification for protected API calls
     const otpRequired = localStorage.getItem('otpRequired');
     const otpVerified = localStorage.getItem('otpVerified');
-    if (otpRequired === 'true' && otpVerified !== 'true') {
+    if (!distributorSession && otpRequired === 'true' && otpVerified !== 'true') {
       this.router.navigate(['/login']);
       return throwError(() => new Error('OTP verification required'));
     }
 
     return next.handle(modifiedReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        const isLoggedIn = !!localStorage.getItem('token');
-        
         if (error.status === 401) {
-          localStorage.clear();
-          this.router.navigate(['/login']);
+          if (distributorSession) {
+            sessionStorage.removeItem('instantpay.distributor.session');
+            this.router.navigate([
+              distributorSession.userType === 'MD'
+                ? '/master-distributor-login'
+                : '/distributor-login'
+            ]);
+          } else {
+            localStorage.clear();
+            this.router.navigate(['/login']);
+          }
         }
 
         return throwError(() => error);
       })
     );
+  }
+
+  private getDistributorSession(): {
+    accessToken: string;
+    userId: string;
+    username: string;
+    userType: 'AD' | 'MD';
+    expiresAt: number;
+  } | null {
+    const value = sessionStorage.getItem('instantpay.distributor.session');
+    if (!value) return null;
+
+    try {
+      const session = JSON.parse(value);
+      if (!session.accessToken || session.expiresAt <= Date.now()) {
+        sessionStorage.removeItem('instantpay.distributor.session');
+        return null;
+      }
+      return session;
+    } catch {
+      sessionStorage.removeItem('instantpay.distributor.session');
+      return null;
+    }
   }
 }

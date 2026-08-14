@@ -26,6 +26,8 @@ export class SidebarComponent {
   billPayment = '';
   Recharge = '';
   aeps = '';
+  razorpayPayment = 'Inactive';
+  settlement = 'Inactive';
   walletAmount = 0;
   totalTransaction = 0;
   newUsers = 0;
@@ -103,6 +105,8 @@ export class SidebarComponent {
   private loadRightsInfo(id: number, masterServices: any[]): void {
     this.authService.getUserRightsInfo(id).subscribe({
       next: (userServices: any) => {
+        this.razorpayPayment = userServices.razorpaypayment || 'Inactive';
+        this.settlement = userServices.settlement || 'Inactive';
 
         const normalizedUserRights: Record<string, string> = {};
         Object.keys(userServices).forEach((k) => {
@@ -112,7 +116,10 @@ export class SidebarComponent {
         this.services = masterServices
           .filter((srv) => {
             const key = this.normalizeKey(srv.ServiceName);
-            const status = normalizedUserRights[key];
+            const rightsKey = key === 'onlinepayment' || key === 'razorpay'
+              ? 'razorpaypayment'
+              : key;
+            const status = normalizedUserRights[rightsKey];
 
             // ✅ Allow if Active OR not defined
             return status === 'Active' || status === undefined;

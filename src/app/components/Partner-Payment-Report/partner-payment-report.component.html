@@ -1,0 +1,164 @@
+<app-partner-shell activeMenu="payment-report">
+  <div class="container-fluid px-0">
+    <app-loader *ngIf="isLoading"></app-loader>
+
+    <!-- Filters -->
+    <div class="row mb-3 g-0">
+      <div class="col-md-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-purple text-white">
+            <strong><i class="bi bi-filter"></i> Filter</strong>
+          </div>
+          <div class="card-body">
+            <div class="row g-2 align-items-end">
+              <!-- Status -->
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select class="form-select" [(ngModel)]="statusFilter">
+                  <option value="">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+
+              <!-- From Date -->
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">From Date</label>
+                <input type="date" class="form-control" [(ngModel)]="fromDate">
+              </div>
+
+              <!-- To Date -->
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">To Date</label>
+                <input type="date" class="form-control" [(ngModel)]="toDate">
+              </div>
+
+              <!-- Buttons -->
+              <div class="col-md-3 d-flex gap-2 align-items-end">
+                <button class="btn btn-primary btn-sm d-flex justify-content-center align-items-center"
+                  (click)="loadPayments(1, pageSize)">
+                  <i class="bi bi-search"></i> Search
+                </button>
+                <button class="btn btn-outline-secondary btn-sm d-flex justify-content-center align-items-center"
+                  (click)="resetFilters()">
+                  <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+                <div class="dropdown w-100">
+                  <button class="btn btn-success btn-sm dropdown-toggle d-flex justify-content-center align-items-center"
+                    type="button" data-bs-toggle="dropdown">
+                    Export
+                  </button>
+                  <ul class="dropdown-menu w-100">
+                    <li><a class="dropdown-item" (click)="export('pdf')">Export as PDF</a></li>
+                    <li><a class="dropdown-item" (click)="export('xls')">Export as XLS</a></li>
+                    <li><a class="dropdown-item" (click)="export('xlsx')">Export as XLSX</a></li>
+                    <li><a class="dropdown-item" (click)="export('doc')">Export as DOC</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row align-items-center mb-3">
+      <!-- Search box -->
+      <div class="col-md-6">
+        <input type="text" class="form-control" placeholder="Search by txn id, amount..."
+          [(ngModel)]="searchKeyword" (ngModelChange)="applyFilter()">
+      </div>
+
+      <div class="col-md-2"></div>
+
+      <!-- Reporting Summary -->
+      <div class="col-md-4">
+        <div class="d-flex justify-content-end">
+          <div class="border rounded px-4 py-1 shadow-sm bg-light w-100 text-end">
+            <span class="fw-semibold text-secondary">
+              No. of Transactions: <span class="text-dark">{{ totalRecords }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table id="tblClientData" class="table table-bordered table-hover text-nowrap align-middle table-striped">
+        <thead>
+          <tr>
+            <th>Sr No</th>
+            <th>Opening Balance</th>
+            <th>Amount</th>
+            <th>Closing Balance</th>
+            <th>Bank Details</th>
+            <th>Txn Id</th>
+            <th>Deposit Mode</th>
+            <th>Txn Slip</th>
+            <th>Status</th>
+            <th>Admin Remarks</th>
+            <th>Remarks</th>
+            <th>Requested Date</th>
+            <th>Approved Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="paginatedPayments.length === 0">
+            <td colspan="13" class="text-center text-muted">No payment requests found.</td>
+          </tr>
+          <tr *ngFor="let payment of paginatedPayments; let i = index" (click)="selectRow(i)"
+            [ngClass]="{'selected-row': i === selectedRowIndex}" style="cursor: pointer;">
+            <td>{{ i + 1 + (currentPage - 1) * pageSize }}</td>
+            <td>₹ {{ payment.openingBalance }}</td>
+            <td>₹ {{ payment.amount }}</td>
+            <td>₹ {{ payment.closingBalance }}</td>
+            <td>
+              <div>{{ payment.bankName }}</div>
+              <div>{{ payment.accountNo }}</div>
+            </td>
+            <td>{{ payment.paymentTxnId }}</td>
+            <td>{{ payment.depositeMode }}</td>
+            <td>
+              <button *ngIf="payment.txnSlipFileName" class="btn btn-outline-secondary btn-sm"
+                (click)="downloadTxnSlip(payment); $event.stopPropagation()">
+                <i class="bi bi-download"></i>
+              </button>
+            </td>
+            <td>
+              <span [class.text-success]="payment.status === 'Approved'"
+                [class.text-danger]="payment.status === 'Rejected'"
+                [class.text-warning]="payment.status === 'Pending'">
+                {{ payment.status }}
+              </span>
+            </td>
+            <td>{{ payment.adminRemarks }}</td>
+            <td>{{ payment.userRemarks }}</td>
+            <td>{{ payment.txnDate }}</td>
+            <td>{{ payment.txnApprovedDate }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav *ngIf="totalPages > 1" class="mt-2">
+      <ul class="pagination justify-content-end">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+        </li>
+        <ng-container *ngFor="let page of visiblePages">
+          <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+          </li>
+          <li class="page-item disabled" *ngIf="page === null">
+            <span class="page-link">...</span>
+          </li>
+        </ng-container>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</app-partner-shell>

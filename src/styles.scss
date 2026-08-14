@@ -8,15 +8,22 @@
   /* IE 10+ */
 }
 
+/* IMPORTANT: the scrollbar track width/height must stay constant (always reserved),
+   otherwise toggling it 0 -> 6px on hover instantly shrinks the content box and causes
+   a visible layout "jump"/reflow every time the cursor hovers a scrollable area while
+   scrolling (up, down, or sideways) - only the thumb's visibility should change on hover. */
 *::-webkit-scrollbar {
-  width: 0 !important;
-  height: 0 !important;
-  display: none !important;
-}
-
-*:hover::-webkit-scrollbar {
   width: 6px !important;
   height: 6px !important;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: transparent !important;
+  border-radius: 6px !important;
 }
 
 *:hover::-webkit-scrollbar-thumb {

@@ -1,0 +1,126 @@
+<main class="portal">
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="sidebar-brand">
+      <img src="assets/images/logo__.png" alt="Instant Payment" />
+    </div>
+    <div class="partner-badge">
+      <span class="partner-mark">{{ (session?.displayName || session?.username || 'P').charAt(0) }}</span>
+      <div>
+        <strong>{{ roleLabel }}</strong>
+        <small><i></i> Verified workspace</small>
+      </div>
+    </div>
+
+    <nav class="side-nav" aria-label="Partner navigation">
+      <span class="nav-caption">Workspace</span>
+      <a class="nav-item" [class.active]="activeMenu === 'dashboard'"
+         [routerLink]="session?.userType === 'MD' ? '/master-distributor/dashboard' : '/distributor/dashboard'"
+         (click)="closeSidebar()">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <span class="nav-caption operations">Operations</span>
+      <a class="nav-item" [class.active]="activeMenu === 'users'" [routerLink]="usersRoute" (click)="closeSidebar()">
+        <i class="bi bi-people"></i>
+        <span>Manage Users</span>
+        <i class="bi bi-chevron-right nav-arrow"></i>
+      </a>
+      <a class="nav-item" [class.active]="activeMenu === 'payment-request'" [routerLink]="paymentRequestRoute" (click)="closeSidebar()">
+        <i class="bi bi-wallet2"></i>
+        <span>Payment Request</span>
+        <i class="bi bi-chevron-right nav-arrow"></i>
+      </a>
+      <a class="nav-item" [class.active]="activeMenu === 'payment-report'" [routerLink]="paymentReportRoute" (click)="closeSidebar()">
+        <i class="bi bi-receipt"></i>
+        <span>Payment Report</span>
+        <i class="bi bi-chevron-right nav-arrow"></i>
+      </a>
+      <a class="nav-item" [class.active]="activeMenu === 'txn-report'" [routerLink]="txnReportRoute" (click)="closeSidebar()">
+        <i class="bi bi-file-earmark-bar-graph"></i>
+        <span>Txn Report</span>
+        <i class="bi bi-chevron-right nav-arrow"></i>
+      </a>
+
+      <span class="nav-caption operations">Settings</span>
+      <button
+        type="button"
+        class="nav-item nav-item-button"
+        [class.active]="isSettingsActive"
+        (click)="toggleSettings()">
+        <i class="bi bi-gear"></i>
+        <span>Settings</span>
+        <i class="bi nav-arrow" [ngClass]="settingsOpen ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+      </button>
+      <div class="settings-submenu" *ngIf="settingsOpen">
+        <a
+          class="nav-item nav-subitem"
+          [class.active]="activeMenu === 'change-password'"
+          [routerLink]="changePasswordRoute"
+          (click)="closeSidebar()">
+          <i class="bi bi-unlock"></i>
+          <span>Change Password</span>
+        </a>
+        <a
+          class="nav-item nav-subitem"
+          [class.active]="activeMenu === 'change-mpin'"
+          [routerLink]="changeMpinRoute"
+          (click)="closeSidebar()">
+          <i class="bi bi-unlock"></i>
+          <span>Change MPIN</span>
+        </a>
+        <a
+          class="nav-item nav-subitem"
+          [class.active]="activeMenu === 'change-txn-pin'"
+          [routerLink]="changeTxnPinRoute"
+          (click)="closeSidebar()">
+          <i class="bi bi-unlock"></i>
+          <span>Change Txn PIN</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="security-note">
+        <i class="bi bi-shield-lock-fill"></i>
+        <div><strong>Protected session</strong><small>Activity is securely monitored</small></div>
+      </div>
+      <button type="button" (click)="logout()"><i class="bi bi-box-arrow-left"></i> Sign out</button>
+    </div>
+  </aside>
+
+  <div class="workspace" [class.sidebar-open]="sidebarOpen">
+    <header class="topbar">
+      <div class="header-welcome">
+        <button class="menu-toggle" type="button" (click)="toggleSidebar()" aria-label="Toggle navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h6><em>Hey,</em> <strong>{{ (session?.displayName || session?.username) | uppercase }} !</strong></h6>
+          <p>Build Agility With A Proactive Cash Reserve.</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="header-balance" type="button" (click)="refreshWallet()" [disabled]="walletRefreshing">
+          <span><small>Balance</small><strong>{{ walletAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></span>
+          <i class="bi bi-arrow-clockwise" [class.spin]="walletRefreshing"></i>
+        </button>
+        <button class="header-button logout" type="button" (click)="logout()">
+          Logout <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+    </header>
+
+    <section class="content">
+      <ng-content></ng-content>
+    </section>
+  </div>
+
+  <button
+    class="sidebar-overlay"
+    [class.visible]="sidebarOpen"
+    type="button"
+    (click)="closeSidebar()"
+    aria-label="Close navigation">
+  </button>
+</main>

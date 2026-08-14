@@ -69,6 +69,10 @@ export class AEPSService {
         return this.http.post(`${this.JPB_AEPS_URL}/AEPS/JPBBalanceEnquiry`, request);
     }
 
+    jpbGenerateOtp(request: any): Observable<any> {
+        return this.http.post(`${this.JPB_AEPS_URL}/AEPS/JPBGenerateOtp`, request);
+    }
+
     jpbCashWithdrawal(request: any): Observable<any> {
         return this.http.post(`${this.JPB_AEPS_URL}/AEPS/JPBCashWithdrawal`, request);
     }

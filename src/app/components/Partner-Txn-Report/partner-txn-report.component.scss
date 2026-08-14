@@ -1,0 +1,65 @@
+.bg-purple {
+  background-color: #5e2f82 !important;
+}
+
+.text-purple {
+  color: #5e2f82 !important;
+}
+
+#tblClientData th {
+  background: #5e2f82 !important;
+  color: white;
+  font-size: 13px;
+}
+
+#tblClientData td {
+  font-size: 13px;
+}
+
+.selected-row {
+  background-color: #97c8fb !important;
+  font-weight: 500;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #5e2f82;
+  border-color: #5e2f82;
+}
+
+.invoice-wrapper {
+  font-family: 'Segoe UI', sans-serif;
+
+  .invoice {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background-color: #fff;
+  }
+
+  table {
+    width: 100%;
+
+    th {
+      color: #5e2f82 !important;
+      text-align: left;
+      width: 50%;
+      background-color: #f9f9f9 !important;
+      font-size: 13px !important;
+    }
+
+    td {
+      text-align: right;
+    }
+  }
+}
+
+.success-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}

@@ -55,7 +55,7 @@
 
 
                 <ng-select [items]="banks" bindLabel="bankName" bindValue="nbin" placeholder="Select Bank"
-                  [(ngModel)]="bankname" [searchable]="true">
+                  [(ngModel)]="bankname" (ngModelChange)="invalidateFinoOtp(); invalidateJpbOtp()" [searchable]="true">
                 </ng-select>
 
 
@@ -66,6 +66,7 @@
                   <i class="bi bi-phone form-icon icon-label"></i> Mobile Number
                 </label>
                 <input type="text" class="form-control" [(ngModel)]="mobileNumber"
+                  (ngModelChange)="invalidateFinoOtp(); invalidateJpbOtp()"
                   (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
                   maxlength="10" placeholder="Enter Mobile Number" />
               </div>
@@ -76,7 +77,7 @@
                 </label>
                 <input type="text" class="form-control"
                   (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
-                  maxlength="12" [(ngModel)]="mobileAadhar" placeholder="Enter Aadhar" />
+                  maxlength="12" [(ngModel)]="mobileAadhar" (ngModelChange)="invalidateFinoOtp(); invalidateJpbOtp()" placeholder="Enter Aadhar" />
               </div>
 
               <!-- Conditionally show Amount -->
@@ -87,7 +88,41 @@
                 </label>
                 <input type="text" maxlength="5"
                   (keypress)="($event.charCode >= 48 && $event.charCode <= 57) ? true : $event.preventDefault()"
-                  class="form-control" [(ngModel)]="amount" placeholder="Enter Amount" />
+                  class="form-control" [(ngModel)]="amount" (ngModelChange)="invalidateFinoOtp(); invalidateJpbOtp()" placeholder="Enter Amount" />
+              </div>
+
+              <!-- FINO high-value (> ₹5000) NPCI OTP -->
+              <div *ngIf="isFinoHighValueOtp()" [ngClass]="colClass" class="form-group">
+                <label class="form-label d-flex align-items-center">
+                  <i class="bi bi-shield-lock form-icon icon-label"></i> NPCI OTP
+                </label>
+                <div class="d-flex gap-2">
+                  <input *ngIf="showOtpField" type="text" [(ngModel)]="otp" class="form-control" maxlength="6"
+                    placeholder="Enter 6-digit OTP" autocomplete="one-time-code" />
+                  <button *ngIf="!showOtpField" class="btn btn-primary btn-sm w-100" (click)="generateFinoOtp()" [disabled]="isLoading">
+                    <i class="bi bi-envelope"></i> Generate OTP
+                  </button>
+                </div>
+                <button *ngIf="showOtpField" class="btn btn-link btn-sm p-0 text-decoration-none" (click)="generateFinoOtp()" [disabled]="isLoading">
+                  <i class="bi bi-arrow-repeat"></i> Resend OTP
+                </button>
+              </div>
+
+              <!-- JPB high-value (> ₹5000) NPCI step-up OTP -->
+              <div *ngIf="isJpbHighValueOtp()" [ngClass]="colClass" class="form-group">
+                <label class="form-label d-flex align-items-center">
+                  <i class="bi bi-shield-lock form-icon icon-label"></i> NPCI OTP
+                </label>
+                <div class="d-flex gap-2">
+                  <input *ngIf="showJpbOtpField" type="text" [(ngModel)]="otp" class="form-control" maxlength="6"
+                    placeholder="Enter 6-digit OTP" autocomplete="one-time-code" />
+                  <button *ngIf="!showJpbOtpField" class="btn btn-primary btn-sm w-100" (click)="generateJpbOtp()" [disabled]="isLoading">
+                    <i class="bi bi-envelope"></i> Generate OTP
+                  </button>
+                </div>
+                <button *ngIf="showJpbOtpField" class="btn btn-link btn-sm p-0 text-decoration-none" (click)="generateJpbOtp()" [disabled]="isLoading || jpbOtpResendDisabled">
+                  <i class="bi bi-arrow-repeat"></i> Resend OTP
+                </button>
               </div>
             </div>
 
@@ -165,19 +200,27 @@
           </tbody>
         </table>
 
-        <div class="finger-section mt-3 text-center" *ngIf="!fingerprintSuccess">
+        <div class="finger-section mt-3 text-center">
           <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
+          <div *ngIf="isDetectingDevices" class="text-muted small mb-2">Detecting biometric drivers...</div>
+          <div *ngIf="!isDetectingDevices && devices.length === 0" class="alert alert-warning py-2 small mb-2">
+            No supported biometric RD service found.
+            <button type="button" class="btn btn-link btn-sm p-0 ms-1" (click)="detectAvailableDevices()">Refresh</button>
+          </div>
           <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
             <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
-              (click)="selectDevice(device.id)">
+              [class.opacity-50]="!device.ready" (click)="selectDevice(device.id)">
               <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}"
                 style="height: 50px;width:50px" />
               <span>{{ device.label }}</span>
+              <small [class.text-success]="device.ready" [class.text-danger]="!device.ready">
+                {{ device.ready ? 'Ready' : 'Not ready' }}
+              </small>
             </div>
           </div>
 
           <div class="mt-3">
-            <button type="button" class="btn btn-primary w-100 mb-3" (click)="startCapture()"
+            <button type="button" class="btn btn-primary w-100 mb-3" (click)="startTransactionCapture()"
               [disabled]="!selectedDevice">
               <i class="bi bi-fingerprint me-1"></i> Scan Fingerprint
             </button>
@@ -208,9 +251,9 @@
     <div class="modal-footer d-flex justify-content-between flex-wrap">
       <button class="btn btn-outline-secondary btn-sm flex-grow-1 me-2 mb-2"
         (click)="CancelTransection()">Cancel</button>
-      <button class="btn btn-chandan btn-sm flex-grow-1 mb-2" (click)="submitAeps()" [disabled]="!fingerprintSuccess && !isFinoHighValueOtp()">
-        <i class="bi bi-check-circle"></i> Confirm & Proceed
-      </button>
+      <small class="text-muted mt-2">
+        <i class="bi bi-info-circle"></i> After successful fingerprint scan, the transaction will be submitted automatically.
+      </small>
     </div>
   </ng-template>
 
@@ -417,12 +460,20 @@
 
             <div class="finger-section mt-3 text-center" *ngIf="!fingerprintSuccess">
               <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
+              <div *ngIf="isDetectingDevices" class="text-muted small mb-2">Detecting biometric drivers...</div>
+              <div *ngIf="!isDetectingDevices && devices.length === 0" class="alert alert-warning py-2 small mb-2">
+                No supported biometric RD service found.
+                <button type="button" class="btn btn-link btn-sm p-0 ms-1" (click)="detectAvailableDevices()">Refresh</button>
+              </div>
               <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
                 <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
-                  (click)="selectDevice(device.id)">
+                  [class.opacity-50]="!device.ready" (click)="selectDevice(device.id)">
                   <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}"
                     style="height: 50px;width:50px" />
                   <span>{{ device.label }}</span>
+              <small [class.text-success]="device.ready" [class.text-danger]="!device.ready">
+                {{ device.ready ? 'Ready' : 'Not ready' }}
+              </small>
                 </div>
               </div>
 
@@ -609,12 +660,20 @@
           <div *ngIf="isDailyRegistrationPopupVisible && isEKYCProceedForFino">
             <div class="finger-section mt-3 text-center">
               <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
+              <div *ngIf="isDetectingDevices" class="text-muted small mb-2">Detecting biometric drivers...</div>
+              <div *ngIf="!isDetectingDevices && devices.length === 0" class="alert alert-warning py-2 small mb-2">
+                No supported biometric RD service found.
+                <button type="button" class="btn btn-link btn-sm p-0 ms-1" (click)="detectAvailableDevices()">Refresh</button>
+              </div>
               <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
                 <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
-                  (click)="selectDevice(device.id)">
+                  [class.opacity-50]="!device.ready" (click)="selectDevice(device.id)">
                   <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}"
                     style="height: 50px;width:50px" />
                   <span>{{ device.label }}</span>
+              <small [class.text-success]="device.ready" [class.text-danger]="!device.ready">
+                {{ device.ready ? 'Ready' : 'Not ready' }}
+              </small>
                 </div>
               </div>
 
@@ -768,12 +827,20 @@
                 </div>
               </form>
               <p class="mb-2"><strong>Select Fingerprint Device:</strong></p>
+              <div *ngIf="isDetectingDevices" class="text-muted small mb-2">Detecting biometric drivers...</div>
+              <div *ngIf="!isDetectingDevices && devices.length === 0" class="alert alert-warning py-2 small mb-2">
+                No supported biometric RD service found.
+                <button type="button" class="btn btn-link btn-sm p-0 ms-1" (click)="detectAvailableDevices()">Refresh</button>
+              </div>
               <div class="d-flex justify-content-center flex-wrap gap-2 device-list">
                 <div *ngFor="let device of devices" class="device-card" [class.active]="selectedDevice === device.id"
-                  (click)="selectDevice(device.id)">
+                  [class.opacity-50]="!device.ready" (click)="selectDevice(device.id)">
                   <img [src]="'../../../assets/images/' + device.icon" alt="{{ device.label }}"
                     style="height: 50px;width:50px" />
                   <span>{{ device.label }}</span>
+              <small [class.text-success]="device.ready" [class.text-danger]="!device.ready">
+                {{ device.ready ? 'Ready' : 'Not ready' }}
+              </small>
                 </div>
               </div>
 

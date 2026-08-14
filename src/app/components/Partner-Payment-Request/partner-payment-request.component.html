@@ -1,0 +1,144 @@
+<app-partner-shell activeMenu="payment-request">
+  <div class="container-fluid px-0">
+    <div class="row g-0">
+
+      <!-- Left Section -->
+      <div [class.col-md-12]="!bankSelected" [class.col-md-6]="bankSelected">
+        <div class="card shadow-sm">
+          <div class="card-header bg-purple text-white">
+            <strong><i class="bi bi-wallet2"></i> Payment Request</strong>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()" class="row g-3">
+
+              <!-- Bank Dropdown -->
+              <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-bank me-2"></i> Select Bank
+                </label>
+                <select class="form-control" formControlName="bankId">
+                  <option value="">Select</option>
+                  <option *ngFor="let bank of banks" [value]="bank.bankId">
+                    {{ bank.bankName }}
+                  </option>
+                </select>
+                <div *ngIf="paymentForm.controls['bankId'].touched && paymentForm.controls['bankId'].invalid"
+                  class="text-danger small">
+                  Bank is required
+                </div>
+              </div>
+
+              <!-- Amount -->
+              <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-currency-rupee me-2"></i> Amount
+                </label>
+                <input type="number" class="form-control" formControlName="amount" placeholder="Enter Amount" />
+                <div *ngIf="paymentForm.controls['amount'].touched && paymentForm.controls['amount'].invalid"
+                  class="text-danger small">
+                  Enter valid amount
+                </div>
+              </div>
+
+              <!-- Txn ID -->
+              <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-upc-scan me-2"></i>Payment Txn ID
+                </label>
+                <input type="text" class="form-control" formControlName="txnId" placeholder="Enter Transaction ID" />
+              </div>
+
+              <!-- Deposit Mode -->
+              <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-credit-card me-2"></i> Deposit Mode
+                </label>
+                <select class="form-control" formControlName="depositMode">
+                  <option value="">Select</option>
+                  <option *ngFor="let mode of depositModes" [value]="mode.value">
+                    {{ mode.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Txn Slip -->
+              <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-file-earmark-arrow-up me-2"></i> Txn Slip
+                </label>
+                <input type="file" #txnFileInput class="form-control" (change)="onFileChange($event)"
+                  accept=".jpg,.jpeg,.png" />
+              </div>
+
+              <div [class.col-md-12]="bankSelected" [class.col-md-4]="!bankSelected">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-upc-scan me-2"></i> Remarks
+                </label>
+                <input type="text" class="form-control" formControlName="userRemarks" placeholder="Enter Remarks" />
+              </div>
+
+              <!-- Buttons -->
+              <div [ngClass]="bankSelected ? 'col-md-12' : 'col-md-4 d-flex align-items-end gap-2'">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <i class="bi bi-check-circle"></i> Submit
+                </button>&nbsp;
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onReset()">
+                  <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Section: Bank Details -->
+      <div *ngIf="bankSelected && bankDetails" class="col-md-6">
+        <div class="card shadow-sm" style="min-height: 512px !important;">
+          <div class="card-header bg-purple text-white">
+            <strong><i class="bi bi-info-circle"></i> Bank Details</strong>
+          </div>
+          <div class="card-body">
+            <form class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-credit-card-2-front me-2"></i>Account Number
+                </label>
+                <input type="text" readonly class="form-control input-disabled" [value]="bankDetails.accountNumber" />
+              </div>
+
+              <div class="col-md-12">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-upc-scan me-2"></i>IFSC Code
+                </label>
+                <input type="text" readonly class="form-control input-disabled" [value]="bankDetails.ifscCode" />
+              </div>
+
+              <div class="col-md-12">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-bank2 me-2"></i>Bank Name
+                </label>
+                <input type="text" readonly class="form-control input-disabled" [value]="bankDetails.bankName" />
+              </div>
+
+              <div class="col-md-12">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-telephone me-2"></i>Phone No
+                </label>
+                <input type="text" readonly class="form-control input-disabled" [value]="bankDetails.phoneNo" />
+              </div>
+
+              <div class="col-md-12">
+                <label class="form-label d-flex align-items-center fw-semibold">
+                  <i class="bi bi-cash-coin me-2"></i>Txn Charge
+                </label>
+                <input type="text" readonly class="form-control input-disabled" [value]="bankDetails.txnCharge" />
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</app-partner-shell>

@@ -1,0 +1,165 @@
+:host {
+  --purple: #5e2f82;
+  --purple-deep: #25142f;
+  --blue: #447eef;
+  --amber: #ffb51b;
+  --green: #278d69;
+  --red: #d84b5d;
+  display: block;
+  min-height: 100vh;
+  color: #271b2f;
+  background: #f7f5f9;
+  font-family: Inter, "Segoe UI", sans-serif;
+  scroll-behavior: smooth;
+  /* Stop the browser's rubber-band/overscroll "bounce" (which briefly reveals blank
+     space beyond the page edge) when the user drags past the top/bottom/side boundary. */
+  overscroll-behavior: none;
+}
+
+* { box-sizing: border-box; }
+button { font: inherit; }
+
+/* Confine all scrolling to `.workspace` (a proper app-shell) instead of letting the
+   whole document scroll. This keeps the sticky topbar's scroll container predictable
+   and guarantees the page itself never grows wider/taller than the viewport, which is
+   what caused the stray horizontal/vertical scroll glitches on drag. */
+.portal {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  position: fixed;
+  z-index: 40;
+  inset: 0 auto 0 0;
+  display: flex;
+  width: 270px;
+  flex-direction: column;
+  overflow-y: auto;
+  border-right: 1px solid #e9e2ed;
+  background: #f6f8fa;
+  box-shadow: 3px 0 12px rgb(0 0 0 / 5%);
+  transform: translateX(0);
+  transition: transform 220ms ease;
+}
+
+/* Collapsed by the header toggle (works on every breakpoint, incl. desktop, so the
+   workspace can reclaim the freed-up width). */
+.sidebar:not(.open) { transform: translateX(-105%); }
+
+.sidebar-brand {
+  display: flex;
+  min-height: 112px;
+  align-items: center;
+  padding: 13px 24px 4px;
+  background: #f6f8fa;
+}
+
+.sidebar-brand img { width: 190px; height: 82px; object-fit: contain; }
+.partner-badge { display: flex; gap: 11px; align-items: center; margin: 7px 15px 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; }
+.partner-mark { display: grid; width: 39px; height: 39px; flex: 0 0 39px; place-items: center; border-radius: 12px; color: #fff; background: linear-gradient(135deg, var(--purple), var(--blue)); font-size: 13px; font-weight: 850; }
+.partner-badge > div { display: grid; gap: 3px; min-width: 0; }
+.partner-badge strong { overflow: hidden; color: #333; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.partner-badge small { color: #818898; font-size: 10px; }
+.partner-badge small i { display: inline-block; width: 6px; height: 6px; margin-right: 4px; border-radius: 50%; background: var(--green); }
+
+.side-nav { padding: 8px 10px; }
+.nav-caption { display: block; padding: 9px 14px; color: #a1a7b3; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.nav-caption.operations { margin-top: 12px; }
+.nav-item { position: relative; display: flex; min-height: 43px; gap: 12px; align-items: center; margin: 3px 0; padding: 0 14px; border-radius: 7px; color: #818898; text-decoration: none; font-size: 14px; font-weight: 500; transition: 160ms ease; cursor: pointer; }
+.nav-item > i:first-child { width: 22px; color: #818898; font-size: 17px; text-align: center; }
+.nav-item:hover { color: #111; background: #fff; }
+.nav-item.active { color: #fff; background: #5e2f82; box-shadow: 0 4px 12px rgb(94 47 130 / 18%); }
+.nav-item.active > i:first-child { color: #fff; }
+.nav-arrow { margin-left: auto; color: #b4a8ba; font-size: 8px; }
+.nav-item-button { width: 100%; border: 0; background: transparent; text-align: left; }
+.settings-submenu { margin: 0 0 8px 18px; padding-left: 12px; border-left: 1px solid #e3dbe8; }
+.nav-subitem { min-height: 38px; font-size: 13px; }
+.nav-subitem > i:first-child { font-size: 14px; }
+
+.sidebar-footer { display: grid; gap: 11px; margin-top: auto; padding: 15px; border-top: 1px solid #e3e6e9; }
+.security-note { display: flex; gap: 9px; padding: 11px; border-radius: 12px; color: #6e6076; background: #f8f5fa; }
+.security-note > i { color: var(--green); font-size: 15px; }
+.security-note div { display: grid; gap: 2px; }
+.security-note strong { color: #54455c; font-size: 8px; }
+.security-note small { color: #9b8fa1; font-size: 7px; }
+.sidebar-footer button { min-height: 41px; border: 1px solid #e7dfe9; border-radius: 11px; color: #6b5b73; cursor: pointer; background: #fff; font-size: 9px; font-weight: 750; }
+.sidebar-footer button i { margin-right: 7px; color: var(--red); }
+
+.workspace {
+  height: 100vh;
+  margin-left: 270px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #f8f9fa;
+  transition: margin-left 220ms ease;
+}
+.sidebar-overlay { display: none; }
+
+.topbar {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(20px, 4vw, 58px);
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+}
+
+.header-welcome { display: flex; gap: 12px; align-items: center; }
+.header-welcome h6 { margin: 0 0 4px; color: #333; font-size: 15px; }
+.header-welcome h6 em { font-weight: 400; }
+.header-welcome h6 strong { font-weight: 700; }
+.header-welcome p { margin: 0; color: #555; font-size: 13px; font-style: italic; }
+.menu-toggle { display: grid; width: 37px; height: 37px; place-items: center; border: 1px solid #e7dfe9; border-radius: 10px; color: var(--purple); cursor: pointer; background: #fff; font-size: 18px; }
+.topbar-actions { display: flex; align-items: center; gap: 18px; }
+.header-balance { display: flex; min-width: 160px; height: 42px; align-items: center; justify-content: space-between; padding: 6px 13px; border: 0; border-radius: 9px; color: #fff; cursor: pointer; background: #5e2f82; }
+.header-balance span { display: grid; text-align: left; }
+.header-balance small { font-size: 9px; line-height: 1; text-transform: uppercase; opacity: .85; }
+.header-balance strong { margin-top: 3px; font-size: 13px; line-height: 1; }
+.header-button { display: inline-flex; height: 38px; gap: 6px; align-items: center; padding: 0 13px; border: 1px solid #6c757d; border-radius: 6px; color: #5f656b; text-decoration: none; cursor: pointer; background: #fff; font-size: 12px; font-weight: 500; }
+.header-button.logout { border: 0; color: #fff; background: linear-gradient(to right, #6a1b9a, #8e24aa); }
+
+/* Full-bleed content: no artificial max-width, just minimal breathing-room padding,
+   so the report tables/cards use all of the space the sidebar toggle frees up. */
+.content { width: 100%; padding: 16px clamp(10px, 1vw, 18px) 32px; }
+.spin { animation: spin .8s linear infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Desktop: collapsing the sidebar removes its reserved margin so content expands. */
+@media (min-width: 901px) {
+  .workspace:not(.sidebar-open) { margin-left: 0; }
+}
+
+@media (max-width: 900px) {
+  /* On small screens the sidebar is always an overlay, so the workspace never shifts. */
+  .workspace { margin-left: 0; }
+  .sidebar-overlay {
+    position: fixed;
+    z-index: 35;
+    inset: 0;
+    display: block;
+    border: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: rgb(28 16 34 / 45%);
+    backdrop-filter: blur(2px);
+    transition: opacity 180ms ease;
+  }
+  .sidebar-overlay.visible { pointer-events: auto; opacity: 1; }
+}
+
+@media (max-width: 700px) {
+  .topbar { min-height: 56px; padding: 8px 13px; }
+  .header-welcome p { display: none; }
+  .header-welcome h6 { font-size: 12px; }
+  .topbar-actions { gap: 6px; }
+  .header-balance { min-width: 126px; height: 39px; padding-inline: 10px; }
+  .header-button.logout { width: 39px; padding: 0; justify-content: center; font-size: 0; }
+  .header-button.logout i { font-size: 14px; }
+  .content { padding: 15px 10px 30px; }
+}

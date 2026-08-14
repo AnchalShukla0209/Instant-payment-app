@@ -171,7 +171,7 @@
               </ng-container>
 
               <ng-container *ngSwitchCase="'Check Status'">
-                <ng-container *ngIf="(row.OperatorName === 'Money Transfer' || row.APIName === 'Settlement' || row.servicename === 'Credit Card Bill' || row.servicename === 'BILL PAYMENT' )  && (row.APIName === 'NIFI' || row.APIName === 'FZP' || row.APIName === 'ARP' || row.APIName === 'RKIT' || row.APIName === 'Settlement') && (row.Status === 'Pending' || row.Status === 'PENDING')">
+                <ng-container *ngIf="(row.OperatorName === 'Money Transfer' || row.APIName === 'Settlement' || row.servicename === 'Credit Card Bill' || row.servicename === 'BILL PAYMENT' )  && (row.APIName === 'NIFI' || row.APIName === 'FZP' || row.APIName === 'ARP' || row.APIName === 'RKIT' || row.APIName === 'TRAMO' || row.APIName === 'Settlement') && (row.Status === 'Pending' || row.Status === 'PENDING')">
                   <i class="bi bi-check-circle" style="cursor:pointer" (click)="checkDMTStatus(row)">
                   </i>
                 </ng-container>

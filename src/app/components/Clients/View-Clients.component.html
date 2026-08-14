@@ -21,8 +21,12 @@
 
             <div class="col-md-6 d-flex align-items-center gap-2">
 
-              <button class="btn btn-secondary" (click)="loadClients(1,2)">
+              <button class="btn btn-secondary" (click)="loadClients(1, pageSize)">
                 <i class="bi bi-funnel"></i> Apply Filter
+              </button>
+
+              <button class="btn btn-outline-secondary" (click)="resetFilter()">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset Filter
               </button>
 
               <div class="dropdown">
@@ -217,11 +221,33 @@
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-envelope me-2 icon-label"></i>Email</label>
-              <input type="email" class="form-control" placeholder="EmailId" formControlName="EmailId" />
+              <div class="input-group">
+                <input type="email" class="form-control" placeholder="EmailId" formControlName="EmailId" />
+                <button type="button" class="btn" [ngClass]="isVerified('email') ? 'btn-success' : 'btn-outline-primary'"
+                  [disabled]="isVerified('email')" (click)="sendVerificationOtp('email')">
+                  {{ isVerified('email') ? 'Verified' : 'Send OTP' }}
+                </button>
+              </div>
+              <div class="input-group mt-2" *ngIf="emailChallengeId && !isVerified('email')">
+                <input type="text" class="form-control" maxlength="6" placeholder="Enter Email OTP"
+                  [(ngModel)]="emailOtp" [ngModelOptions]="{standalone: true}" />
+                <button type="button" class="btn btn-outline-success" (click)="verifyOtp('email')">Verify</button>
+              </div>
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-telephone me-2 icon-label"></i>Phone</label>
-              <input type="text" class="form-control" placeholder="Phone No" formControlName="Phone" />
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="Phone No" formControlName="Phone" />
+                <button type="button" class="btn" [ngClass]="isVerified('phone') ? 'btn-success' : 'btn-outline-primary'"
+                  [disabled]="isVerified('phone')" (click)="sendVerificationOtp('phone')">
+                  {{ isVerified('phone') ? 'Verified' : 'Send OTP' }}
+                </button>
+              </div>
+              <div class="input-group mt-2" *ngIf="phoneChallengeId && !isVerified('phone')">
+                <input type="text" class="form-control" maxlength="6" placeholder="Enter Mobile OTP"
+                  [(ngModel)]="phoneOtp" [ngModelOptions]="{standalone: true}" />
+                <button type="button" class="btn btn-outline-success" (click)="verifyOtp('phone')">Verify</button>
+              </div>
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-lock me-2 icon-label"></i>Password</label>
@@ -233,11 +259,29 @@
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-card-text me-2 icon-label"></i>PAN Card</label>
-              <input type="text" class="form-control" placeholder="PAN Card" formControlName="PanCard" />
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="PAN Card" formControlName="PanCard" />
+                <button type="button" class="btn" [ngClass]="isVerified('pan') ? 'btn-success' : 'btn-outline-primary'"
+                  [disabled]="isVerified('pan')" (click)="verifyPan()">
+                  {{ isVerified('pan') ? 'Verified' : 'Verify PAN' }}
+                </button>
+              </div>
+              <small class="text-success" *ngIf="isVerified('pan') && panVerifiedName">
+                {{ panVerifiedName }}
+              </small>
             </div>
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-credit-card me-2 icon-label"></i>Aadhar Card</label>
-              <input type="text" class="form-control" placeholder="Aadhar Card" formControlName="AadharCard" />
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="Aadhar Card" formControlName="AadharCard" />
+                <button type="button" class="btn" [ngClass]="isVerified('aadhaar') ? 'btn-success' : 'btn-outline-primary'"
+                  [disabled]="isVerified('aadhaar')" (click)="verifyAadhaar()">
+                  {{ isVerified('aadhaar') ? 'Verified' : 'Verify Aadhaar' }}
+                </button>
+              </div>
+              <small class="text-success" *ngIf="isVerified('aadhaar') && aadhaarVerifiedInfo">
+                {{ aadhaarVerifiedInfo }}
+              </small>
             </div>
           </div>
         </div>
@@ -266,6 +310,14 @@
             <div class="col-md-6">
               <label class="form-label"><i class="bi bi-mailbox me-2 icon-label"></i>Pin Code</label>
               <input type="text" class="form-control" placeholder="Pin Code" formControlName="Pincode" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label"><i class="bi bi-pin-map me-2 icon-label"></i>Latitude</label>
+              <input type="text" class="form-control" placeholder="Latitude" formControlName="Latitude" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label"><i class="bi bi-pin-map-fill me-2 icon-label"></i>Longitude</label>
+              <input type="text" class="form-control" placeholder="Longitude" formControlName="Longitude" />
             </div>
           </div>
         </div>
@@ -343,6 +395,22 @@
             <div class="col-md-4">
               <label class="form-label"><i class="bi bi-arrow-down-circle icon-label"></i> Debit</label>
               <select class="form-select" formControlName="Debit">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-credit-card-2-front icon-label"></i> Razorpay Payment</label>
+              <select class="form-select" formControlName="RazorpayPayment">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label"><i class="bi bi-bank icon-label"></i> Settlement</label>
+              <select class="form-select" formControlName="Settlement">
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
@@ -448,6 +516,23 @@
                       <label>pdf, png, jpg, jpeg (Max Size:1 MB) (Mask Adhar For Security)</label>
                     </td>
                   </tr>
+                  <tr>
+                    <td>
+                      <label>Selfie Image</label>
+                    </td>
+                    <td>
+                      <input type="file" class="form-control" (change)="onFileChange($event, 'SelfieFile')"
+                        *ngIf="!filePreviews['SelfieFile']" formControlName="SelfieFile" />
+                      <div *ngIf="filePreviews['SelfieFile']" class="d-flex align-items-center gap-2">
+                        <img [src]="filePreviews['SelfieFile']" width="80" height="80" />
+                        <button class="btn btn-sm btn-danger"
+                          (click)="deleteFile('SelfieFile',clientId)">Delete</button>
+                      </div>
+                    </td>
+                    <td>
+                      <label>png, jpg, jpeg (Max Size:1 MB)</label>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -492,6 +577,12 @@
                         <label for="ddlBusinessUnit">Email Address</label>
                         <span class="colonspacentry"> : </span>
                         <span id="lblEmailId">{{ model.EmailId }}</span>
+                        <span class="verify-badge verify-badge-success" *ngIf="isVerified('email')">
+                          <i class="bi bi-patch-check-fill"></i>Verified
+                        </span>
+                        <span class="verify-badge verify-badge-pending" *ngIf="!isVerified('email')">
+                          <i class="bi bi-exclamation-triangle-fill"></i>Not Verified
+                        </span>
                       </div>
                     </div>
 
@@ -508,6 +599,12 @@
                         <label for="ddlBusinessUnit">Phone No</label>
                         <span class="colonspacentry"> : </span>
                         <span id="lblphoneno">{{ model.Phone }}</span>
+                        <span class="verify-badge verify-badge-success" *ngIf="isVerified('phone')">
+                          <i class="bi bi-patch-check-fill"></i>Verified
+                        </span>
+                        <span class="verify-badge verify-badge-pending" *ngIf="!isVerified('phone')">
+                          <i class="bi bi-exclamation-triangle-fill"></i>Not Verified
+                        </span>
                       </div>
                     </div>
 
@@ -516,6 +613,12 @@
                         <label>PAN Card No</label>
                         <span class="colonspacentry"> : </span>
                         <span id="lblPanCard">{{ model.PanCard }}</span>
+                        <span class="verify-badge verify-badge-success" *ngIf="isVerified('pan')">
+                          <i class="bi bi-patch-check-fill"></i>Verified
+                        </span>
+                        <span class="verify-badge verify-badge-pending" *ngIf="!isVerified('pan')">
+                          <i class="bi bi-exclamation-triangle-fill"></i>Not Verified
+                        </span>
                       </div>
                     </div>
 
@@ -524,6 +627,12 @@
                         <label>Adhar Card Number</label>
                         <span class="colonspacentry"> : </span>
                         <span id="lblAdhar">{{ model.AadharCard }}</span>
+                        <span class="verify-badge verify-badge-success" *ngIf="isVerified('aadhaar')">
+                          <i class="bi bi-patch-check-fill"></i>Verified
+                        </span>
+                        <span class="verify-badge verify-badge-pending" *ngIf="!isVerified('aadhaar')">
+                          <i class="bi bi-exclamation-triangle-fill"></i>Not Verified
+                        </span>
                       </div>
                     </div>
 
@@ -588,6 +697,20 @@
                         <label>Zip Code</label>
                         <span class="colonspacentry"> : </span>
                         <span id="lblZipCode">{{ model.Pincode }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label>Latitude</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblLatitude">{{ model.Latitude }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label>Longitude</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblLongitude">{{ model.Longitude }}</span>
                       </div>
                     </div>
                   </div>
@@ -673,6 +796,22 @@
 
                     <div class="col-md-6">
                       <div class="form-group">
+                        <label>Razorpay Payment</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblRazorpayPayment">{{ model.RazorpayPayment }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Settlement</label>
+                        <span class="colonspacentry"> : </span>
+                        <span id="lblSettlement">{{ model.Settlement }}</span>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-group">
                         <label>Status</label>
                         <span class="colonspacentry"> : </span>
                         <span id="lblDebit">{{ model.Status }}</span>
@@ -719,6 +858,17 @@
                             <td>
                               <div *ngIf="filePreviews['LogoFile']" class="d-flex align-items-center gap-2">
                                 <img [src]="filePreviews['LogoFile']" width="80" height="80" />
+                              </div>
+                            </td>
+
+                          </tr>
+                          <tr>
+                            <td>
+                              <label>Selfie Image</label>
+                            </td>
+                            <td>
+                              <div *ngIf="filePreviews['SelfieFile']" class="d-flex align-items-center gap-2">
+                                <img [src]="filePreviews['SelfieFile']" width="80" height="80" />
                               </div>
                             </td>
 
@@ -858,6 +1008,12 @@
                     <label for="ddlBusinessUnit">Email Address</label>
                     <span class="colonspacentry"> : </span>
                     <span id="lblEmailId">{{ model.EmailId }}</span>
+                    <span class="verify-badge verify-badge-success" *ngIf="model.IsEmailVerified">
+                      <i class="bi bi-patch-check-fill"></i>Verified
+                    </span>
+                    <span class="verify-badge verify-badge-pending" *ngIf="!model.IsEmailVerified">
+                      <i class="bi bi-exclamation-triangle-fill"></i>Not Verified
+                    </span>
                   </div>
                 </div>
 
@@ -874,6 +1030,12 @@
                     <label for="ddlBusinessUnit">Phone No</label>
                     <span class="colonspacentry"> : </span>
                     <span id="lblphoneno">{{ model.Phone }}</span>
+                    <span class="verify-badge verify-badge-success" *ngIf="model.IsPhoneVerified">
+                      <i class="bi bi-patch-check-fill"></i>Verified
+                    </span>
+                    <span class="verify-badge verify-badge-pending" *ngIf="!model.IsPhoneVerified">
+                      <i class="bi bi-exclamation-triangle-fill"></i>Not Verified
+                    </span>
                   </div>
                 </div>
 
@@ -882,6 +1044,12 @@
                     <label>PAN Card No</label>
                     <span class="colonspacentry"> : </span>
                     <span id="lblPanCard">{{ model.PanCard }}</span>
+                    <span class="verify-badge verify-badge-success" *ngIf="model.IsPanVerified">
+                      <i class="bi bi-patch-check-fill"></i>Verified
+                    </span>
+                    <span class="verify-badge verify-badge-pending" *ngIf="!model.IsPanVerified">
+                      <i class="bi bi-exclamation-triangle-fill"></i>Not Verified
+                    </span>
                   </div>
                 </div>
 
@@ -890,6 +1058,12 @@
                     <label>Adhar Card Number</label>
                     <span class="colonspacentry"> : </span>
                     <span id="lblAdhar">{{ model.AadharCard }}</span>
+                    <span class="verify-badge verify-badge-success" *ngIf="model.IsAadhaarVerified">
+                      <i class="bi bi-patch-check-fill"></i>Verified
+                    </span>
+                    <span class="verify-badge verify-badge-pending" *ngIf="!model.IsAadhaarVerified">
+                      <i class="bi bi-exclamation-triangle-fill"></i>Not Verified
+                    </span>
                   </div>
                 </div>
 
@@ -952,6 +1126,20 @@
                     <label>Zip Code</label>
                     <span class="colonspacentry"> : </span>
                     <span id="lblZipCode">{{ model.Pincode }}</span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>Latitude</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblLatitude">{{ model.Latitude }}</span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>Longitude</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblLongitude">{{ model.Longitude }}</span>
                   </div>
                 </div>
               </div>
@@ -1037,6 +1225,22 @@
 
                 <div class="col-md-6">
                   <div class="form-group">
+                    <label>Razorpay Payment</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblRazorpayPayment">{{ model.RazorpayPayment }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Settlement</label>
+                    <span class="colonspacentry"> : </span>
+                    <span id="lblSettlement">{{ model.Settlement }}</span>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
                     <label>Status</label>
                     <span class="colonspacentry"> : </span>
                     <span id="lblDebit">{{ model.Status }}</span>
@@ -1083,6 +1287,17 @@
                         <td>
                           <div *ngIf="filePreviews['LogoFile']" class="d-flex align-items-center gap-2">
                             <img [src]="filePreviews['LogoFile']" width="80" height="80" />
+                          </div>
+                        </td>
+
+                      </tr>
+                      <tr>
+                        <td>
+                          <label>Selfie Image</label>
+                        </td>
+                        <td>
+                          <div *ngIf="filePreviews['SelfieFile']" class="d-flex align-items-center gap-2">
+                            <img [src]="filePreviews['SelfieFile']" width="80" height="80" />
                           </div>
                         </td>
 

@@ -116,7 +116,9 @@ export class DashboardComponent {
           mobilerecharge: data.mobilerecharge,
           moneytransfer: data.moneytransfer,
           billpayment: data.billpayment,
-          upipayment: 'Active'
+          upipayment: data.razorpaypayment,
+          razorpaypayment: data.razorpaypayment,
+          settlement: data.settlement
         }
         this.applyFilter();
       },
@@ -134,7 +136,10 @@ export class DashboardComponent {
 
     this.filteredServices = this.services.filter(s => {
       const key = s.ServiceName.replace(/[\s()]/g, '').toLowerCase();
-      return (this.rightsData as any)[key] === 'Active';
+      const rightsKey = key === 'onlinepayment' || key === 'razorpay'
+        ? 'razorpaypayment'
+        : key;
+      return (this.rightsData as any)[rightsKey] === 'Active';
     });
   }
 

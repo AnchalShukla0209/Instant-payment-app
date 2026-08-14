@@ -23,7 +23,7 @@ export class AppComponent {
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe((event: any) => {
-        if (event.urlAfterRedirects.includes('/login') || event.urlAfterRedirects.includes('/reset-password')) {
+        if (this.isPublicAuthRoute(event.urlAfterRedirects)) {
           
           this.idleService.stop();
           this.showUnlock = false;
@@ -35,7 +35,23 @@ export class AppComponent {
       });
 
     this.idleService.locked$.subscribe(() => {
-      if (this.router.url.includes('/login') || this.router.url.includes('/reset-password')) {
+      if (this.isPublicAuthRoute(this.router.url)) {
+        return;
+      }
+      if (sessionStorage.getItem('instantpay.distributor.session')) {
+        const sessionValue = sessionStorage.getItem('instantpay.distributor.session');
+        let userType = 'AD';
+        try {
+          userType = JSON.parse(sessionValue ?? '{}').userType ?? 'AD';
+        } catch {}
+        sessionStorage.removeItem('instantpay.distributor.session');
+        this.idleService.stop();
+        // Reset the sticky idle-lock flag so it doesn't keep re-triggering (and wiping
+        // the next login's session) on every future reload before the user logs back in.
+        this.idleService.unlockDone();
+        void this.router.navigate([
+          userType === 'MD' ? '/master-distributor-login' : '/distributor-login'
+        ]);
         return;
       }
       this.showUnlock = true;
@@ -43,7 +59,7 @@ export class AppComponent {
     });
 
     this.idleService.warning$.subscribe((sec) => {
-      if (!this.showUnlock && !this.router.url.includes('/login') && !this.router.url.includes('/reset-password')) {
+      if (!this.showUnlock && !this.isPublicAuthRoute(this.router.url)) {
         this.warningSeconds = sec;
       }
     });
@@ -53,6 +69,13 @@ export class AppComponent {
     this.showUnlock = false;
     this.warningSeconds = undefined;
     this.idleService.unlockDone();
+  }
+
+  private isPublicAuthRoute(url: string): boolean {
+    return url.includes('/login')
+      || url.includes('/distributor-login')
+      || url.includes('/master-distributor-login')
+      || url.includes('/reset-password');
   }
 
 }

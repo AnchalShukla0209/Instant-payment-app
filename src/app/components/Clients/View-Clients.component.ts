@@ -11,6 +11,11 @@ import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import html2pdf from 'html2pdf.js';
 import { EncryptionService } from '../../encryption/encryption.service';
+import { environment } from '../../../environments/environment';
+import {
+  ClientUserVerificationType
+} from '../../services/client-user-verification.service';
+import { ClientVerificationService } from '../../services/client-verification.service';
 
 @Component({
   selector: 'app-client-details',
@@ -34,7 +39,8 @@ export class ClientViewListComponent implements OnInit {
   };
 
   modalRef!: NgbModalRef;
-  baseUrl = 'https://api.instantpayment.co.in/';
+  private readonly apiUrl = environment.apiBaseUrl;
+  readonly baseUrl = environment.apiBaseUrl.replace(/\/api\/?$/, '/');
   clientForm: FormGroup;
   filePreviews: any = {}; // holds path strings
   isEditMode: boolean = false;
@@ -77,17 +83,21 @@ export class ClientViewListComponent implements OnInit {
     APITransfer: 'Active',
     Margin: 'Active',
     Debit: 'Active',
+    RazorpayPayment: 'Active',
+    Settlement: 'Active',
     Status: 'Active',
     RegDate: new Date().toISOString().substring(0, 16),
     TxnPin: '',
-    PlanId: ''
+    Latitude: '',
+    Longitude: ''
   };
 
   files: any = {
     Logo: null,
     Pancopy: null,
     AadharFront: null,
-    AadharBack: null
+    AadharBack: null,
+    Selfie: null
   };
 
   uploadedFiles: { [key: string]: File } = {};
@@ -128,6 +138,22 @@ export class ClientViewListComponent implements OnInit {
   isLoading: boolean = false;
   TotalBalance: Number = 0;
   ShowTotalBalance: boolean = false;
+  lat: string = '';
+  lng: string = '';
+  phoneOtp = '';
+  emailOtp = '';
+  phoneChallengeId = '';
+  emailChallengeId = '';
+  phoneChallengeValue = '';
+  emailChallengeValue = '';
+  mobileVerificationToken = '';
+  emailVerificationToken = '';
+  panVerificationToken = '';
+  panVerifiedName = '';
+  aadhaarVerificationToken = '';
+  aadhaarVerifiedInfo = '';
+  verifiedValues = { phone: '', email: '', pan: '', aadhaar: '' };
+  persistedVerification = { phone: false, email: false, pan: false, aadhaar: false };
 
 
   totalRecords = 0;
@@ -140,7 +166,7 @@ export class ClientViewListComponent implements OnInit {
   @ViewChild('ViewclientDetailsModel', { static: true }) ViewclientDetailsModel!: TemplateRef<any>;
   @ViewChild('PayClientModel', { static: true }) PayClientmodal !: TemplateRef<any>;
   @ViewChild('invoiceModal', { static: true }) invoiceModal !: TemplateRef<any>;
-  constructor(private fb: FormBuilder, private http: HttpClient, private toastr: ToastrService, private _clientservice: ClientReportService, private modalService: NgbModal, private encryptor: EncryptionService) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private toastr: ToastrService, private _clientservice: ClientReportService, private modalService: NgbModal, private encryptor: EncryptionService, private verificationService: ClientVerificationService) {
 
     this.clientForm = this.fb.group({
       companyInfo: this.fb.group({
@@ -151,14 +177,16 @@ export class ClientViewListComponent implements OnInit {
         Password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/)]],
         PanCard: ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
         AadharCard: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
-        DomainName: ['', Validators.required]
+        DomainName: ['', Validators.required],
       }),
       addressInfo: this.fb.group({
         AddressLine1: ['', Validators.required],
         AddressLine2: ['', Validators.required],
         State: ['', Validators.required],
         City: ['', Validators.required],
-        Pincode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+        Pincode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+        Latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
+        Longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]]
       }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
@@ -169,16 +197,18 @@ export class ClientViewListComponent implements OnInit {
         APITransfer: ['Active', Validators.required],
         Margin: ['Active', Validators.required],
         Debit: ['Active', Validators.required],
+        RazorpayPayment: ['Active', Validators.required],
+        Settlement: ['Active', Validators.required],
         Status: ['Active', Validators.required],
       }),
       uploadDocs: this.fb.group({
         PancopyFile: [null, Validators.required],
         AadharFrontFile: [null, Validators.required],
         AadharBackFile: [null, Validators.required],
-        LogoFile: [null, Validators.required]
+        LogoFile: [null, Validators.required],
+        SelfieFile: [null, Validators.required]
       }),
       TxnPin: ['9999', Validators.required],
-      PlanId: ['1', Validators.required],
     });
   }
 
@@ -218,13 +248,14 @@ export class ClientViewListComponent implements OnInit {
     this.model[`${controlName}`] = null;
     this.clientForm.get('uploadDocs')?.get(controlName)?.setValue(null);
 
-    this.http.delete(`https://api.instantpayment.co.in/api/Client/delete-file?clientId=${FileId}&fileType=${controlName}`)
+    this.http.delete(`${this.apiUrl}/Client/delete-file?clientId=${FileId}&fileType=${controlName}`)
       .subscribe({
         next: (res) => {
           if (controlName === 'LogoFile') this.model.LogoFile = null;
           if (controlName === 'PancopyFile') this.model.PancopyFile = null;
           if (controlName === 'AadharFrontFile') this.model.AadharFrontFile = null;
           if (controlName === 'AadharBackFile') this.model.AadharBackFile = null;
+          if (controlName === 'SelfieFile') this.model.SelfieFile = null;
           this.toastr.success(`${controlName} deleted successfully`);
           this.isLoading = false;
         },
@@ -241,7 +272,202 @@ export class ClientViewListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.setCurrentLocation();
     this.loadClients(this.currentPage, this.pageSize);
+  }
+
+  setCurrentLocation(): void {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        this.lat = position.coords.latitude.toString();
+        this.lng = position.coords.longitude.toString();
+        this.clientForm.get('addressInfo')?.patchValue({
+          Latitude: this.lat,
+          Longitude: this.lng
+        });
+      },
+      () => {
+        this.toastr.info('Location unavailable. Please enter latitude and longitude manually.');
+      }
+    );
+  }
+
+  sendVerificationOtp(type: ClientUserVerificationType): void {
+    const controlName = type === 'phone' ? 'Phone' : 'EmailId';
+    const control = this.clientForm.get(`companyInfo.${controlName}`);
+    if (!control || control.invalid) {
+      control?.markAsTouched();
+      this.toastr.error(`Enter a valid ${type === 'phone' ? 'mobile number' : 'email address'}.`);
+      return;
+    }
+
+    this.isLoading = true;
+    this.verificationService.sendOtp(type, control.value).subscribe({
+      next: response => {
+        this.isLoading = false;
+        if (!response.success || !response.challengeId) {
+          this.toastr.error(response.message);
+          return;
+        }
+        if (type === 'phone') {
+          this.phoneChallengeId = response.challengeId;
+          this.phoneChallengeValue = String(control.value).trim();
+          this.phoneOtp = '';
+        } else {
+          this.emailChallengeId = response.challengeId;
+          this.emailChallengeValue = String(control.value).trim().toLowerCase();
+          this.emailOtp = '';
+        }
+        this.toastr.success(response.message);
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error(`Unable to send ${type} OTP.`);
+      }
+    });
+  }
+
+  verifyOtp(type: ClientUserVerificationType): void {
+    const challengeId = type === 'phone' ? this.phoneChallengeId : this.emailChallengeId;
+    const otp = type === 'phone' ? this.phoneOtp : this.emailOtp;
+    if (!challengeId || !/^\d{6}$/.test(otp)) {
+      this.toastr.error('Enter the 6-digit OTP.');
+      return;
+    }
+    const currentValue = String(this.clientForm.get(
+      type === 'phone' ? 'companyInfo.Phone' : 'companyInfo.EmailId'
+    )?.value || '').trim();
+    const challengeValue = type === 'phone' ? this.phoneChallengeValue : this.emailChallengeValue;
+    if ((type === 'email' ? currentValue.toLowerCase() : currentValue) !== challengeValue) {
+      this.toastr.error(`The ${type} value changed. Please request a new OTP.`);
+      return;
+    }
+
+    this.isLoading = true;
+    this.verificationService.verifyOtp(type, challengeId, otp, this.clientId).subscribe({
+      next: response => {
+        this.isLoading = false;
+        if (!response.success || !response.verificationToken) {
+          this.toastr.error(response.message);
+          return;
+        }
+        const value = this.clientForm.get(
+          type === 'phone' ? 'companyInfo.Phone' : 'companyInfo.EmailId'
+        )?.value;
+        if (type === 'phone') {
+          this.mobileVerificationToken = response.verificationToken;
+          this.verifiedValues.phone = value;
+          this.persistedVerification.phone = true;
+          this.phoneChallengeId = '';
+          this.phoneChallengeValue = '';
+        } else {
+          this.emailVerificationToken = response.verificationToken;
+          this.verifiedValues.email = String(value).toLowerCase();
+          this.persistedVerification.email = true;
+          this.emailChallengeId = '';
+          this.emailChallengeValue = '';
+        }
+        this.toastr.success(response.message);
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('OTP verification failed.');
+      }
+    });
+  }
+
+  verifyPan(): void {
+    const control = this.clientForm.get('companyInfo.PanCard');
+    if (!control || control.invalid) {
+      control?.markAsTouched();
+      this.toastr.error('Enter a valid PAN number.');
+      return;
+    }
+
+    const panNumber = String(control.value).toUpperCase();
+    control.setValue(panNumber, { emitEvent: false });
+    this.isLoading = true;
+    this.verificationService.verifyPan(panNumber, this.clientId).subscribe({
+      next: response => {
+        this.isLoading = false;
+        if (!response.success || !response.verificationToken) {
+          this.toastr.error(response.message);
+          return;
+        }
+        this.panVerificationToken = response.verificationToken;
+        this.panVerifiedName = response.verifiedName || '';
+        this.verifiedValues.pan = panNumber;
+        this.persistedVerification.pan = true;
+        this.toastr.success(response.message);
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('PAN verification failed.');
+      }
+    });
+  }
+
+  verifyAadhaar(): void {
+    const control = this.clientForm.get('companyInfo.AadharCard');
+    if (!control || control.invalid) {
+      control?.markAsTouched();
+      this.toastr.error('Enter a valid 12-digit Aadhar number.');
+      return;
+    }
+
+    const aadharNumber = String(control.value).trim();
+    this.isLoading = true;
+    this.verificationService.verifyAadhaar(aadharNumber, this.clientId).subscribe({
+      next: response => {
+        this.isLoading = false;
+        if (!response.success || !response.verificationToken) {
+          this.toastr.error(response.message);
+          return;
+        }
+        this.aadhaarVerificationToken = response.verificationToken;
+        this.aadhaarVerifiedInfo = response.verifiedName || '';
+        this.verifiedValues.aadhaar = aadharNumber;
+        this.persistedVerification.aadhaar = true;
+        this.toastr.success(response.message);
+      },
+      error: () => {
+        this.isLoading = false;
+        this.toastr.error('Aadhaar verification failed.');
+      }
+    });
+  }
+
+  isVerified(type: 'phone' | 'email' | 'pan' | 'aadhaar'): boolean {
+    const path = type === 'phone'
+      ? 'companyInfo.Phone'
+      : type === 'email'
+        ? 'companyInfo.EmailId'
+        : type === 'pan'
+          ? 'companyInfo.PanCard'
+          : 'companyInfo.AadharCard';
+    let currentValue = String(this.clientForm.get(path)?.value || '').trim();
+    if (type === 'email') currentValue = currentValue.toLowerCase();
+    if (type === 'pan') currentValue = currentValue.toUpperCase();
+    return this.persistedVerification[type] && this.verifiedValues[type] === currentValue;
+  }
+
+  private resetVerificationState(): void {
+    this.phoneOtp = '';
+    this.emailOtp = '';
+    this.phoneChallengeId = '';
+    this.emailChallengeId = '';
+    this.phoneChallengeValue = '';
+    this.emailChallengeValue = '';
+    this.mobileVerificationToken = '';
+    this.emailVerificationToken = '';
+    this.panVerificationToken = '';
+    this.panVerifiedName = '';
+    this.aadhaarVerificationToken = '';
+    this.aadhaarVerifiedInfo = '';
+    this.verifiedValues = { phone: '', email: '', pan: '', aadhaar: '' };
+    this.persistedVerification = { phone: false, email: false, pan: false, aadhaar: false };
   }
 
   loadClients(pageIndex: number, pageSize: number): void {
@@ -324,6 +550,13 @@ export class ClientViewListComponent implements OnInit {
     this.isLoading = false;
   }
 
+  resetFilter(): void {
+    this.fromDate = '';
+    this.toDate = '';
+    this.searchKeyword = '';
+    this.loadClients(1, this.pageSize);
+  }
+
   changePage(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.loadClients(page, this.pageSize);
@@ -369,17 +602,22 @@ export class ClientViewListComponent implements OnInit {
       APITransfer: 'Active',
       Margin: 'Active',
       Debit: 'Active',
+      RazorpayPayment: 'Active',
+      Settlement: 'Active',
       Status: 'Active',
       RegDate: new Date().toISOString().substring(0, 16),
       TxnPin: '',
-      PlanId: ''
+      Latitude: '',
+      Longitude: ''
     };
+    this.resetVerificationState();
 
     this.files = {
       Logo: null,
       Pancopy: null,
       AadharFront: null,
-      AadharBack: null
+      AadharBack: null,
+      Selfie: null
     };
 
     this.clientForm = this.fb.group({
@@ -391,14 +629,16 @@ export class ClientViewListComponent implements OnInit {
         Password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/)]],
         PanCard: ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
         AadharCard: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
-        DomainName: ['', Validators.required]
+        DomainName: ['', Validators.required],
       }),
       addressInfo: this.fb.group({
         AddressLine1: ['', Validators.required],
         AddressLine2: ['', Validators.required],
         State: ['', Validators.required],
         City: ['', Validators.required],
-        Pincode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+        Pincode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+        Latitude: [this.lat, [Validators.required, Validators.min(-90), Validators.max(90)]],
+        Longitude: [this.lng, [Validators.required, Validators.min(-180), Validators.max(180)]]
       }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
@@ -409,23 +649,25 @@ export class ClientViewListComponent implements OnInit {
         APITransfer: ['Active', Validators.required],
         Margin: ['Active', Validators.required],
         Debit: ['Active', Validators.required],
+        RazorpayPayment: ['Active', Validators.required],
+        Settlement: ['Active', Validators.required],
         Status: ['Active', Validators.required],
       }),
       uploadDocs: this.fb.group({
         PancopyFile: [null, Validators.required],
         AadharFrontFile: [null, Validators.required],
         AadharBackFile: [null, Validators.required],
-        LogoFile: [null, Validators.required]
+        LogoFile: [null, Validators.required],
+        SelfieFile: [null, Validators.required]
       }),
       TxnPin: ['9999', Validators.required],
-      PlanId: ['1', Validators.required],
     });
 
     this.filePreviews = {};
     this.isEditMode = false;
     this.clientId = 0;
     this.modalRef = this.modalService.open(this.clientModal, {
-      size: 'lg', backdrop: 'static', keyboard: false
+      size: 'xl', backdrop: 'static', keyboard: false
     });
 
     this.modalRef.result.then(
@@ -485,6 +727,8 @@ export class ClientViewListComponent implements OnInit {
       State: addressInfo.State,
       City: addressInfo.City,
       Pincode: addressInfo.Pincode,
+      Latitude: addressInfo.Latitude,
+      Longitude: addressInfo.Longitude,
 
       Recharge: serviceRights.Recharge,
       MoneyTransfer: serviceRights.MoneyTransfer,
@@ -494,10 +738,11 @@ export class ClientViewListComponent implements OnInit {
       APITransfer: serviceRights.APITransfer,
       Margin: serviceRights.Margin,
       Debit: serviceRights.Debit,
+      RazorpayPayment: serviceRights.RazorpayPayment,
+      Settlement: serviceRights.Settlement,
       Status: serviceRights.Status,
 
       TxnPin: this.clientForm.get('TxnPin')?.value,
-      PlanId: this.clientForm.get('PlanId')?.value,
       RegDate: new Date().toISOString().substring(0, 16)
     };
 
@@ -506,7 +751,8 @@ export class ClientViewListComponent implements OnInit {
       Logo: this.clientForm.get('uploadDocs.LogoFile')?.value,
       Pancopy: this.clientForm.get('uploadDocs.PancopyFile')?.value,
       AadharFront: this.clientForm.get('uploadDocs.AadharFrontFile')?.value,
-      AadharBack: this.clientForm.get('uploadDocs.AadharBackFile')?.value
+      AadharBack: this.clientForm.get('uploadDocs.AadharBackFile')?.value,
+      Selfie: this.clientForm.get('uploadDocs.SelfieFile')?.value
     };
   }
 
@@ -516,6 +762,11 @@ export class ClientViewListComponent implements OnInit {
     const companyinfogroup = this.clientForm.get('companyInfo') as FormGroup;
     if (companyinfogroup.invalid) {
       this.showValidationMessages(companyinfogroup);
+      this.isLoading = false;
+      return;
+    }
+    if (!this.isVerified('phone') || !this.isVerified('email') || !this.isVerified('pan') || !this.isVerified('aadhaar')) {
+      this.toastr.error('Verify mobile number, email, PAN, and Aadhaar before continuing.');
       this.isLoading = false;
       return;
     }
@@ -566,6 +817,8 @@ export class ClientViewListComponent implements OnInit {
         case 'AadharCard': return 'Aadhar must be 12-digit number.';
         case 'Password': return 'Password must be 10+ chars, include letters, number & special char.';
         case 'Pincode': return 'Pincode must be 6-digit number.';
+        case 'Latitude': return 'Latitude must be between -90 and 90.';
+        case 'Longitude': return 'Longitude must be between -180 and 180.';
         default: return `${field} format is invalid.`;
       }
     }
@@ -578,6 +831,11 @@ export class ClientViewListComponent implements OnInit {
     if (this.clientForm.invalid) {
       this.toastr.error('Please fill all required fields correctly.', 'Validation Error');
       this.clientForm.markAllAsTouched();
+      this.isLoading = false;
+      return;
+    }
+    if (!this.isVerified('phone') || !this.isVerified('email') || !this.isVerified('pan') || !this.isVerified('aadhaar')) {
+      this.toastr.error('Verify mobile number, email, PAN, and Aadhaar before submitting.');
       this.isLoading = false;
       return;
     }
@@ -596,6 +854,10 @@ export class ClientViewListComponent implements OnInit {
     formData.append('PanCard', companyInfo.PanCard);
     formData.append('AadharCard', companyInfo.AadharCard);
     formData.append('DomainName', companyInfo.DomainName);
+    formData.append('MobileVerificationToken', this.mobileVerificationToken);
+    formData.append('EmailVerificationToken', this.emailVerificationToken);
+    formData.append('PanVerificationToken', this.panVerificationToken);
+    formData.append('AadharVerificationToken', this.aadhaarVerificationToken);
 
     // Flatten and append addressInfo group
     const addressInfo = this.clientForm.get('addressInfo')?.value;
@@ -604,6 +866,8 @@ export class ClientViewListComponent implements OnInit {
     formData.append('State', addressInfo.State);
     formData.append('City', addressInfo.City);
     formData.append('Pincode', addressInfo.Pincode);
+    formData.append('lat', String(addressInfo.Latitude));
+    formData.append('longitute', String(addressInfo.Longitude));
 
     // Flatten and append serviceRights group
     const serviceRights = this.clientForm.get('serviceRights')?.value;
@@ -615,22 +879,23 @@ export class ClientViewListComponent implements OnInit {
     formData.append('APITransfer', serviceRights.APITransfer);
     formData.append('Margin', serviceRights.Margin);
     formData.append('Debit', serviceRights.Debit);
+    formData.append('RazorpayPayment', serviceRights.RazorpayPayment);
+    formData.append('Settlement', serviceRights.Settlement);
     formData.append('Status', serviceRights.Status);
 
     // Flat fields outside nested groups
     formData.append('TxnPin', this.clientForm.get('TxnPin')?.value);
-    formData.append('PlanId', this.clientForm.get('PlanId')?.value);
     formData.append('RegDate', new Date().toISOString().substring(0, 16));
 
     // Append files (from uploadedFiles object)
-    ['PancopyFile', 'AadharFrontFile', 'AadharBackFile', 'LogoFile'].forEach(key => {
+    ['PancopyFile', 'AadharFrontFile', 'AadharBackFile', 'LogoFile', 'SelfieFile'].forEach(key => {
       const file = this.uploadedFiles[key];
       if (file instanceof File) {
         formData.append(key, file, file.name);
       }
     });
 
-    this.http.post<any>('https://api.instantpayment.co.in/api/Client/CreateOrUpdateClient', formData).subscribe({
+    this.http.post<any>(`${this.apiUrl}/Client/CreateOrUpdateClient`, formData).subscribe({
       next: (res) => {
         if (res.flag) {
           this.toastr.success(res.msg, 'Success');
@@ -654,7 +919,7 @@ export class ClientViewListComponent implements OnInit {
   editClient(clientId: number): void {
     this.isLoading = true;
     this.activeTab = 'companyInfo';
-    this.http.get<any>(`https://api.instantpayment.co.in/api/Client/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`${this.apiUrl}/Client/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
         this.clientForm.get('companyInfo')?.patchValue({
@@ -674,7 +939,9 @@ export class ClientViewListComponent implements OnInit {
           AddressLine2: res.addressLine2,
           State: res.state,
           City: res.city,
-          Pincode: res.pincode
+          Pincode: res.pincode,
+          Latitude: res.lat,
+          Longitude: res.longitute
         });
 
         this.clientForm.get('serviceRights')?.patchValue({
@@ -686,12 +953,13 @@ export class ClientViewListComponent implements OnInit {
           APITransfer: res.apiTransfer,
           Margin: res.margin,
           Debit: res.debit,
+          RazorpayPayment: res.razorpayPayment,
+          Settlement: res.settlement,
           Status: res.status
         });
 
         this.clientForm.patchValue({
-          TxnPin: res.txnPin,
-          PlanId: res.planId
+          TxnPin: res.txnPin
         });
 
         // Set uploaded file paths (for preview)
@@ -716,6 +984,9 @@ export class ClientViewListComponent implements OnInit {
         if (res.logo) {
           uploadGroup.get('LogoFile')?.removeValidators(Validators.required);
         }
+        if (res.selfieImage) {
+          uploadGroup.get('SelfieFile')?.removeValidators(Validators.required);
+        }
 
         // Update validity
         Object.values(uploadGroup.controls).forEach(control => control.updateValueAndValidity());
@@ -724,13 +995,29 @@ export class ClientViewListComponent implements OnInit {
           LogoFile: res.logo != null && res.logo != '' ? this.baseUrl + res.logo : '',
           PancopyFile: res.pancopy != null && res.pancopy != '' ? this.baseUrl + res.pancopy : '',
           AadharFrontFile: res.aadharFront != null && res.aadharFront != '' ? this.baseUrl + res.aadharFront : '',
-          AadharBackFile: res.aadharBack != null && res.aadharBack != '' ? this.baseUrl + res.aadharBack : ''
+          AadharBackFile: res.aadharBack != null && res.aadharBack != '' ? this.baseUrl + res.aadharBack : '',
+          SelfieFile: res.selfieImage != null && res.selfieImage != '' ? this.baseUrl + res.selfieImage : ''
         };
+
+        this.resetVerificationState();
+        this.verifiedValues = {
+          phone: String(res.phone || '').trim(),
+          email: String(res.emailId || '').trim().toLowerCase(),
+          pan: String(res.panCard || '').trim().toUpperCase(),
+          aadhaar: String(res.aadharCard || '').trim()
+        };
+        this.persistedVerification = {
+          phone: !!res.isPhoneVerified,
+          email: !!res.isEmailVerified,
+          pan: !!res.isPanVerified,
+          aadhaar: !!res.isAadhaarVerified
+        };
+        this.panVerifiedName = res.panVerifiedName || '';
 
         this.clientId = res.id; // Store for update
         this.isEditMode = true; // Flag for UI update
         this.modalRef = this.modalService.open(this.clientModal, {
-          size: 'lg', backdrop: 'static', keyboard: false
+          size: 'xl', backdrop: 'static', keyboard: false
         });
 
         this.modalRef.result.then(
@@ -754,7 +1041,7 @@ export class ClientViewListComponent implements OnInit {
 
   ViewClient(clientId: number): void {
     this.isLoading = true;
-    this.http.get<any>(`https://api.instantpayment.co.in/api/Client/clientId?Id=${clientId}`).subscribe({
+    this.http.get<any>(`${this.apiUrl}/Client/clientId?Id=${clientId}`).subscribe({
       next: (res) => {
 
 
@@ -774,6 +1061,8 @@ export class ClientViewListComponent implements OnInit {
           State: res.state,
           City: res.city,
           Pincode: res.pincode,
+          Latitude: res.lat,
+          Longitude: res.longitute,
 
           Recharge: res.recharge,
           MoneyTransfer: res.moneyTransfer,
@@ -783,16 +1072,23 @@ export class ClientViewListComponent implements OnInit {
           APITransfer: res.apiTransfer,
           Margin: res.margin,
           Debit: res.debit,
+          RazorpayPayment: res.razorpayPayment,
+          Settlement: res.settlement,
           Status: res.status,
           TxnPin: res.txnPin,
-          PlanId: res.planId,
+          IsPhoneVerified: res.isPhoneVerified,
+          IsEmailVerified: res.isEmailVerified,
+          IsPanVerified: res.isPanVerified,
+          PanVerifiedName: res.panVerifiedName,
+          IsAadhaarVerified: res.isAadhaarVerified,
           RegDate: new Date().toISOString().substring(0, 16)
         };
         this.filePreviews = {
           LogoFile: res.logo != null && res.logo != '' ? this.baseUrl + res.logo : '',
           PancopyFile: res.pancopy != null && res.pancopy != '' ? this.baseUrl + res.pancopy : '',
           AadharFrontFile: res.aadharFront != null && res.aadharFront != '' ? this.baseUrl + res.aadharFront : '',
-          AadharBackFile: res.aadharBack != null && res.aadharBack != '' ? this.baseUrl + res.aadharBack : ''
+          AadharBackFile: res.aadharBack != null && res.aadharBack != '' ? this.baseUrl + res.aadharBack : '',
+          SelfieFile: res.selfieImage != null && res.selfieImage != '' ? this.baseUrl + res.selfieImage : ''
         };
         this.modalRef = this.modalService.open(this.ViewclientDetailsModel, {
           size: 'lg', backdrop: 'static', keyboard: false
@@ -926,7 +1222,7 @@ export class ClientViewListComponent implements OnInit {
       actionById: Number(this.walletTxn.actionById)
     };
 
-    this.http.post<any>('https://api.instantpayment.co.in/api/Client/wallet-transaction', payload).subscribe({
+    this.http.post<any>(`${this.apiUrl}/Client/wallet-transaction`, payload).subscribe({
       next: (response) => {
         if (response.isSuccessful) {
 

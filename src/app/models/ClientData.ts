@@ -4,6 +4,8 @@ export interface GetUsersWithMainBalanceQuery {
   fromDate?: string;
   toDate?: string;
   ClientId?: number;
+  /** 'AD' = Distributor scope, 'MD' = Master Distributor scope, omitted = White-Label (Wlid) scope. */
+  ScopeType?: string;
   commonsearch?: string;
 }
 

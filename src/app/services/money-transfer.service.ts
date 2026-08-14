@@ -319,6 +319,14 @@ export class MoneyTransferService {
     return this.http.get<any>(`${environment.apiBaseUrl}/MoneyTransfer/rkit/status/${txnId}`);
   }
 
+  TRAMOUpiMoneyTransfer(payload: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/MoneyTransfer/tramo/transfer`, payload);
+  }
+
+  CheckStatusTRAMOMoneyTransfer(txnId: string) {
+    return this.http.get<any>(`${environment.apiBaseUrl}/MoneyTransfer/tramo/status/${txnId}`);
+  }
+
   // New Beneficiary APIs
   SaveBeneficiary(payload: any): Observable<any> {
     return this.http.post(`${environment.apiBaseUrl}/Beneficiary/Save`, payload);

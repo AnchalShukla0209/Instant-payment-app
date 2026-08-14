@@ -692,6 +692,8 @@ export class TxnReportComponent implements OnInit {
       ? this._moneyTransferService.CheckStatusARPMoneyTransfer(row.Transactionid)
       : row.APIName === 'RKIT'
       ? this._moneyTransferService.CheckStatusRKITMoneyTransfer(row.Transactionid)
+      : row.APIName === 'TRAMO'
+      ? this._moneyTransferService.CheckStatusTRAMOMoneyTransfer(row.Transactionid)
       : row.APIName === 'Settlement'
       ? this._moneyTransferService.CheckStatusARPMoneyTransfer(row.TXN_ID) :
        this._moneyTransferService.CheckStatusNifiMoneyTransfer(row.Transactionid);

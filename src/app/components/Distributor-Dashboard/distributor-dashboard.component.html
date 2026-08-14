@@ -1,0 +1,100 @@
+<app-partner-shell activeMenu="dashboard">
+  <div class="error-banner" *ngIf="errorMessage">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span>{{ errorMessage }}</span>
+    <button type="button" (click)="errorMessage = ''" aria-label="Dismiss">×</button>
+  </div>
+
+  <div class="skeleton-grid" *ngIf="loading">
+    <div *ngFor="let item of [1,2,3]" class="skeleton"></div>
+  </div>
+
+  <ng-container *ngIf="dashboard as data">
+    <section class="kpi-grid" aria-label="Business summary">
+      <article class="kpi wallet-card">
+        <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+        <div>
+          <span>Available wallet</span>
+          <strong>{{ data.walletAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+          <small>Updated {{ walletRefreshedAt | date:'shortTime' }}</small>
+        </div>
+        <button type="button" (click)="refreshWallet()" [disabled]="walletRefreshing" aria-label="Refresh wallet">
+          <i class="bi bi-arrow-clockwise" [class.spin]="walletRefreshing"></i>
+        </button>
+      </article>
+
+      <article class="kpi">
+        <div class="kpi-icon purple"><i class="bi bi-people"></i></div>
+        <div>
+          <span>Total network users</span>
+          <strong>{{ data.totalUsers | number }}</strong>
+          <small>{{ roleLabel === 'Master Distributor' ? 'All mapped distributors and retailers' : 'Mapped retailers and users' }}</small>
+        </div>
+      </article>
+
+      <article class="kpi">
+        <div class="kpi-icon amber"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+          <span>Today's transaction amount</span>
+          <strong>{{ data.todayTransactionAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+          <small>Across all tracked statuses</small>
+        </div>
+      </article>
+    </section>
+
+    <section class="status-grid" aria-label="Today's transaction status">
+      <article *ngFor="let item of data.todayStatusSummary" [attr.data-status]="item.status.toLowerCase()">
+        <span><i></i>{{ item.status }}</span>
+        <strong>{{ item.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+        <small>{{ item.count | number }} transactions</small>
+      </article>
+    </section>
+
+    <section class="main-grid">
+      <article class="panel chart-panel" id="transaction-report">
+        <div class="panel-heading">
+          <div>
+            <span class="section-label">Transaction intelligence</span>
+            <h2>7-day network activity</h2>
+          </div>
+          <span class="period"><i class="bi bi-calendar3"></i> Last 7 days</span>
+        </div>
+        <apx-chart
+          [series]="chartOptions.series"
+          [chart]="chartOptions.chart"
+          [xaxis]="chartOptions.xaxis"
+          [stroke]="chartOptions.stroke"
+          [dataLabels]="chartOptions.dataLabels"
+          [fill]="chartOptions.fill"
+          [grid]="chartOptions.grid"
+          [tooltip]="chartOptions.tooltip"
+          [legend]="chartOptions.legend"
+          [colors]="chartOptions.colors">
+        </apx-chart>
+      </article>
+
+      <article class="panel users-panel" id="recent-users">
+        <div class="panel-heading">
+          <div>
+            <span class="section-label">Network growth</span>
+            <h2>Recent onboardings</h2>
+          </div>
+          <i class="bi bi-person-plus panel-mark"></i>
+        </div>
+        <div class="empty" *ngIf="!data.recentUsers.length">No users onboarded yet.</div>
+        <div class="user-row" *ngFor="let user of data.recentUsers; trackBy: trackById">
+          <span class="user-avatar">{{ user.name.charAt(0) }}</span>
+          <div>
+            <strong>{{ user.name }}</strong>
+            <small>{{ user.username }} · {{ user.userType }}</small>
+          </div>
+          <div class="row-meta">
+            <span [class.active]="user.status.toLowerCase() === 'active'">{{ user.status }}</span>
+            <small>{{ user.onboardedAt | date:'dd MMM' }}</small>
+          </div>
+        </div>
+      </article>
+    </section>
+
+  </ng-container>
+</app-partner-shell>

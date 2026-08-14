@@ -2146,52 +2146,47 @@ export class MoneyTransferComponent {
 
       if (this.selectedService === "TRAMO") {
         payload = {
-          SessionKey: this.authServiceobj.getSessionKey(),
-          APIKey: "MoneyTransfer001|WEB",
-          Sendermobile: this.mobileNumber,
-          BeneName: this.currentBeneName,
-          AccountNo: this.currentBankId,
-          IfscCode: this.currentBankIfscCode,
-          BankName: this.currentBankName,
-          BeneId: this.currentBeneId,
-          Amount: amount,
-          DMTTYPE: this.selectedService,
-          TXNMode: txnType,
-          MPIN: this.enteredMPIN
+          userId: this.authServiceobj.getUserId().toString(),
+          transactionPin: this.enteredMPIN,
+          amount: amount,
+          accountNumber: this.currentBankId,
+          beneficiaryName: this.currentBeneName,
+          beneficiaryMobile: this.mobileNumber,
+          bankName: this.currentBankName,
+          ifsc: this.currentBankIfscCode,
+          remark: "Payout Txn",
+          comingFrom: "web"
         };
 
-        this._MoneyTransferService.TramomoneyTransfer(payload).subscribe({
-
+        this._MoneyTransferService.TRAMOUpiMoneyTransfer(payload).subscribe({
           next: (res: any) => {
             this.isLoading = false;
             this.enteredMPIN = "";
-            if (res.Status_Code === "1") {
+            if (res.status_Code === "1") {
               this.toastr.success("Transaction Successful");
               this.enteredPaymentOTP = "";
               this.amount = "";
               this.otpRequestId = "";
               this.invoiceData = {
                 BankName: this.currentBankName,
-                AccountNo: res?.Data[0]?.AccountNo,
-                Amount: res?.Data[0]?.Amount,
-                BR_Id: res?.Data[0]?.BR_Id,
-                BeneName: res?.Data[0]?.BeneName,
-                Status: res?.Data[0]?.Status,
-                TxnDate: this.formatTimestamp(res?.Data[0]?.TxnDate),
-                TxnID: res?.Data[0]?.TxnID,
-                CurrentBalance: res?.Data[0]?.CurrentBalance,
+                AccountNo: res?.data[0]?.accountNo,
+                Amount: res?.data[0]?.amount,
+                BR_Id: res?.data[0]?.bR_Id,
+                BeneName: res?.data[0]?.beneName,
+                Status: res?.data[0]?.status,
+                TxnDate: this.formatTimestamp(res?.data[0]?.txnDate),
+                TxnID: res?.data[0]?.txnID,
+                CurrentBalance: res?.data[0]?.currentBalance,
               };
               this.modalService.open(this.invoiceModal, { size: 'lg', backdrop: 'static', keyboard: false });
-
             } else {
-              this.toastr.error(res.Message || "Transaction Failed");
+              this.toastr.error(res.message || "Transaction Failed");
             }
           },
           error: () => {
             this.isLoading = false;
             this.toastr.error("Server Error");
           }
-
         });
         return;
       }

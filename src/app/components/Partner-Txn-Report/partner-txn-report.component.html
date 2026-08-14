@@ -1,0 +1,256 @@
+<app-partner-shell activeMenu="txn-report">
+  <div class="container-fluid px-0">
+    <app-loader *ngIf="isLoading"></app-loader>
+
+    <div class="row g-0">
+      <div class="col-md-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-purple text-white">
+            <strong><i class="bi bi-filter"></i> Filter</strong>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="txnForm">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                  <label class="form-label fw-semibold">Service Type</label>
+                  <select class="form-select" formControlName="serviceType" (change)="onServiceChange()">
+                    <option *ngFor="let s of services" [value]="s">{{ s }}</option>
+                  </select>
+                </div>
+
+                <div class="col-md-2">
+                  <label class="form-label fw-semibold">From Date</label>
+                  <input type="date" class="form-control" formControlName="dateFrom" />
+                </div>
+
+                <div class="col-md-2">
+                  <label class="form-label fw-semibold">To Date</label>
+                  <input type="date" class="form-control" formControlName="dateTo" />
+                </div>
+
+                <div class="col-md-2">
+                  <label class="form-label fw-semibold">Status</label>
+                  <select class="form-control" formControlName="status">
+                    <option value="">All</option>
+                    <option value="Success">Success</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Failed">Failed</option>
+                    <option value="INIT">Initiated</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">User</label>
+                  <ng-select [items]="downlineUsers" bindLabel="label" bindValue="id" placeholder="All Users"
+                    formControlName="userId" [searchable]="true" [clearable]="false">
+                  </ng-select>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-primary btn-sm d-flex justify-content-center align-items-center" type="button"
+                  (click)="onSearch()">
+                  <i class="bi bi-search me-1"></i> Search
+                </button>
+
+                <button class="btn btn-outline-secondary btn-sm d-flex justify-content-center align-items-center"
+                  type="button" (click)="onReset()">
+                  <i class="bi bi-x-circle me-1"></i> Reset
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row align-items-center mb-3 mt-3">
+      <div class="col-md-4">
+        <input type="text" [(ngModel)]="commonSearch" class="form-control shadow-sm" (input)="onSearchChange()"
+          placeholder="Search transactions..." />
+      </div>
+
+      <div class="col-md-3"></div>
+
+      <div class="col-md-5">
+        <div class="d-flex justify-content-end">
+          <div class="border rounded px-4 py-1 shadow-sm bg-light w-100 text-end">
+            <span class="fw-semibold text-secondary me-4">
+              No. of Transactions: <span class="text-dark">{{ totalRecords }}</span>
+            </span>
+            <span class="fw-semibold text-secondary">
+              Total Amount: <span class="text-dark">₹{{ totalAmount }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover text-nowrap align-middle table-striped" id="tblClientData">
+        <thead>
+          <tr>
+            <th *ngFor="let col of visibleColumns">{{ col }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of filteredRecords; let i = index" (click)="selectRow(i)"
+            [ngClass]="{'selected-row': i === selectedRowIndex}" style="cursor: pointer;">
+            <td *ngFor="let col of visibleColumns">
+              <ng-container [ngSwitch]="col">
+                <ng-container *ngSwitchCase="'Sr No'">{{ (currentPage - 1) * pageSize + i + 1 }}</ng-container>
+                <ng-container *ngSwitchCase="'API Response'">
+                  <i class="bi bi-info-circle" (click)="openApiResponseModal(row.APIRes)"></i>
+                </ng-container>
+                <ng-container *ngSwitchCase="'TimeStamp'">{{ formatTimestamp(row[getKey(col)]) }}</ng-container>
+                <ng-container *ngSwitchCase="'Updated Time'">{{ formatTimestamp(row[getKey(col)]) }}</ng-container>
+                <ng-container *ngSwitchCase="'E-Invoice'">
+                  <ng-container *ngIf="row.OperatorName === 'AEPS_CASH_WITHDRAWAL' ||
+                                        row.OperatorName === 'CW' ||
+                                        row.OperatorName === 'DMTTXN' || row.OperatorName === 'Money Transfer'">
+                    <i class="bi bi-eye fs-5 text-primary" style="cursor:pointer" (click)="openInvoiceModal(row)"></i>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchDefault>{{ row[getKey(col)] }}</ng-container>
+              </ng-container>
+            </td>
+          </tr>
+          <tr *ngIf="filteredRecords.length === 0">
+            <td [attr.colspan]="visibleColumns.length" class="text-center text-muted">No records found</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <nav *ngIf="totalPages > 1" class="mt-2">
+      <ul class="pagination justify-content-end">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+        </li>
+        <ng-container *ngFor="let page of visiblePages">
+          <li class="page-item" *ngIf="page !== null" [class.active]="currentPage === page">
+            <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+          </li>
+          <li class="page-item disabled" *ngIf="page === null">
+            <span class="page-link">...</span>
+          </li>
+        </ng-container>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div id="printArea" style="display:none;"></div>
+
+    <ng-template #invoiceModalRef let-modal>
+      <div class="modal-header bg-purple text-white">
+        <h5 class="modal-title">Transaction Details</h5>
+      </div>
+
+      <div class="modal-body invoice-wrapper" id="invoiceContent">
+        <div class="bg-purple text-white text-center p-1 rounded-top">
+          <h5 class="m-0">Transaction Details</h5>
+        </div>
+
+        <div class="text-center">
+          <div class="success-icon-wrapper mx-auto">
+            <div class="mt-2 fs-5 fw-bold" [ngClass]="{
+              'text-success': invoiceStatus === 'Successful',
+              'text-danger': invoiceStatus === 'Failed',
+              'text-warning': invoiceStatus !== 'Successful' && invoiceStatus !== 'Failed'
+            }">
+              Transaction {{ invoiceStatus }}
+            </div>
+          </div>
+        </div>
+
+        <div class="invoice p-2">
+          <table class="table table-bordered table-sm">
+            <tbody>
+              <ng-container *ngIf="invoiceType === 'AEPS'">
+                <tr>
+                  <th class="text-purple">Transaction Type</th>
+                  <td class="text-end text-capitalize">Cash Withdrawal</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Aadhaar</th>
+                  <td class="text-end">{{ invoiceData.AccountNo }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Bank Name</th>
+                  <td class="text-end">{{ invoiceData.BankRefNo }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">RRN</th>
+                  <td class="text-end">{{ invoiceData.BRId }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Amount</th>
+                  <td class="text-end">₹{{ invoiceData.Amount }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Transaction Time</th>
+                  <td class="text-end">{{ invoiceData.TimeStamp }}</td>
+                </tr>
+              </ng-container>
+
+              <ng-container *ngIf="invoiceType === 'DMT'">
+                <tr>
+                  <th class="text-purple">Beneficary Name</th>
+                  <td class="text-end text-capitalize">{{ invoiceData.BeneName }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Account Number</th>
+                  <td class="text-end">{{ invoiceData.AccountNo }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Mobile Number</th>
+                  <td class="text-end">{{ invoiceData.CustomerMobile }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Bank Name</th>
+                  <td class="text-end">{{ invoiceData.BankRefNo }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">RRN</th>
+                  <td class="text-end">{{ invoiceData.BRId }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Status</th>
+                  <td class="text-end">{{ invoiceData.Status }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Amount</th>
+                  <td class="text-end">₹{{ invoiceData.Amount }}</td>
+                </tr>
+                <tr>
+                  <th class="text-purple">Transaction Time</th>
+                  <td class="text-end">{{ invoiceData.TimeStamp }}</td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="printFooter" class="text-center mt-4">
+          <small class="text-muted">
+            This is a digital document. No signature is required.
+            <br>
+            © InstantPayment
+          </small>
+        </div>
+      </div>
+
+      <div class="modal-footer d-flex justify-content-between">
+        <button class="btn btn-outline-secondary btn-sm" (click)="modal.dismiss()">Close</button>
+        <button class="btn btn-primary btn-sm" (click)="downloadInvoice()">
+          <i class="bi bi-download me-1"></i> Download Invoice
+        </button>
+        <button class="btn btn-primary btn-sm" (click)="printInvoice()">
+          <i class="bi bi-printer me-1"></i> Print Invoice
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</app-partner-shell>

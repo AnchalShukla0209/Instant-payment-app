@@ -13,6 +13,8 @@ export class ClientReportService {
 
   private url = `${environment.apiBaseUrl}/Client/Client-Report`;
   private url2 = `${environment.apiBaseUrl}/ClientUser/Client-Report`;
+  /** Secured, unencrypted endpoint for Distributor/Master Distributor scoped reports (JWT-authorized, AD/MD only). */
+  private partnerUsersUrl = `${environment.apiBaseUrl}/v1/partner/users/report`;
 
   constructor(private http: HttpClient, private encryptor: EncryptionService) {}
 
@@ -37,6 +39,11 @@ getClientUserReport(payload: GetUsersWithMainBalanceQuery): Observable<GetClient
       console.log(decrypted);
     })
   );
+}
+
+/** Used by Distributor/Master Distributor report pages. Scope is enforced server-side from the JWT, so no encryption is required. */
+getPartnerUserReport(payload: GetUsersWithMainBalanceQuery): Observable<GetClientUsersWithMainBalanceResponse> {
+  return this.http.post<GetClientUsersWithMainBalanceResponse>(this.partnerUsersUrl, payload);
 }
 
 

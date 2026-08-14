@@ -117,6 +117,7 @@ export class AEPSComponent {
     }
 
     this.CheckServiceStatus(Number(userId), userName)
+    await this.detectAvailableDevices(false);
 
     if (this.selectedAEPSProvider === 'FINO') {
       this.loadBanks();
@@ -236,6 +237,7 @@ export class AEPSComponent {
   }
 
   onTabSelect(service: string) {
+    this.invalidateFinoOtp();
     this.selectedService = service;
     this.selectedicon = this.selectedService === 'Balance Enquiry' ? 'bi-phone' : this.selectedService === 'Cash Withdrawal' ? 'bi-cash-stack'
       : this.selectedService === 'Cash Deposit' ? 'bi-wallet2' : this.selectedService === 'Mini Statement' ? 'bi-receipt-cutoff' :
@@ -248,6 +250,7 @@ export class AEPSComponent {
 
   onTabSelectAEPSChannel(channel: any) {
 
+    this.invalidateFinoOtp();
     this.selectedAEPSChannelKey = channel.key;     // Unique channel key
     this.selectedAEPSProvider = channel.key;  // FINO or JPB
     this.selectedAEPSLabel = channel.label;        // For UI if needed
@@ -518,6 +521,8 @@ export class AEPSComponent {
   originalFingerXml = '';
   npciTxnId = '';
   npciTxnRefNo = '';
+  npciUidaiDataTxn = '';
+  npciOtpContext = '';
 
   errors = {
     mobileNumber: '',
@@ -536,12 +541,21 @@ export class AEPSComponent {
   }
 
   selectedDevice = '';
+  showOtpField = false;
+  showJpbOtpField = false;
+  jpbOtpReferenceId = '';
+  jpbOtpContext = '';
+  jpbOtpResendDisabled = false;
+  private jpbResendTimeoutId: any = null;
 
-  devices: { id: string; label: string; icon: string }[] = [
+  allDevices: { id: string; label: string; icon: string }[] = [
     { id: 'Mantra', label: 'Mantra L1', icon: 'myntra.png' },
     { id: 'Morpho', label: 'Morpho L1', icon: 'morpho.jpg' },
     { id: 'Startek', label: 'Startek L1', icon: 'Startek.jpg' }
   ];
+  devices: { id: string; label: string; icon: string; ready: boolean; error: string }[] = [];
+  isDetectingDevices = false;
+  private rdServiceEndpoints: Record<string, { finalUrl: string; capturePath: string; infoPath: string; serviceInfo: string; ready: boolean; error: string }> = {};
 
   captureDone = signal(false);
   finalUrl: string = '';
@@ -560,60 +574,129 @@ export class AEPSComponent {
     return this.finalUrl + (path.startsWith('/') ? path : '/' + path);
   }
 
-  async discoverRdService(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<boolean> {
+  private getDeviceVendor(value: string): 'Mantra' | 'Morpho' | 'Startek' | null {
+    if (/mantra|mfs100|mappl/i.test(value)) return 'Mantra';
+    if (/morpho|safran|idemia|sclrd|mso/i.test(value)) return 'Morpho';
+    if (/startek|acpl|fm220/i.test(value)) return 'Startek';
+    return null;
+  }
+
+  private resolveRdUrl(serviceUrl: string, path: string, isHttps: boolean): string {
+    if (/^https?:\/\//i.test(path)) return path;
+    if (/^\/(\d{1,3}\.){3}\d{1,3}:\d+/.test(path)) {
+      return `${isHttps ? 'https' : 'http'}://${path.replace(/^\//, '')}`;
+    }
+    return serviceUrl + (path.startsWith('/') ? path : '/' + path);
+  }
+
+  private getDeviceReadiness(rdStatus: string, deviceInfoXml: string): { ready: boolean; error: string } {
+    const status = rdStatus.trim().toUpperCase();
+    const xmlDoc = new DOMParser().parseFromString(deviceInfoXml, 'text/xml');
+    const deviceInfo = xmlDoc.querySelector('DeviceInfo');
+    const errorNode = xmlDoc.querySelector('[errCode]');
+    const errorCode = errorNode?.getAttribute('errCode') || '';
+    const errorInfo = errorNode?.getAttribute('errInfo') || '';
+    const notReadyText = /not\s*ready|not\s*connected|device\s*not\s*found|no\s*device|disconnected|plug\s*in/i.test(deviceInfoXml);
+
+    if (status === 'NOTREADY') return { ready: false, error: errorInfo || 'Device is not connected or initialized' };
+    if (status === 'USED') return { ready: false, error: 'Device is being used by another application' };
+    if (status && status !== 'READY') return { ready: false, error: errorInfo || `RD service status is ${status}` };
+
+    const ready = status === 'READY' && !!deviceInfo && (!errorCode || errorCode === '0') && !notReadyText;
+    return { ready, error: ready ? '' : errorInfo || 'Device is not connected or ready' };
+  }
+
+  private async fetchRdService(url: string, method: string): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 1500);
+    try {
+      return await fetch(url, { method, mode: 'cors', signal: controller.signal });
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
+  async detectAvailableDevices(showError = true): Promise<boolean> {
+    if (this.isDetectingDevices) return this.devices.length > 0;
+    this.isDetectingDevices = true;
+    this.selectedDevice = '';
+    this.devices = [];
+    this.rdServiceEndpoints = {};
+
     const isHttps = window.location.href.includes('https');
     const primaryUrl = isHttps ? 'https://127.0.0.1:' : 'http://127.0.0.1:';
+    const ports = Array.from({ length: 21 }, (_, index) => 11100 + index);
 
-    const handleSuccess = (data: string, port: number): boolean => {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data, 'text/xml');
-      const rdService = xmlDoc.querySelector('RDService');
-      if (!rdService) return false;
+    const results = await Promise.all(ports.map(async port => {
+      try {
+        const serviceUrl = primaryUrl + port;
+        const serviceResponse = await this.fetchRdService(serviceUrl, 'RDSERVICE');
+        const serviceXml = await serviceResponse.text();
+        const xmlDoc = new DOMParser().parseFromString(serviceXml, 'text/xml');
+        const rdService = xmlDoc.querySelector('RDService');
+        if (!rdService) return null;
 
-      this.rdServiceInfo = rdService.getAttribute('info') || '';
-      this.finalUrl = primaryUrl + port;
-
-      // ✅ Device-specific interface parsing
-      if (deviceType === 'Mantra') {
-        xmlDoc.querySelectorAll('Interface').forEach((node) => {
+        let capturePath = '';
+        let infoPath = '';
+        xmlDoc.querySelectorAll('Interface').forEach(node => {
+          const id = (node.getAttribute('id') || '').toUpperCase();
           const path = node.getAttribute('path') || '';
-          if (path === '/rd/capture') this.MethodCapture = path;
-          if (path === '/rd/info') this.MethodInfo = path;
+          const normalizedPath = path.toLowerCase();
+          if (id === 'CAPTURE' || normalizedPath.endsWith('/capture')) capturePath = path;
+          if (id === 'DEVICEINFO' || normalizedPath.endsWith('/info')) infoPath = path;
         });
-      } else {
-        xmlDoc.querySelectorAll('Interface').forEach((node) => {
-          const id = node.getAttribute('id');
-          const path = node.getAttribute('path') || '';
-          if (id === 'CAPTURE') this.MethodCapture = path;
-          if (id === 'DEVICEINFO') this.MethodInfo = path;
-        });
+        if (!capturePath || !infoPath) return null;
+
+        const infoUrl = this.resolveRdUrl(serviceUrl, infoPath, isHttps);
+        const deviceInfoResponse = await this.fetchRdService(infoUrl, 'DEVICEINFO');
+        const deviceInfoXml = await deviceInfoResponse.text();
+        const serviceInfo = rdService.getAttribute('info') || '';
+        const rdStatus = rdService.getAttribute('status') || '';
+        const vendor = this.getDeviceVendor(`${serviceInfo} ${deviceInfoXml}`);
+        if (!vendor) return null;
+        const readiness = this.getDeviceReadiness(rdStatus, deviceInfoXml);
+
+        return { vendor, finalUrl: serviceUrl, capturePath, infoPath, serviceInfo, ...readiness };
+      } catch {
+        return null;
       }
+    }));
 
-      console.log(`✅ RDService found (${this.rdServiceInfo}) at port ${port}`);
-      return true;
-    };
-
-    return new Promise((resolve, reject) => {
-      const ports = Array.from({ length: 21 }, (_, i) => 11100 + i);
-
-      const tryNextPort = (index: number) => {
-        if (index >= ports.length) {
-          this.isLoading = false;
-          this.toastr.error('Connection failed. Please try again.');
-          return reject('Device not found');
-        }
-        const port = ports[index];
-        fetch(primaryUrl + port, { method: 'RDSERVICE', mode: 'cors' })
-          .then(res => res.text())
-          .then(data => {
-            if (handleSuccess(data, port)) resolve(true);
-            else tryNextPort(index + 1);
-          })
-          .catch(() => tryNextPort(index + 1));
-      };
-
-      tryNextPort(0);
+    results.forEach(result => {
+      if (result && (!this.rdServiceEndpoints[result.vendor] || (!this.rdServiceEndpoints[result.vendor].ready && result.ready))) {
+        this.rdServiceEndpoints[result.vendor] = result;
+      }
     });
+    this.devices = this.allDevices
+      .filter(device => !!this.rdServiceEndpoints[device.id])
+      .map(device => ({ ...device, ready: this.rdServiceEndpoints[device.id].ready, error: this.rdServiceEndpoints[device.id].error }));
+    this.isDetectingDevices = false;
+
+    if (!this.devices.length && showError) {
+      this.toastr.error('No supported biometric RD service found. Please install and start the device driver.');
+    }
+    return this.devices.length > 0;
+  }
+
+  async discoverRdService(deviceType: 'Mantra' | 'Morpho' | 'Startek'): Promise<boolean> {
+    if (!this.rdServiceEndpoints[deviceType]) await this.detectAvailableDevices();
+    const endpoint = this.rdServiceEndpoints[deviceType];
+    if (!endpoint) {
+      this.isLoading = false;
+      this.toastr.error(`${deviceType} RD service not found. Please verify its driver is installed and running.`);
+      throw new Error(`${deviceType} RD service not found`);
+    }
+    if (!endpoint.ready) {
+      this.isLoading = false;
+      this.toastr.error(`${deviceType}: ${endpoint.error}`);
+      throw new Error(`${deviceType}: ${endpoint.error}`);
+    }
+
+    this.rdServiceInfo = endpoint.serviceInfo;
+    this.finalUrl = endpoint.finalUrl;
+    this.MethodCapture = endpoint.capturePath;
+    this.MethodInfo = endpoint.infoPath;
+    return true;
   }
 
 
@@ -655,7 +738,7 @@ export class AEPSComponent {
     });
   }
 
-  async captureRdData(deviceType: 'Mantra' | 'Morpho' | 'Startek', otp?: string): Promise<string> {
+  async captureRdData(deviceType: 'Mantra' | 'Morpho' | 'Startek', otp?: string, pidProvider?: string): Promise<string> {
     this.isLoading = true;
     try {
       await this.discoverRdService(deviceType);
@@ -670,7 +753,8 @@ export class AEPSComponent {
       }
 
       // ✅ Different PidOptions depending on device / OTP
-      const config = PID_OPTIONS_CONFIG[this.selectedAEPSProvider][this.fingurdataKYCforJPB ? "EKYC" : "BALANCE"];
+      const provider = pidProvider || this.selectedAEPSProvider;
+      const config = PID_OPTIONS_CONFIG[provider][this.fingurdataKYCforJPB ? "EKYC" : "BALANCE"];
       const pidXml = this.buildPidXml(config, otp ? { otp } : undefined);
 
       const captureUrl = this.buildFullUrl(this.MethodCapture, isHttps);
@@ -709,17 +793,33 @@ export class AEPSComponent {
   }
 
 
-  selectDevice(deviceId: string) { this.selectedDevice = deviceId; }
+  selectDevice(deviceId: string) {
+    const device = this.devices.find(item => item.id === deviceId);
+    if (!device?.ready) {
+      this.selectedDevice = '';
+      this.toastr.error(`${device?.label || deviceId}: ${device?.error || 'Device is not connected or ready'}`);
+      return;
+    }
+    this.selectedDevice = deviceId;
+  }
   extractSrNo(xml: string): string {
     const match = xml.match(/srno="([^"]+)"/i);
     return match ? match[1] : "";
   }
-  startCapture(event?: Event, onComplete?: (xml: string) => void, otp?: string): void {
+  startTransactionCapture(event?: Event): void {
+    const pidProvider = this.usesFinoTransactionApi() ? 'FINO' : this.selectedAEPSProvider;
+    this.startCapture(event, undefined, undefined, pidProvider);
+  }
+
+  startCapture(event?: Event, onComplete?: (xml: string) => void, otp?: string, pidProvider?: string): void {
     event?.preventDefault();
     event?.stopPropagation();
     this.isLoading = true;
 
-    this.captureRdData(this.selectedDevice as 'Mantra' | 'Morpho' | 'Startek', otp)
+    const callback = onComplete ?? this.submitAeps.bind(this);
+    const needsOtpInPid = (pidProvider || this.selectedAEPSProvider) === 'FINO' || this.isJpbHighValueOtp();
+    const otpForPid = needsOtpInPid ? (otp ?? this.otp) : otp;
+    this.captureRdData(this.selectedDevice as 'Mantra' | 'Morpho' | 'Startek', otpForPid, pidProvider)
       .then(xml => {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xml, 'text/xml');
@@ -727,6 +827,7 @@ export class AEPSComponent {
         const errCode = resp?.getAttribute('errCode') || '0';
         const qScoreAttr = resp?.getAttribute('qScore');
         if (errCode !== '0') {
+          this.isLoading = false;
           this.fingerprintSuccess = false;
           this.toastr.error('Device not ready / Finger Capture Failed');
           return;
@@ -734,6 +835,7 @@ export class AEPSComponent {
         if (qScoreAttr && qScoreAttr.trim() !== '') {
           const qScore = Number(qScoreAttr);
           if (!isNaN(qScore) && qScore < 40) {
+            this.isLoading = false;
             this.fingerprintSuccess = false;
             this.toastr.error('Finger Mismatch');
             return;
@@ -745,13 +847,13 @@ export class AEPSComponent {
         this.fingerprintSuccess = true;
         this.toastr.success('Fingurprint Captured');
         this.selectedDevice = '';
-        if (onComplete) onComplete(xml);
+        callback(xml);
       })
       .catch(err => {
+        this.isLoading = false;
         this.fingerprintSuccess = false;
         this.toastr.error(err.message || 'Capture failed');
-      })
-      .finally(() => { this.isLoading = false; });
+      });
   }
 
 
@@ -778,7 +880,7 @@ export class AEPSComponent {
     this.toastMessages = this.toastMessages.filter(m => m !== msg);
   }
 
-  openPreviewModal(modalContent: any) {
+  async openPreviewModal(modalContent: any) {
 
     if (this.bankname == "") {
       this.toastr.error('Please Select Bank Name');
@@ -792,14 +894,41 @@ export class AEPSComponent {
       this.toastr.error('Please Enter Aadhar Number');
       return;
     }
-    if (['Cash Withdrawal', 'Cash Deposit'].includes(this.selectedService)) {
+    if (['Cash Withdrawal', 'Cash Deposit', 'Aadhar Pay'].includes(this.selectedService)) {
       if (this.amount == "" || this.amount <= 0) {
         this.toastr.error('Please Enter Amount');
         return;
       }
     }
+    if (this.isFinoHighValueOtp()) {
+      if (this.npciOtpContext !== this.getFinoOtpContext() || !this.npciTxnId || !this.npciTxnRefNo || !this.npciUidaiDataTxn) {
+        this.invalidateFinoOtp();
+        this.toastr.error('Please generate NPCI OTP for the current transaction details');
+        return;
+      }
+      if (!this.otp || !this.otp.trim()) {
+        this.toastr.error('Please enter NPCI OTP');
+        return;
+      }
+    }
 
+    this.fingerprintSuccess = false;
+    this.originalFingerXml = '';
+    this.capturedFingerData = '';
+    this.deviceSerialNumber = '';
+    this.isLoading = true;
+    const hasDevices = await this.detectAvailableDevices();
+    this.isLoading = false;
+    if (!hasDevices) return;
+
+    const readyDevices = this.devices.filter(device => device.ready);
     this.modalService.open(modalContent, { centered: true, size: 'md', backdrop: 'static', keyboard: false });
+    if (readyDevices.length === 1) {
+      this.selectedDevice = readyDevices[0].id;
+      window.setTimeout(() => this.startTransactionCapture(), 300);
+    } else if (!readyDevices.length) {
+      this.toastr.error(this.devices.map(device => `${device.label}: ${device.error}`).join(' | '));
+    }
   }
 
   generateCustomerRefNo(): string {
@@ -926,7 +1055,7 @@ export class AEPSComponent {
   submitAeps() {
     this.isLoading = true;
 
-    if (!this.fingerprintSuccess && !this.isFinoHighValueOtp()) {
+    if (!this.fingerprintSuccess) {
       this.toastr.error("Please capture fingerprint first");
       this.isLoading = false;
       return;
@@ -951,7 +1080,7 @@ export class AEPSComponent {
     }
 
     // Amount needed only for withdrawal / deposit
-    if (['Cash Withdrawal', 'Cash Deposit'].includes(this.selectedService) && (!this.amount || this.amount <= 0)) {
+    if (['Cash Withdrawal', 'Cash Deposit', 'Aadhar Pay'].includes(this.selectedService) && (!this.amount || this.amount <= 0)) {
       this.toastr.error("Enter valid amount");
       this.isLoading = false;
       return;
@@ -965,12 +1094,25 @@ export class AEPSComponent {
     if (this.selectedService === 'Mini Statement') txntype = 'ms';
     if (this.selectedService === 'Aadhar Pay') txntype = 'ap';
 
+    this.modalService.dismissAll();
+
     if (this.isFinoHighValueOtp()) {
-      this.processFinoOtpFlow(txntype);
+      if (this.npciOtpContext !== this.getFinoOtpContext() || !this.npciTxnId || !this.npciTxnRefNo || !this.npciUidaiDataTxn) {
+        this.invalidateFinoOtp();
+        this.toastr.error("Transaction details changed. Please generate a new NPCI OTP");
+        this.isLoading = false;
+        return;
+      }
+      if (!this.otp || !this.otp.trim()) {
+        this.toastr.error("Please enter NPCI OTP");
+        this.isLoading = false;
+        return;
+      }
+      this.submitFinoFinalWithOtp(txntype);
       return;
     }
 
-    if (this.selectedAEPSProvider == 'FINO') {
+    if (this.usesFinoTransactionApi()) {
       const payload: FinoAepsRequest = {
         SessionKey: this.sessionKey,
         APIKey: "FinoAEPS001",
@@ -992,6 +1134,20 @@ export class AEPSComponent {
     }
 
     else {
+      if (this.isJpbHighValueOtp()) {
+        if (this.jpbOtpContext !== this.getJpbOtpContext() || !this.jpbOtpReferenceId) {
+          this.invalidateJpbOtp();
+          this.toastr.error("Transaction details changed. Please generate a new NPCI OTP");
+          this.isLoading = false;
+          return;
+        }
+        if (!this.otp || !this.otp.trim()) {
+          this.toastr.error("Please enter NPCI OTP");
+          this.isLoading = false;
+          return;
+        }
+      }
+
       if (this.selectedService === 'Balance Enquiry') {
         const payload = {
           agentLoginId: this.authServiceobj.getAgentLoginId().toString(),
@@ -1091,7 +1247,8 @@ export class AEPSComponent {
           comingFrom: "WEB",
           amount: this.amount,
           userId: this.authServiceobj.getUserId().toString(),
-          AuthType: "FINGER"
+          AuthType: "FINGER",
+          authenticationToken: this.isJpbHighValueOtp() ? this.jpbOtpReferenceId : ''
         };
 
         this.aepsService.jpbCashWithdrawal(payload).subscribe({
@@ -1264,21 +1421,23 @@ export class AEPSComponent {
           next: (res) => {
             this.isLoading = false;
 
-            if (!res?.success) {
+            const apiResponseMessage = res?.parsedResponse?.responseMessage || res?.responseMessage || res?.message;
+
+            if (!res?.success || res?.parsedResponse?.responseCode !== '00') {
               let resData: JIODailyTokenResponse = {
                 aepsauthtoken: res.accessToken,
                 appidentifiertoken: res.appIdentifierToken,
               };
               this.authServiceobj.SaveTokenForJPB(resData);
-              if (res?.message?.toLowerCase()?.includes("uidai technical error") || res?.responseMessage?.toLowerCase()?.includes("uidai technical error")) {
+              if (apiResponseMessage?.toLowerCase()?.includes("uidai technical error")) {
                 this.toastr.error("Finger mismatch, please try again");
                 this.fingerprintSuccess = false;
                 this.originalFingerXml = "";
                 this.capturedFingerData = "";
                 this.selectedDevice = '';
               } else {
-                this.toastr.error(res?.responseMessage || res?.message || "Transaction Failed");
-                if (res?.message?.toLowerCase()?.includes("finger print data is missing") || res?.message?.toLowerCase()?.includes("invalid application access token format") || res?.message?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again") || res?.responseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
+                this.toastr.error(apiResponseMessage || "Transaction Failed");
+                if (apiResponseMessage?.toLowerCase()?.includes("finger print data is missing") || apiResponseMessage?.toLowerCase()?.includes("invalid application access token format") || apiResponseMessage?.toLowerCase()?.includes("u3-biometric authentication is failed. please try again")) {
                   this.fingerprintSuccess = false;
                   this.originalFingerXml = "";
                 }
@@ -1597,14 +1756,144 @@ export class AEPSComponent {
     }, 500);
   }
 
+  getFinoOtpContext(): string {
+    return [
+      this.selectedAEPSProvider,
+      this.selectedService,
+      this.bankname?.toString().trim(),
+      this.mobileNumber?.toString().trim(),
+      this.mobileAadhar?.toString().trim(),
+      Number(this.amount).toString()
+    ].join('|');
+  }
+
+  invalidateFinoOtp() {
+    this.showOtpField = false;
+    this.otp = '';
+    this.npciTxnId = '';
+    this.npciTxnRefNo = '';
+    this.npciUidaiDataTxn = '';
+    this.npciOtpContext = '';
+  }
+
+  usesFinoTransactionApi(): boolean {
+    return this.selectedAEPSProvider === 'FINO' || this.selectedService === 'Aadhar Pay';
+  }
+
   isFinoHighValueOtp(): boolean {
-    return this.selectedAEPSProvider === 'FINO' &&
+    return this.usesFinoTransactionApi() &&
       (this.selectedService === 'Cash Withdrawal' || this.selectedService === 'Aadhar Pay') &&
       Number(this.amount) > 5000;
   }
 
+  isJpbHighValueOtp(): boolean {
+    return this.selectedAEPSProvider === 'JPB' &&
+      this.selectedService === 'Cash Withdrawal' &&
+      Number(this.amount) > 5000;
+  }
+
+  getJpbOtpContext(): string {
+    return [
+      this.selectedAEPSProvider,
+      this.selectedService,
+      this.bankname?.toString().trim(),
+      this.mobileNumber?.toString().trim(),
+      this.mobileAadhar?.toString().trim(),
+      Number(this.amount).toString()
+    ].join('|');
+  }
+
+  invalidateJpbOtp() {
+    this.showJpbOtpField = false;
+    this.jpbOtpReferenceId = '';
+    this.jpbOtpContext = '';
+    this.otp = '';
+    this.jpbOtpResendDisabled = false;
+    if (this.jpbResendTimeoutId) {
+      clearTimeout(this.jpbResendTimeoutId);
+      this.jpbResendTimeoutId = null;
+    }
+  }
+
+  generateJpbOtp() {
+    if (!this.bankname) { this.toastr.error('Please select bank'); return; }
+    if (!this.mobileNumber || this.mobileNumber.toString().length !== 10) { this.toastr.error('Please enter valid mobile number'); return; }
+    if (!this.mobileAadhar || this.mobileAadhar.length !== 12) { this.toastr.error('Please enter valid Aadhaar number'); return; }
+    if (!this.amount || this.amount <= 0) { this.toastr.error('Please enter valid amount'); return; }
+    if (!this.isJpbHighValueOtp()) { this.toastr.error('OTP generation is applicable only for JPB AEPS Cash Withdrawal above ₹5,000'); return; }
+
+    const requestContext = this.getJpbOtpContext();
+    this.invalidateJpbOtp();
+    this.isLoading = true;
+
+    const payload = {
+      agentLoginId: this.authServiceobj.getAgentLoginId().toString(),
+      aadhaar: this.mobileAadhar.toString(),
+      bankId: this.bankname.toString(),
+      mobile: this.mobileNumber.toString(),
+      amount: this.amount,
+      accessToken: this.authServiceobj.getAgentAccessToken().toString(),
+      appIdentifierToken: this.authServiceobj.getAgentAppIdentifierToken().toString()
+    };
+
+    this.aepsService.jpbGenerateOtp(payload).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (this.getJpbOtpContext() !== requestContext) {
+          this.invalidateJpbOtp();
+          this.toastr.warning("Transaction details changed. Please generate a new OTP.");
+          return;
+        }
+        if (!res?.success && res?.responseCode !== '00') {
+          this.toastr.error(res?.responseMessage || "NPCI OTP generation failed");
+          this.showJpbOtpField = false;
+          return;
+        }
+        this.jpbOtpReferenceId = res?.responseData?.otpReferenceId ?? "";
+        if (!this.jpbOtpReferenceId) {
+          this.showJpbOtpField = false;
+          this.toastr.error("Invalid OTP response from server");
+          return;
+        }
+
+        const resData: JIODailyTokenResponse = {
+          aepsauthtoken: res.accessToken,
+          appidentifiertoken: res.appIdentifierToken,
+        };
+        this.authServiceobj.SaveTokenForJPB(resData);
+
+        this.jpbOtpContext = requestContext;
+        this.otp = '';
+        this.showJpbOtpField = true;
+        this.jpbOtpResendDisabled = true;
+        if (this.jpbResendTimeoutId) { clearTimeout(this.jpbResendTimeoutId); this.jpbResendTimeoutId = null; }
+        this.jpbResendTimeoutId = setTimeout(() => this.jpbOtpResendDisabled = false, 10000);
+        this.toastr.success(res?.responseMessage || "NPCI OTP reference generated successfully");
+      },
+      error: () => {
+        this.isLoading = false;
+        this.showJpbOtpField = false;
+        this.jpbOtpResendDisabled = false;
+        this.toastr.error("NPCI OTP API error. Try again.");
+      }
+    });
+  }
+
   // FINO high-value (> ₹5000) NPCI step-up OTP flow
-  processFinoOtpFlow(txntype: string) {
+  generateFinoOtp() {
+    if (!this.bankname) { this.toastr.error('Please select bank'); return; }
+    if (!this.mobileNumber || this.mobileNumber.toString().length !== 10) { this.toastr.error('Please enter valid mobile number'); return; }
+    if (!this.mobileAadhar || this.mobileAadhar.length !== 12) { this.toastr.error('Please enter valid Aadhaar number'); return; }
+    if (!this.amount || this.amount <= 0) { this.toastr.error('Please enter valid amount'); return; }
+    if (!this.isFinoHighValueOtp()) { this.toastr.error('OTP generation is applicable only for FINO AEPS transactions above ₹5,000'); return; }
+
+    let txntype = '';
+    if (this.selectedService === 'Cash Withdrawal') txntype = 'cw';
+    if (this.selectedService === 'Aadhar Pay') txntype = 'ap';
+
+    const requestContext = this.getFinoOtpContext();
+    this.invalidateFinoOtp();
+    this.isLoading = true;
     const npciPayload: FinoAepsRequest = {
       SessionKey: this.sessionKey,
       APIKey: "FinoAEPS001",
@@ -1620,61 +1909,41 @@ export class AEPSComponent {
       DeviceSrNo: this.deviceSerialNumber,
       deviceType: "2",
       txntype: "npciotp",
-      npciOtpFor: txntype === 'cw' ? "CASHWAEPS" : "AdharPay",
+      npciOtpFor: txntype === 'cw' ? "CASHWAEPSACQ" : "CASHWAPAYACQ",
       comingFrom: "Web"
     };
 
     this.aepsService.finoLogin(npciPayload).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-        if (res?.Status_Code != "1") {
-          this.toastr.error(res?.Message || "NPCI OTP generation failed");
+        if (this.getFinoOtpContext() !== requestContext) {
+          this.invalidateFinoOtp();
+          this.toastr.warning("Transaction details changed. Please generate a new OTP.");
           return;
         }
-        this.npciTxnId = res?.Data?.TransactionId ?? "";
-        this.npciTxnRefNo = res?.Data?.TxnReferenceNo ?? "";
-        if (!this.npciTxnId || !this.npciTxnRefNo) {
+        if (res?.Status_Code != "1") {
+          this.toastr.error(res?.Message || "NPCI OTP generation failed");
+          this.showOtpField = false;
+          return;
+        }
+        this.npciTxnId = res?.Data?.transactionId ?? "";
+        this.npciTxnRefNo = res?.Data?.txnReferenceNo ?? "";
+        this.npciUidaiDataTxn = res?.Data?.uidaiDataTxn ?? "";
+        this.otp = '';
+        if (!this.npciTxnId || !this.npciTxnRefNo || !this.npciUidaiDataTxn) {
+          this.showOtpField = false;
           this.toastr.error("Invalid OTP response from server");
           return;
         }
-        this.promptForOtpAndCapture(txntype);
+        this.npciOtpContext = requestContext;
+        this.showOtpField = true;
+        this.toastr.success(res?.Message || "NPCI OTP sent to Aadhaar linked mobile");
       },
       error: () => {
         this.isLoading = false;
+        this.showOtpField = false;
         this.toastr.error("NPCI OTP API error. Try again.");
       }
-    });
-  }
-
-  promptForOtpAndCapture(txntype: string) {
-    Swal.fire({
-      title: 'Enter NPCI OTP',
-      input: 'text',
-      inputPlaceholder: 'Enter OTP received on Aadhaar linked mobile',
-      allowOutsideClick: false,
-      showCancelButton: true,
-      confirmButtonText: 'Scan Fingerprint & Submit',
-      cancelButtonText: 'Cancel'
-    }).then((result: any) => {
-      if (!result.isConfirmed || !result.value) {
-        this.isLoading = false;
-        this.toastr.warning("Transaction cancelled");
-        return;
-      }
-      const otp = result.value.toString().trim();
-      if (!otp) {
-        this.isLoading = false;
-        this.toastr.error("OTP is required");
-        return;
-      }
-      this.otp = otp;
-      if (!this.selectedDevice) {
-        this.isLoading = false;
-        this.toastr.error("Please select fingerprint device");
-        return;
-      }
-      this.isLoading = true;
-      this.startCapture(undefined, () => this.submitFinoFinalWithOtp(txntype), otp);
     });
   }
 
@@ -1696,6 +1965,7 @@ export class AEPSComponent {
       txntype: txntype,
       npciTxnId: this.npciTxnId,
       npciTxnRefNo: this.npciTxnRefNo,
+      uidaiDataTxn: this.npciUidaiDataTxn,
       comingFrom: "Web"
     };
     this.callFinoAeps(payload, txntype);

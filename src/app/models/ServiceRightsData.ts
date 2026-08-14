@@ -4,6 +4,8 @@ export interface ServiceRightsData {
   billpayment: string;
   mobilerecharge: string;
   aeps: string;
+  razorpaypayment: string;
+  settlement: string;
 }
 
 export interface ServiceRightsDataRes {
@@ -13,4 +15,6 @@ export interface ServiceRightsDataRes {
   mobilerecharge: string;
   aeps: string;
   upipayment: string;
+  razorpaypayment: string;
+  settlement: string;
 }

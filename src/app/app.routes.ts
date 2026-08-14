@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { ErrorPageComponent } from './components/error-page/error-page.component';
 import { LoginComponent } from './components/Login/login.component';
+import { DistributorLoginComponent } from './components/Distributor-Login/distributor-login.component';
+import { DistributorDashboardComponent } from './components/Distributor-Dashboard/distributor-dashboard.component';
+import { MasterDistributorLoginComponent } from './components/Master-Distributor-Login/master-distributor-login.component';
 import { ForgetPasswordComponent } from './components/forget-password/forget-password.component';
 import { DashboardComponent } from './components/Dashboard/dashboard.component';
 import { superadmindashboardComponent } from './components/Dashboard/dashboard.superadmin.component';
@@ -24,6 +27,7 @@ import { ChangepinComponent } from './components/change-pin/changepin.component'
 import { AdminConfigComponent } from './components/Feature-Toggle/AdminConfig.component';
 import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/auth.guard';
+import { serviceRightGuard } from './guards/service-right.guard';
 import { RazorPayPaymentComponent } from './components/RazorPay/RazorPayPayment.component';
 import { SettlementComponent } from './components/Settlement/Settlement.component';
 import { AppReleaseComponent } from './components/AppRelease/app-release.component';
@@ -31,9 +35,114 @@ import { WhatsAppBroadcastComponent } from './components/WhatsApp-Broadcast/what
 import { PlanManagementComponent } from './components/PlanManagement/plan-management.component';
 import { CommissionSlabComponent } from './components/CommissionSlab/commission-slab.component';
 import { PpiLoadWalletComponent } from './components/PPI-Load-Wallet/ppi-load-wallet.component';
+import { DistributorUserReportComponent } from './components/Distributor-User-Report/DistributorUserReport.component';
+import { MasterDistributorReportComponent } from './components/Master-Distributor-Report/MasterDistributorReport.component';
+import { PartnerPaymentRequestComponent } from './components/Partner-Payment-Request/partner-payment-request.component';
+import { PartnerPaymentReportComponent } from './components/Partner-Payment-Report/partner-payment-report.component';
+import { PartnerTxnReportComponent } from './components/Partner-Txn-Report/partner-txn-report.component';
+import { PartnerChangePasswordComponent } from './components/Partner-Change-Password/partner-change-password.component';
+import { PartnerChangePinComponent } from './components/Partner-Change-Pin/partner-change-pin.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: 'distributor-login', component: DistributorLoginComponent },
+  { path: 'master-distributor-login', component: MasterDistributorLoginComponent },
+  {
+    path: 'distributor/dashboard',
+    component: DistributorDashboardComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'AD' }
+  },
+  {
+    path: 'master-distributor/dashboard',
+    component: DistributorDashboardComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'MD' }
+  },
+  {
+    path: 'distributor/users',
+    component: DistributorUserReportComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'AD' }
+  },
+  {
+    path: 'master-distributor/users',
+    component: MasterDistributorReportComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'MD' }
+  },
+  {
+    path: 'distributor/payment-request',
+    component: PartnerPaymentRequestComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'AD' }
+  },
+  {
+    path: 'master-distributor/payment-request',
+    component: PartnerPaymentRequestComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'MD' }
+  },
+  {
+    path: 'distributor/payment-report',
+    component: PartnerPaymentReportComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'AD' }
+  },
+  {
+    path: 'master-distributor/payment-report',
+    component: PartnerPaymentReportComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'MD' }
+  },
+  {
+    path: 'distributor/txn-report',
+    component: PartnerTxnReportComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'AD' }
+  },
+  {
+    path: 'master-distributor/txn-report',
+    component: PartnerTxnReportComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'MD' }
+  },
+  {
+    path: 'distributor/change-password',
+    component: PartnerChangePasswordComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'AD' }
+  },
+  {
+    path: 'master-distributor/change-password',
+    component: PartnerChangePasswordComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'MD' }
+  },
+  {
+    path: 'distributor/change-mpin',
+    component: PartnerChangePinComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'AD', pinMode: 'mpin' }
+  },
+  {
+    path: 'master-distributor/change-mpin',
+    component: PartnerChangePinComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'MD', pinMode: 'mpin' }
+  },
+  {
+    path: 'distributor/change-txn-pin',
+    component: PartnerChangePinComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'AD', pinMode: 'txn' }
+  },
+  {
+    path: 'master-distributor/change-txn-pin',
+    component: PartnerChangePinComponent,
+    canActivate: [authGuard],
+    data: { partnerRole: 'MD', pinMode: 'txn' }
+  },
   { path: 'reset-password', component: ForgetPasswordComponent },
   {
     path: '',
@@ -60,8 +169,8 @@ export const routes: Routes = [
       { path: 'changepassword', component: ChangePasswordComponent, canActivate: [authGuard] },
       { path: 'changepin', component: ChangepinComponent, canActivate: [authGuard] },
       { path: 'featureToggle', component: AdminConfigComponent, canActivate: [authGuard] },
-      { path: 'razorpaypayment', component: RazorPayPaymentComponent, canActivate: [authGuard] },
-      { path: 'settlement', component: SettlementComponent, canActivate: [authGuard] },
+      { path: 'razorpaypayment', component: RazorPayPaymentComponent, canActivate: [authGuard, serviceRightGuard], data: { serviceRight: 'razorpaypayment' } },
+      { path: 'settlement', component: SettlementComponent, canActivate: [authGuard, serviceRightGuard], data: { serviceRight: 'settlement' } },
       { path: 'app-release', component: AppReleaseComponent, canActivate: [authGuard] },
       { path: 'whatsapp-broadcast', component: WhatsAppBroadcastComponent, canActivate: [authGuard] },
       { path: 'plan-management', component: PlanManagementComponent, canActivate: [authGuard] },
