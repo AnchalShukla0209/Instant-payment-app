@@ -1,32 +1,30 @@
-import { Component, signal, ViewChild, inject, NgZone, ElementRef } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, FormGroup, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NgbModal, NgbTypeaheadModule, NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
+import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { LoaderComponent } from '../app-loader/loader.component';
-import { AuthService } from '../../services/auth.service';
-import { MasterService } from '../../services/master.service';
 import { AdminConfigService } from '../../services/admin.service';
-import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
-import { NgSelectModule } from '@ng-select/ng-select';
 import { AdminFeature, AdminProvider } from '../../models/AdminFeature'
 
 @Component({
     selector: 'app-adminconfig',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, NgbTypeaheadModule, NgbToastModule, LoaderComponent, NgSelectModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: './AdminConfig.component.html',
     styleUrls: ['./AdminConfig.component.scss']
 })
 export class AdminConfigComponent {
-    constructor(private modalService: NgbModal, private toastr: ToastrService, private masterService: MasterService, private adminApi: AdminConfigService) { }
-    services = ['AEPS', 'DMT', 'BILLPAY'];
+    constructor(private toastr: ToastrService, private adminApi: AdminConfigService) { }
+    services = ['AEPS', 'DMT', 'BILLPAY', 'SETTLEMENT'];
     selectedService!: string;
     selectedProvider: string | null = null;
     selectedProviderEnabled = true;
     providers: AdminProvider[] = [];
     features: AdminFeature[] = [];
+    switchingProvider: string | null = null;
+
+    get isSettlement(): boolean {
+        return this.selectedService === 'SETTLEMENT';
+    }
     onServiceChange() {
         this.selectedProvider = null;
         this.features = [];
@@ -41,7 +39,13 @@ export class AdminConfigComponent {
         }
 
         this.adminApi.getProviders(this.selectedService)
-            .subscribe(res => this.providers = res);
+            .subscribe({
+                next: res => {
+                    this.providers = res;
+                    this.loadFeatures();
+                },
+                error: () => this.toastr.error('Unable to load providers')
+            });
     }
 
 
@@ -130,6 +134,37 @@ export class AdminConfigComponent {
             featureCode: row.key,
             isEnabled: checked
         }).subscribe();
+    }
+
+    selectSettlementProvider(provider: AdminProvider): void {
+        if (provider.isEnabled || this.switchingProvider) return;
+
+        this.switchingProvider = provider.key;
+        this.adminApi.toggleapiProvider({
+            serviceCode: 'SETTLEMENT',
+            providerCode: provider.key,
+            isEnabled: true
+        }).subscribe({
+            next: () => {
+                this.providers = this.providers.map(item => ({
+                    ...item,
+                    isEnabled: item.key === provider.key
+                }));
+                this.features = this.providers.map(item => ({
+                    key: item.key,
+                    label: item.label,
+                    icon: item.key === 'RBL' ? 'bi-bank2' : 'bi-lightning-charge',
+                    isEnabled: item.isEnabled,
+                    providerCode: ''
+                }));
+                this.switchingProvider = null;
+                this.toastr.success(`${provider.label} is now handling settlements`);
+            },
+            error: () => {
+                this.switchingProvider = null;
+                this.toastr.error('Settlement provider could not be changed');
+            }
+        });
     }
 
 

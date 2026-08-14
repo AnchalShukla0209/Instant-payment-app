@@ -1,0 +1,30 @@
+<section class="rbl-workspace">
+  <header class="bank-hero">
+    <div class="hero-copy"><span class="bank-tag"><i class="bi bi-shield-check"></i> SUPERADMIN · SECURE BANKING</span><h2>RBL Statement Intelligence</h2><p>Live account balances and bank-grade transaction reconciliation.</p></div>
+    <div class="bank-badge"><span>RBL</span><small>Corporate Banking</small></div>
+  </header>
+
+  <div class="query-card">
+    <div class="mode-switch"><button [class.active]="mode === 'range'" (click)="mode='range'"><i class="bi bi-calendar3"></i> Date range</button><button [class.active]="mode === 'period'" (click)="mode='period'"><i class="bi bi-clock-history"></i> Statement period</button></div>
+    <div class="filter-grid">
+      <label *ngIf="mode === 'range'"><span>From date</span><input type="date" class="form-control" [(ngModel)]="fromDate" [max]="maxDate"></label>
+      <label *ngIf="mode === 'range'"><span>To date</span><input type="date" class="form-control" [(ngModel)]="toDate" [max]="maxDate"></label>
+      <label *ngIf="mode === 'period'"><span>Statement period</span><select class="form-select" [(ngModel)]="period"><option value="M">Monthly</option><option value="Q">Quarterly</option><option value="H">Half-yearly</option><option value="Y">Yearly</option></select></label>
+      <label><span>Transaction type</span><select class="form-select" [(ngModel)]="transactionType"><option value="B">All transactions</option><option value="C">Credits only</option><option value="D">Debits only</option></select></label>
+      <button class="fetch-btn" (click)="fetchStatement()" [disabled]="loading"><span *ngIf="loading" class="spinner-border spinner-border-sm"></span><i *ngIf="!loading" class="bi bi-arrow-repeat"></i> {{ loading ? 'Connecting…' : 'Fetch statement' }}</button>
+    </div>
+  </div>
+
+  <div class="balance-grid" *ngIf="balance">
+    <article class="balance-card primary"><small>Available balance</small><strong>₹{{ amount(balance.availableBalance) | number:'1.2-2' }}</strong><span><i class="bi bi-check-circle-fill"></i> Funds available</span></article>
+    <article class="balance-card"><small>Ledger balance</small><strong>₹{{ amount(balance.ledgerBalance) | number:'1.2-2' }}</strong><span>Account ending {{ (balance.acid || '').slice(-4) }}</span></article>
+    <article class="balance-card"><small>Floating balance</small><strong>₹{{ amount(balance.floatingBalance) | number:'1.2-2' }}</strong><span>Branch {{ balance.branchId || '—' }}</span></article>
+  </div>
+
+  <div class="transactions-card" *ngIf="searched">
+    <div class="table-title"><div><span class="eyebrow">RECONCILIATION LEDGER</span><h4>Transaction activity</h4></div><span class="count-pill">{{ transactions.length }} records</span></div>
+    <div class="table-responsive" *ngIf="transactions.length; else emptyState"><table class="table align-middle"><thead><tr><th>Date</th><th>Reference</th><th>Narration</th><th>Type</th><th class="text-end">Amount</th><th class="text-end">Balance</th></tr></thead><tbody><tr *ngFor="let txn of transactions; trackBy: trackTxn"><td><strong>{{ txn.txnSummary?.txnDate || txn.transactionSummary?.txnDate | date:'dd MMM yyyy' }}</strong><small>{{ txn.pstdDate | date:'hh:mm a' }}</small></td><td class="mono">{{ txn.txnId?.trim() || '—' }}</td><td class="description">{{ txn.transactionSummary?.txnDesc?.trim() || '—' }}</td><td><span class="txn-type" [class.credit]="txn.transactionSummary?.txnType === 'C'">{{ txn.transactionSummary?.txnType === 'C' ? 'Credit' : 'Debit' }}</span></td><td class="text-end amount" [class.credit-text]="txn.transactionSummary?.txnType === 'C'">{{ txn.transactionSummary?.txnType === 'C' ? '+' : '−' }} ₹{{ amount(txn.transactionSummary?.txnAmt) | number:'1.2-2' }}</td><td class="text-end">₹{{ amount(txn.txnBalance) | number:'1.2-2' }}</td></tr></tbody></table></div>
+    <ng-template #emptyState><div class="empty-state"><i class="bi bi-inbox"></i><h5>No transactions found</h5><p>Try another date range or transaction type.</p></div></ng-template>
+    <div class="more-note" *ngIf="hasMoreData"><i class="bi bi-info-circle"></i> RBL has more records available for this statement.</div>
+  </div>
+</section>

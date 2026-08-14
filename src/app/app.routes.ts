@@ -42,6 +42,7 @@ import { PartnerPaymentReportComponent } from './components/Partner-Payment-Repo
 import { PartnerTxnReportComponent } from './components/Partner-Txn-Report/partner-txn-report.component';
 import { PartnerChangePasswordComponent } from './components/Partner-Change-Password/partner-change-password.component';
 import { PartnerChangePinComponent } from './components/Partner-Change-Pin/partner-change-pin.component';
+import { RblSettlementComponent } from './components/RBL-Settlement/rbl-settlement.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -169,6 +170,8 @@ export const routes: Routes = [
       { path: 'changepassword', component: ChangePasswordComponent, canActivate: [authGuard] },
       { path: 'changepin', component: ChangepinComponent, canActivate: [authGuard] },
       { path: 'featureToggle', component: AdminConfigComponent, canActivate: [authGuard] },
+      { path: 'rbl-statement', component: RblSettlementComponent, canActivate: [authGuard] },
+      { path: 'rbl-settlement', redirectTo: 'rbl-statement', pathMatch: 'full' },
       { path: 'razorpaypayment', component: RazorPayPaymentComponent, canActivate: [authGuard, serviceRightGuard], data: { serviceRight: 'razorpaypayment' } },
       { path: 'settlement', component: SettlementComponent, canActivate: [authGuard, serviceRightGuard], data: { serviceRight: 'settlement' } },
       { path: 'app-release', component: AppReleaseComponent, canActivate: [authGuard] },
@@ -210,4 +213,3 @@ export const routes: Routes = [
   // fallback — unknown routes show 404 page
   { path: '**', redirectTo: 'not-found' }
 ];
-
