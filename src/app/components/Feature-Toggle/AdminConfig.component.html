@@ -1,79 +1,29 @@
-<section class="config-shell">
-<div class="config-hero">
-  <div>
-    <span class="eyebrow">CONTROL CENTRE</span>
-    <h2>Feature orchestration</h2>
-    <p>Manage live service providers and capabilities from one secure workspace.</p>
-  </div>
-  <div class="hero-mark"><i class="bi bi-toggles2"></i></div>
-</div>
+<section class="feature-page">
+  <div class="page-heading"><div><span class="breadcrumb">Platform <i class="bi bi-chevron-right"></i> Feature Management</span><h1>Feature Toggles</h1><p>Control service availability safely across providers</p></div><span class="secure-pill"><i class="bi bi-shield-check"></i> Live configuration</span></div>
 
-<div class="selector-panel row g-3 mb-4">
-  <div class="col-md-4">
-    <label class="form-label">Service</label>
-    <select class="form-select" [(ngModel)]="selectedService" (change)="onServiceChange()">
-      <option value="" disabled selected>Select Service</option>
-      <option *ngFor="let s of services" [value]="s">{{ s }}</option>
-    </select>
+  <div class="scope-bar">
+    <label><span>Service</span><select class="form-select" [(ngModel)]="selectedService" (change)="onServiceChange()"><option value="" disabled>Select service</option><option *ngFor="let s of services" [value]="s">{{ s }}</option></select></label>
+    <label><span>Provider</span><select class="form-select" [(ngModel)]="selectedProvider" (change)="onProviderChange()" [disabled]="!selectedService || selectedService === 'BILLPAY' || isSettlement"><option value="">All providers</option><option *ngFor="let p of providers" [value]="p.key">{{ p.label }}</option></select></label>
+    <button type="button" class="reset-btn" (click)="selectedService=''; selectedProvider=null; features=[]; providers=[]; resetView()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
   </div>
 
-  <div class="col-md-4">
-    <label class="form-label">Provider</label>
-    <select class="form-select" [(ngModel)]="selectedProvider" (change)="onProviderChange()">
-      <option value="">All Providers</option>
-      <option *ngFor="let p of providers" [value]="p.key">{{ p.label }}</option>
-    </select>
+  <div class="stats-grid">
+    <article><span class="stat-icon purple"><i class="bi bi-layers"></i></span><div><small>Total items</small><strong>{{ features.length }}</strong><span>Current selection</span></div></article>
+    <article><span class="stat-icon green"><i class="bi bi-check-circle"></i></span><div><small>Enabled</small><strong>{{ enabledCount }}</strong><span>Available now</span></div></article>
+    <article><span class="stat-icon gray"><i class="bi bi-slash-circle"></i></span><div><small>Disabled</small><strong>{{ disabledCount }}</strong><span>Access restricted</span></div></article>
   </div>
-</div>
 
-<div class="settlement-panel" *ngIf="isSettlement">
-  <div class="panel-heading">
-    <div><span class="eyebrow">SETTLEMENT ROUTING</span><h4>Choose the active banking rail</h4></div>
-    <span class="live-pill"><span></span> Live configuration</span>
-  </div>
-  <div class="provider-grid">
-    <button type="button" class="provider-card" *ngFor="let provider of providers"
-      [class.active]="provider.isEnabled" [disabled]="!!switchingProvider"
-      (click)="selectSettlementProvider(provider)">
-      <span class="provider-icon"><i class="bi" [ngClass]="provider.key === 'RBL' ? 'bi-bank2' : 'bi-lightning-charge-fill'"></i></span>
-      <span class="provider-copy"><strong>{{ provider.key }}</strong><small>{{ provider.label }}</small></span>
-      <span class="provider-state" [class.on]="provider.isEnabled">
-        <i class="bi" [ngClass]="provider.isEnabled ? 'bi-check-circle-fill' : 'bi-arrow-right-circle'"></i>
-        {{ provider.isEnabled ? 'Active rail' : (switchingProvider === provider.key ? 'Switching…' : 'Set active') }}
-      </span>
-    </button>
-  </div>
-  <div class="routing-note"><i class="bi bi-shield-check"></i> Only one provider can be active. New settlement requests are routed immediately after switching.</div>
-</div>
-
-<div class="table-panel" *ngIf="!isSettlement && selectedService">
-<table class="table align-middle mb-0">
-  <thead class="table-light">
-    <tr>
-      <th>Feature</th>
-      <th>Icon</th>
-      <th>Status</th>
-      <th>Enable / Disable</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <tr *ngFor="let f of features">
-      <td>{{ f.label }}</td>
-      <td><i class="bi" [ngClass]="f.icon"></i></td>
-      <td>
-        <span class="badge" [ngClass]="f.isEnabled ? 'bg-success' : 'bg-danger'">
-          {{ f.isEnabled ? 'Enabled' : 'Disabled' }}
-        </span>
-      </td>
-      <td>
-        <input type="checkbox"
-               class="form-check-input"
-               [checked]="f.isEnabled"
-               (change)="toggleFeature(f, $event.target.checked)">
-      </td>
-    </tr>
-  </tbody>
-</table>
-</div>
+  <section class="management-card" *ngIf="selectedService; else selectService">
+    <ng-container *ngIf="isSettlement; else featureList">
+      <div class="card-heading"><div><h2>Settlement routing</h2><p>Select the provider responsible for new settlement requests</p></div><span class="record-count">{{ providers.length }} providers</span></div>
+      <div class="provider-list"><button type="button" *ngFor="let provider of providers" [class.active]="provider.isEnabled" [disabled]="!!switchingProvider" (click)="selectSettlementProvider(provider)"><span class="provider-logo"><i class="bi" [ngClass]="provider.key === 'RBL' ? 'bi-bank2' : 'bi-lightning-charge'"></i></span><span><strong>{{ provider.label }}</strong><small>{{ provider.key }} banking rail</small></span><span class="route-status" [class.on]="provider.isEnabled">{{ provider.isEnabled ? 'Active' : (switchingProvider === provider.key ? 'Switching…' : 'Set active') }}</span></button></div>
+    </ng-container>
+    <ng-template #featureList>
+      <div class="card-heading"><div><h2>{{ selectedProvider ? 'Provider Features' : (selectedService === 'BILLPAY' ? 'Service Features' : 'Service Providers') }}</h2><p>Manage capabilities for {{ selectedProvider || selectedService }}</p></div><span class="record-count">{{ filteredFeatures.length }} records</span></div>
+      <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input [(ngModel)]="searchTerm" (ngModelChange)="currentPage=1" placeholder="Search features..."></div><div class="filter-tabs"><button [class.active]="statusFilter==='all'" (click)="setStatusFilter('all')">All</button><button [class.active]="statusFilter==='enabled'" (click)="setStatusFilter('enabled')">Enabled</button><button [class.active]="statusFilter==='disabled'" (click)="setStatusFilter('disabled')">Disabled</button></div></div>
+      <div class="feature-table"><div class="table-head"><span>Feature</span><span>Status</span><span>Environment</span><span>Actions</span></div><div class="feature-row" *ngFor="let f of pagedFeatures"><div class="feature-name"><span><i class="bi" [ngClass]="f.icon || 'bi-boxes'"></i></span><div><strong>{{ f.label }}</strong><small>{{ f.key }}</small></div></div><span class="status" [class.on]="f.isEnabled"><i></i>{{ f.isEnabled ? 'Enabled' : 'Disabled' }}</span><span class="environment">Production</span><label class="switch"><input type="checkbox" [checked]="f.isEnabled" (change)="toggleFeature(f,$event.target.checked)"><span></span></label></div><div class="no-data" *ngIf="!pagedFeatures.length"><i class="bi bi-inbox"></i> No matching features found</div></div>
+      <div class="table-footer"><span>Showing {{ pagedFeatures.length }} of {{ filteredFeatures.length }} items</span><div><button (click)="changePage(currentPage-1)" [disabled]="currentPage===1"><i class="bi bi-chevron-left"></i></button><span>{{ currentPage }} / {{ totalPages }}</span><button (click)="changePage(currentPage+1)" [disabled]="currentPage===totalPages"><i class="bi bi-chevron-right"></i></button></div></div>
+    </ng-template>
+  </section>
+  <ng-template #selectService><div class="select-empty"><span><i class="bi bi-toggles2"></i></span><h2>Select a service</h2><p>Choose a service above to manage its providers and features.</p></div></ng-template>
 </section>

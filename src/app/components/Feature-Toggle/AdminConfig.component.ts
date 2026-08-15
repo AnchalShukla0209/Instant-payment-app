@@ -21,6 +21,23 @@ export class AdminConfigComponent {
     providers: AdminProvider[] = [];
     features: AdminFeature[] = [];
     switchingProvider: string | null = null;
+    searchTerm = '';
+    statusFilter: 'all' | 'enabled' | 'disabled' = 'all';
+    currentPage = 1;
+    pageSize = 10;
+
+    get filteredFeatures(): AdminFeature[] {
+        const term = this.searchTerm.trim().toLowerCase();
+        return this.features.filter(feature => {
+            const matchesText = !term || feature.label.toLowerCase().includes(term) || feature.key.toLowerCase().includes(term);
+            const matchesStatus = this.statusFilter === 'all' || (this.statusFilter === 'enabled' ? feature.isEnabled : !feature.isEnabled);
+            return matchesText && matchesStatus;
+        });
+    }
+    get pagedFeatures(): AdminFeature[] { return this.filteredFeatures.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize); }
+    get totalPages(): number { return Math.max(1, Math.ceil(this.filteredFeatures.length / this.pageSize)); }
+    get enabledCount(): number { return this.features.filter(feature => feature.isEnabled).length; }
+    get disabledCount(): number { return this.features.length - this.enabledCount; }
 
     get isSettlement(): boolean {
         return this.selectedService === 'SETTLEMENT';
@@ -28,6 +45,7 @@ export class AdminConfigComponent {
     onServiceChange() {
         this.selectedProvider = null;
         this.features = [];
+        this.resetView();
         this.loadProviders();
     }
 
@@ -52,8 +70,13 @@ export class AdminConfigComponent {
     onProviderChange() {
         const provider = this.providers.find(p => p.key === this.selectedProvider);
         this.selectedProviderEnabled = provider?.isEnabled ?? false;
+        this.resetView();
         this.loadFeatures();
     }
+
+    setStatusFilter(filter: 'all' | 'enabled' | 'disabled'): void { this.statusFilter = filter; this.currentPage = 1; }
+    changePage(page: number): void { if (page >= 1 && page <= this.totalPages) this.currentPage = page; }
+    resetView(): void { this.searchTerm = ''; this.statusFilter = 'all'; this.currentPage = 1; }
 
     loadFeatures() {
 
