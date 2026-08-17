@@ -388,9 +388,11 @@ footer .submit {
   color: #fff;
 }
 .verify button.done {
-  background: #e7f8ef;
-  color: #137347;
-  border-color: #9dd8b7;
+  background: #17834f;
+  color: #fff;
+  border-color: #17834f;
+  cursor: default;
+  opacity: 1;
 }
 @media (max-width: 800px) {
   .grid,
