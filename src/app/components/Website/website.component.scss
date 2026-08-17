@@ -275,3 +275,6 @@ footer{background:#041427;color:#fff;padding:70px max(5vw,24px) 22px}.footer-mai
 /* Match the benefits bar to the continuous textured canvas */
 .partner-strip{border-color:rgba(7,102,143,.12);background:#edf8fa;background-image:linear-gradient(rgba(7,102,143,.065) 1px,transparent 1px),linear-gradient(90deg,rgba(7,102,143,.065) 1px,transparent 1px),linear-gradient(110deg,rgba(229,247,250,.98),rgba(248,252,253,.98) 55%,rgba(255,247,237,.98));background-size:38px 38px,38px 38px,auto;box-shadow:0 20px 55px rgba(10,57,84,.14)}
 .partner-strip>div{border-color:rgba(7,102,143,.13)}.partner-strip i{background:rgba(255,255,255,.8);border:1px solid rgba(7,102,143,.09);box-shadow:0 8px 18px rgba(7,102,143,.08)}
+
+/* Logo-matched typography: deep navy + dark teal */
+.impact-copy h2{color:#101940}.impact-copy h2 span{background:none;-webkit-background-clip:initial;background-clip:initial;color:#006b82}.impact-proof strong{color:#006b82}.impact-proof b{color:#101940}.impact-copy>p,.impact-proof>p{color:#34475c}
