@@ -8,11 +8,13 @@ export interface OnboardingListItem { userId:number; name:string; username:strin
 export interface OnboardingPage { data:OnboardingListItem[]; totalCount:number; pageIndex:number; pageSize:number; }
 export interface ApiEnvelope<T> { success:boolean; data:T; message?:string; }
 export interface OnboardingFilters { pageIndex:number; pageSize:number; search?:string; status?:string; fromDate?:string; toDate?:string; }
+export interface SalesTeamHierarchyContext { id:number; name:string; username:string; phone:string; userType:'WL'; }
 
 @Injectable({ providedIn: 'root' })
 export class SalesTeamOnboardingService {
   private readonly baseUrl = `${environment.apiBaseUrl}/v1/sales-team/onboardings`;
   constructor(private readonly http: HttpClient) {}
+  hierarchyContext(): Observable<ApiEnvelope<SalesTeamHierarchyContext>> { return this.http.get<ApiEnvelope<SalesTeamHierarchyContext>>(`${this.baseUrl}/hierarchy-context`); }
   list(filters: OnboardingFilters): Observable<ApiEnvelope<OnboardingPage>> {
     let params = new HttpParams().set('pageIndex', filters.pageIndex).set('pageSize', filters.pageSize);
     if (filters.search) params = params.set('search', filters.search);
