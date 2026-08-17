@@ -17,5 +17,4 @@ export class SalesTeamDashboardComponent implements OnInit {
  loadList(){if(this.fromDate&&this.toDate&&this.fromDate>this.toDate){this.error='From Date cannot be later than To Date.';return;}this.loading=true;this.error='';this.api.list({pageIndex:this.page,pageSize:this.pageSize,search:this.search,status:this.status,fromDate:this.fromDate,toDate:this.toDate}).subscribe({next:r=>{this.rows=r.data.data;this.total=r.data.totalCount;this.loading=false;},error:e=>{this.loading=false;this.error=e.error?.message||'Applications could not be loaded.';}});}
  reset(){this.search='';this.fromDate='';this.toDate='';this.page=1;this.selectView('all');}
  changePage(delta:number){const next=this.page+delta;if(next<1||next>Math.ceil(this.total/this.pageSize))return;this.page=next;this.loadList();}
- get title(){return this.view==='approved'?'Onboarded Partners':this.view==='rejected'?'Rejected Applications':this.view==='draft'?'Draft Applications':this.view==='review'?'Applications Under Review':'All Partner Onboardings';}
 }
