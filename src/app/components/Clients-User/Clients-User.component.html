@@ -232,6 +232,30 @@
               <input type="text" class="form-control" placeholder="Customer Name" formControlName="CustomerName" />
             </div>
             <div class="col-md-4">
+              <label class="form-label">Father Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" placeholder="Father Name" formControlName="FatherName" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">WL (White Label) User</label>
+              <ng-select [items]="wlUsers" bindLabel="name" bindValue="id" formControlName="WLId"
+                placeholder="Select WL User" [searchable]="true" [clearable]="true"></ng-select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">AD (Distributor) User</label>
+              <ng-select [items]="adUsers" bindLabel="name" bindValue="id" formControlName="ADId"
+                placeholder="Select AD User" [searchable]="true" [clearable]="true"></ng-select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">MD (Master Distributor) User</label>
+              <ng-select [items]="mdUsers" bindLabel="name" bindValue="id" formControlName="MDId"
+                placeholder="Select MD User" [searchable]="true" [clearable]="true"></ng-select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">ST (Sales Team) User</label>
+              <ng-select [items]="stUsers" bindLabel="name" bindValue="id" formControlName="STId"
+                placeholder="Select ST User" [searchable]="true" [clearable]="true"></ng-select>
+            </div>
+            <div class="col-md-4">
               <label class="form-label"><i class="bi bi-person me-2 icon-label"></i>User Name</label>
               <input type="text" class="form-control" placeholder="User Name" formControlName="UserName" />
             </div>

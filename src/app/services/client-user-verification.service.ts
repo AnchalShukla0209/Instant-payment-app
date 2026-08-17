@@ -19,6 +19,14 @@ export interface CommissionPlanOption {
   planName: string;
 }
 
+export interface UserDropdownOption {
+  id: number;
+  name: string;
+  username: string;
+  phone: string;
+  userType: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClientUserVerificationService {
   /** Default base used by the White-Label Admin's Client Users report. */
@@ -85,6 +93,12 @@ export class ClientUserVerificationService {
   getPartnerCommissionPlans(): Observable<{ success: boolean; data: CommissionPlanOption[] }> {
     return this.http.get<{ success: boolean; data: CommissionPlanOption[] }>(
       `${this.partnerUserBase}/commission-plans`
+    );
+  }
+
+  getUserDropdown(type: 'wl' | 'ad' | 'md' | 'st'): Observable<{ success: boolean; data: UserDropdownOption[] }> {
+    return this.http.get<{ success: boolean; data: UserDropdownOption[] }>(
+      `${environment.apiBaseUrl}/UserDropdown/${type}`
     );
   }
 }

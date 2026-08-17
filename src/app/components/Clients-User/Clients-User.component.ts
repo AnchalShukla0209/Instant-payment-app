@@ -12,16 +12,18 @@ import { Router, ActivatedRoute } from '@angular/router';
 import html2pdf from 'html2pdf.js';
 import { EncryptionService } from '../../encryption/encryption.service';
 import { environment } from '../../../environments/environment';
+import { NgSelectModule } from '@ng-select/ng-select';
 import {
   ClientUserVerificationService,
   ClientUserVerificationType,
-  CommissionPlanOption
+  CommissionPlanOption,
+  UserDropdownOption
 } from '../../services/client-user-verification.service';
 
 @Component({
   selector: 'app-client-user',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, LoaderComponent, CommonModule, NgbTypeaheadModule, NgbToastModule],
+  imports: [ReactiveFormsModule, FormsModule, LoaderComponent, CommonModule, NgbTypeaheadModule, NgbToastModule, NgSelectModule],
   templateUrl: './Clients-User.component.html',
   styleUrls: ['./Clients-User.component.scss']
 })
@@ -156,6 +158,10 @@ export class ClientUserDetailComponent implements OnInit {
   lat: string = '';
   lng: string = '';
   commissionPlans: CommissionPlanOption[] = [];
+  wlUsers: UserDropdownOption[] = [];
+  adUsers: UserDropdownOption[] = [];
+  mdUsers: UserDropdownOption[] = [];
+  stUsers: UserDropdownOption[] = [];
   phoneOtp = '';
   emailOtp = '';
   phoneChallengeId = '';
@@ -188,6 +194,11 @@ export class ClientUserDetailComponent implements OnInit {
         UserType: ['MD', Validators.required],
         CompanyName: ['', Validators.required],
         CustomerName: ['', Validators.required],
+        FatherName: ['', Validators.required],
+        WLId: [null],
+        ADId: [null],
+        MDId: [null],
+        STId: [null],
         UserName: ['', Validators.required],
         EmailId: ['', [Validators.required, Validators.email]],
         Phone: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
@@ -300,6 +311,7 @@ export class ClientUserDetailComponent implements OnInit {
 
     this.setCurrentLocation();
     this.loadCommissionPlans();
+    this.loadUserDropdowns();
     this.MainclientId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadClients(this.currentPage, this.pageSize);
   }
@@ -355,6 +367,21 @@ export class ClientUserDetailComponent implements OnInit {
         this.commissionPlans = response.success ? response.data : [];
       },
       error: () => this.toastr.error('Unable to load commission plans.')
+    });
+  }
+
+  loadUserDropdowns(): void {
+    (['wl', 'ad', 'md', 'st'] as const).forEach(type => {
+      this.verificationService.getUserDropdown(type).subscribe({
+        next: response => {
+          if (!response.success) return;
+          if (type === 'wl') this.wlUsers = response.data;
+          if (type === 'ad') this.adUsers = response.data;
+          if (type === 'md') this.mdUsers = response.data;
+          if (type === 'st') this.stUsers = response.data;
+        },
+        error: () => this.toastr.error(`Unable to load ${type.toUpperCase()} users.`)
+      });
     });
   }
 
@@ -644,6 +671,11 @@ export class ClientUserDetailComponent implements OnInit {
         UserType: ['MD', Validators.required],
         CompanyName: ['', Validators.required],
         CustomerName: ['', Validators.required],
+        FatherName: ['', Validators.required],
+        WLId: [null],
+        ADId: [null],
+        MDId: [null],
+        STId: [null],
         UserName: ['', Validators.required],
         EmailId: ['', [Validators.required, Validators.email]],
         Phone: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
@@ -744,6 +776,7 @@ export class ClientUserDetailComponent implements OnInit {
     this.model = {
       CompanyName: companyInfo.CompanyName,
       CustomerName: companyInfo.CustomerName,
+      FatherName: companyInfo.FatherName,
       UserName: companyInfo.UserName,
       EmailId: companyInfo.EmailId,
       Phone: companyInfo.Phone,
@@ -932,6 +965,10 @@ export class ClientUserDetailComponent implements OnInit {
     formData.append('MPin', companyInfo.MPin);
     formData.append('UserType', companyInfo.UserType);
     formData.append('CustomerName', companyInfo.CustomerName);
+    formData.append('FatherName', companyInfo.FatherName);
+    formData.append('ADId', companyInfo.ADId?.toString() || '');
+    formData.append('MDId', companyInfo.MDId?.toString() || '');
+    formData.append('STId', companyInfo.STId?.toString() || '');
     formData.append('CommissionPlanId', String(companyInfo.CommissionPlanId));
     formData.append('MobileVerificationToken', this.mobileVerificationToken);
     formData.append('EmailVerificationToken', this.emailVerificationToken);
@@ -966,7 +1003,7 @@ export class ClientUserDetailComponent implements OnInit {
     formData.append('lat', String(shopaddressInfo.Latitude));
     formData.append('longitute', String(shopaddressInfo.Longitude));
 
-    formData.append('WLID', this.MainclientId?.toString() || '0');
+    formData.append('WLID', companyInfo.WLId?.toString() || this.MainclientId?.toString() || '0');
 
     // Append files (from uploadedFiles object)
     ['PancopyFile', 'AadharFrontFile', 'AadharBackFile', 'LogoFile', 'SelfieFile'].forEach(key => {
@@ -1007,6 +1044,11 @@ export class ClientUserDetailComponent implements OnInit {
           CompanyName: res.companyName,
           UserType: res.userType,
           CustomerName: res.customerName,
+          FatherName: res.fatherName,
+          WLId: res.wlId ? Number(res.wlId) : null,
+          ADId: res.adId ? Number(res.adId) : null,
+          MDId: res.mdId ? Number(res.mdId) : null,
+          STId: res.stId ? Number(res.stId) : null,
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
@@ -1404,5 +1446,4 @@ export class ClientUserDetailComponent implements OnInit {
 
 
 }
-
 
