@@ -72,11 +72,17 @@ export class AppComponent {
   }
 
   private isPublicAuthRoute(url: string): boolean {
-    return url === '/'
-      || url.includes('/login')
-      || url.includes('/distributor-login')
-      || url.includes('/master-distributor-login')
-      || url.includes('/reset-password');
+    // Angular keeps the homepage fragment in `router.url` (for example
+    // `/#about`). Idle locking must be based on the route path only; otherwise
+    // every public hash section is mistaken for an authenticated screen.
+    const path = url.split(/[?#]/, 1)[0].replace(/\/+$/, '') || '/';
+
+    return path === '/'
+      || path.includes('/login')
+      || path.includes('/distributor-login')
+      || path.includes('/master-distributor-login')
+      || path.includes('/salesteam-login')
+      || path.includes('/reset-password');
   }
 
 }
