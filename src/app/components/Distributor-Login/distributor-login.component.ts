@@ -48,13 +48,15 @@ export class DistributorLoginComponent implements OnDestroy, OnInit {
   ) {}
 
   get roleLabel(): string {
-    return this.partnerRole === 'MD' ? 'Master Distributor' : 'Distributor';
+    return this.partnerRole === 'MD' ? 'Master Distributor' : this.partnerRole === 'ST' ? 'Sales Team' : 'Distributor';
   }
 
   get dashboardRoute(): string {
     return this.partnerRole === 'MD'
       ? '/master-distributor/dashboard'
-      : '/distributor/dashboard';
+      : this.partnerRole === 'ST'
+        ? '/sales-team/dashboard'
+        : '/distributor/dashboard';
   }
 
   ngOnInit(): void {

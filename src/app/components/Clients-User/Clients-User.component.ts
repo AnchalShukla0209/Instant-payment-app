@@ -220,8 +220,8 @@ export class ClientUserDetailComponent implements OnInit {
         ShopState: ['', Validators.required],
         ShopCity: ['', Validators.required],
         ShopZipCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-        Latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
-        Longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]]
+        Latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90), Validators.pattern(/^-?\d{1,2}(\.\d{1,4})?$/)]],
+        Longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180), Validators.pattern(/^-?\d{1,3}(\.\d{1,4})?$/)]]
       }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
@@ -348,8 +348,8 @@ export class ClientUserDetailComponent implements OnInit {
 
     navigator.geolocation.getCurrentPosition(
       position => {
-        this.lat = position.coords.latitude.toString();
-        this.lng = position.coords.longitude.toString();
+        this.lat = position.coords.latitude.toFixed(4);
+        this.lng = position.coords.longitude.toFixed(4);
         this.clientForm.get('shopInfo')?.patchValue({
           Latitude: this.lat,
           Longitude: this.lng
@@ -697,8 +697,8 @@ export class ClientUserDetailComponent implements OnInit {
         ShopState: ['', Validators.required],
         ShopCity: ['', Validators.required],
         ShopZipCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-        Latitude: [this.lat, [Validators.required, Validators.min(-90), Validators.max(90)]],
-        Longitude: [this.lng, [Validators.required, Validators.min(-180), Validators.max(180)]]
+        Latitude: [this.lat, [Validators.required, Validators.min(-90), Validators.max(90), Validators.pattern(/^-?\d{1,2}(\.\d{1,4})?$/)]],
+        Longitude: [this.lng, [Validators.required, Validators.min(-180), Validators.max(180), Validators.pattern(/^-?\d{1,3}(\.\d{1,4})?$/)]]
       }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
@@ -900,6 +900,8 @@ export class ClientUserDetailComponent implements OnInit {
         case 'Password': return 'Password must be 10+ chars, include letters, number & special char.';
         case 'Pincode': return 'Pincode must be 6-digit number.';
         case 'ShopZipCode': return 'ShopZipCode must be 6-digit number.';
+        case 'Latitude': return 'Latitude must contain no more than 4 decimal places (for example, 28.6900).';
+        case 'Longitude': return 'Longitude must contain no more than 4 decimal places (for example, 77.2300).';
         default: return `${field} format is invalid.`;
       }
     }
@@ -1446,4 +1448,3 @@ export class ClientUserDetailComponent implements OnInit {
 
 
 }
-

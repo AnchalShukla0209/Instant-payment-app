@@ -37,6 +37,7 @@ export class AuthInterceptor implements HttpInterceptor {
       '/VerifyLoginOTP',
       '/v1/distributor/auth/',
       '/v1/master-distributor/auth/',
+      '/v1/sales-team/auth/',
       '/Login'
     ];
 
@@ -87,9 +88,8 @@ export class AuthInterceptor implements HttpInterceptor {
           if (distributorSession) {
             sessionStorage.removeItem('instantpay.distributor.session');
             this.router.navigate([
-              distributorSession.userType === 'MD'
-                ? '/master-distributor-login'
-                : '/distributor-login'
+              distributorSession.userType === 'MD' ? '/master-distributor-login'
+                : distributorSession.userType === 'ST' ? '/salesteam-login' : '/distributor-login'
             ]);
           } else {
             localStorage.clear();
@@ -106,7 +106,7 @@ export class AuthInterceptor implements HttpInterceptor {
     accessToken: string;
     userId: string;
     username: string;
-    userType: 'AD' | 'MD';
+    userType: 'AD' | 'MD' | 'ST';
     expiresAt: number;
   } | null {
     const value = sessionStorage.getItem('instantpay.distributor.session');

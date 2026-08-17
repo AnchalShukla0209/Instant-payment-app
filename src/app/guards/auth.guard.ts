@@ -8,15 +8,14 @@ export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const distributorAuth = inject(DistributorAuthService);
   const distributorSession = distributorAuth.getSession();
-  const requiredPartnerRole = route.data?.['partnerRole'] as 'AD' | 'MD' | undefined;
+  const requiredPartnerRole = route.data?.['partnerRole'] as 'AD' | 'MD' | 'ST' | undefined;
   const sessionKey = localStorage.getItem('sessionKey');
 
   if (requiredPartnerRole) {
     if (!distributorSession || distributorSession.userType !== requiredPartnerRole) {
       router.navigate([
-        requiredPartnerRole === 'MD'
-          ? '/master-distributor-login'
-          : '/distributor-login'
+        requiredPartnerRole === 'MD' ? '/master-distributor-login'
+          : requiredPartnerRole === 'ST' ? '/salesteam-login' : '/distributor-login'
       ]);
       return false;
     }
@@ -30,9 +29,8 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   if (distributorSession) {
     router.navigate([
-      distributorSession.userType === 'MD'
-        ? '/master-distributor/dashboard'
-        : '/distributor/dashboard'
+      distributorSession.userType === 'MD' ? '/master-distributor/dashboard'
+        : distributorSession.userType === 'ST' ? '/sales-team/dashboard' : '/distributor/dashboard'
     ]);
     return false;
   }

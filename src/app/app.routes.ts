@@ -43,11 +43,21 @@ import { PartnerTxnReportComponent } from './components/Partner-Txn-Report/partn
 import { PartnerChangePasswordComponent } from './components/Partner-Change-Password/partner-change-password.component';
 import { PartnerChangePinComponent } from './components/Partner-Change-Pin/partner-change-pin.component';
 import { RblSettlementComponent } from './components/RBL-Settlement/rbl-settlement.component';
+import { WebsiteComponent } from './components/Website/website.component';
+import { SalesTeamLoginComponent } from './components/Sales-Team-Login/sales-team-login.component';
+import { SalesTeamDashboardComponent } from './components/Sales-Team-Dashboard/sales-team-dashboard.component';
+import { SalesTeamOnboardingComponent } from './components/Sales-Team-Onboarding/sales-team-onboarding.component';
+import { AdminOnboardingComponent } from './components/Admin-Onboarding/admin-onboarding.component';
 
 export const routes: Routes = [
+  { path: '', component: WebsiteComponent, pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'distributor-login', component: DistributorLoginComponent },
   { path: 'master-distributor-login', component: MasterDistributorLoginComponent },
+  { path: 'salesteam-login', component: SalesTeamLoginComponent },
+  { path: 'sales-team/dashboard', component: SalesTeamDashboardComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
+  { path: 'sales-team/onboardings/new', component: SalesTeamOnboardingComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
+  { path: 'sales-team/onboardings/:id', component: SalesTeamOnboardingComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
   {
     path: 'distributor/dashboard',
     component: DistributorDashboardComponent,
@@ -157,6 +167,7 @@ export const routes: Routes = [
       { path: 'TxnReport', component: TxnReportComponent, canActivate: [authGuard] },
       { path: 'ClientReport', component: ClientViewListComponent, canActivate: [authGuard] },
       { path: 'ClientUsersReport/:id', component: ClientUserDetailComponent, canActivate: [authGuard] },
+      { path: 'sales-team-onboarded', component: AdminOnboardingComponent, canActivate: [authGuard] },
       { path: 'MarginList', component: MarginList, canActivate: [authGuard] },
       { path: 'moneytransfer', component: MoneyTransferComponent, canActivate: [authGuard] },
       { path: 'notification-hub', component: NotificationList, canActivate: [authGuard] },
@@ -206,9 +217,6 @@ export const routes: Routes = [
   { path: 'maintenance',           component: ErrorPageComponent, data: { errorConfig: { code: '503', title: 'Under Maintenance',            description: "We're performing scheduled maintenance to improve your experience. We'll be back up and running shortly — thank you for your patience.",                   icon: 'bi-tools',                  colorClass: 'blue',   primaryAction: { label: 'Check Again',     action: 'retry' }, showBack: false } } },
   { path: 'gateway-timeout',       component: ErrorPageComponent, data: { errorConfig: { code: '504', title: 'Gateway Timeout',              description: "The server did not receive a timely response from an upstream server. Please check your connection and try again.",                                        icon: 'bi-hourglass-split',        colorClass: 'blue',   primaryAction: { label: 'Try Again',       action: 'retry' }, showBack: false } } },
   { path: 'version-not-supported', component: ErrorPageComponent, data: { errorConfig: { code: '505', title: 'HTTP Version Not Supported',   description: "The HTTP protocol version used in your request is not supported by the server. Please contact support for assistance.",                                   icon: 'bi-shield-x',               colorClass: 'red',    primaryAction: { label: 'Go to Homepage',  action: 'home'  }, showBack: false } } },
-
-  // 👇 default route (empty path) redirects to login
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
 
   // fallback — unknown routes show 404 page
   { path: '**', redirectTo: 'not-found' }

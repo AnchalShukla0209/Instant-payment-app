@@ -8,12 +8,12 @@
         </div>
         <div class="card-body">
           <div class="row align-items-end g-2">
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label fw-semibold"><i class="bi bi-phone form-icon icon-label"></i>From Date</label>
               <input type="date" [(ngModel)]="fromDate" class="form-control" placeholder="From Date" />
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label fw-semibold"><i class="bi bi-calendar-event form-icon icon-label"></i>To
                 Date</label>
               <input type="date" [(ngModel)]="toDate" class="form-control" placeholder="To Date" />
@@ -221,6 +221,7 @@
                 <option value="MD">MD</option>
                 <option value="AD">AD</option>
                 <option value="RT">RT</option>
+                <option value="ST">ST (Sales Team)</option>
               </select>
             </div>
             <div class="col-md-4">
@@ -235,12 +236,12 @@
               <label class="form-label">Father Name <span class="text-danger">*</span></label>
               <input type="text" class="form-control" placeholder="Father Name" formControlName="FatherName" />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label">WL (White Label) User</label>
               <ng-select [items]="wlUsers" bindLabel="name" bindValue="id" formControlName="WLId"
                 placeholder="Select WL User" [searchable]="true" [clearable]="true"></ng-select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label">AD (Distributor) User</label>
               <ng-select [items]="adUsers" bindLabel="name" bindValue="id" formControlName="ADId"
                 placeholder="Select AD User" [searchable]="true" [clearable]="true"></ng-select>
@@ -382,11 +383,11 @@
             </div>
             <div class="col-md-6">
               <label class="form-label"><i class="bi bi-geo-alt me-2 icon-label"></i>Latitude</label>
-              <input type="number" step="any" class="form-control" placeholder="Latitude" formControlName="Latitude" />
+              <input type="number" step="0.0001" class="form-control" placeholder="Latitude" formControlName="Latitude" />
             </div>
             <div class="col-md-6">
               <label class="form-label"><i class="bi bi-geo-alt me-2 icon-label"></i>Longitude</label>
-              <input type="number" step="any" class="form-control" placeholder="Longitude" formControlName="Longitude" />
+              <input type="number" step="0.0001" class="form-control" placeholder="Longitude" formControlName="Longitude" />
             </div>
           </div>
         </div>

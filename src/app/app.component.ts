@@ -72,7 +72,8 @@ export class AppComponent {
   }
 
   private isPublicAuthRoute(url: string): boolean {
-    return url.includes('/login')
+    return url === '/'
+      || url.includes('/login')
       || url.includes('/distributor-login')
       || url.includes('/master-distributor-login')
       || url.includes('/reset-password');
