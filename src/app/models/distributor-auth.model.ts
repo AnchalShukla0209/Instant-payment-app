@@ -30,6 +30,7 @@ export interface DistributorSession {
   displayName: string;
   lastLoginAt: string;
   ipAddress: string;
+  deviceName?: string;
   expiresAt: number;
 }
 

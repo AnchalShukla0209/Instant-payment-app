@@ -16,7 +16,7 @@
     <header class="topbar">
       <button class="menu-toggle" (click)="menuOpen=!menuOpen" aria-label="Open navigation"><i class="bi bi-list"></i></button>
       <div class="welcome"><strong>{{greeting}}, {{session?.displayName || 'Sales Partner'}}!</strong><small>Last login: {{session?.lastLoginAt | date:'dd MMM yyyy, hh:mm a'}}</small></div>
-      <div class="session-meta"><span><i class="bi bi-geo-alt"></i><small>Login IP</small><strong>{{session?.ipAddress || 'Not available'}}</strong></span><button (click)="logout()"><i class="bi bi-box-arrow-right"></i> Logout</button></div>
+      <div class="session-meta"><span><i class="bi bi-geo-alt"></i><small>Login IP</small><strong>{{loginIp}}</strong></span><span><i class="bi bi-laptop"></i><small>Login device</small><strong>{{session?.deviceName || 'Web browser'}}</strong></span><button (click)="logout()"><i class="bi bi-box-arrow-right"></i> Logout</button></div>
     </header>
     <div class="page-content"><router-outlet /></div>
   </section>

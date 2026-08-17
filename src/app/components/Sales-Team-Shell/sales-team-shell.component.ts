@@ -52,4 +52,9 @@ export class SalesTeamShellComponent implements OnInit, OnDestroy {
     if (hour < 21) return 'Good Evening';
     return 'Good Night';
   }
+
+  get loginIp(): string {
+    const ip = this.session?.ipAddress;
+    return ip === '::1' || ip === '127.0.0.1' ? 'Local computer' : (ip || 'Not available');
+  }
 }
