@@ -200,3 +200,11 @@ footer{background:#041427;color:#fff;padding:70px max(5vw,24px) 22px}.footer-mai
 @media(max-width:980px){.impact-intro{grid-template-columns:1fr;gap:55px;padding-top:135px}.impact-proof{max-width:600px}.credibility-track article{width:170px;flex-basis:170px}}
 @media(max-width:650px){.credibility-window{margin-top:26px}.credibility-track{gap:12px;animation-duration:22s}.credibility-track article{width:148px;height:78px;flex-basis:148px;border-radius:14px}.credibility-track i{width:35px;height:35px;font-size:15px}.credibility-track span{font-size:8px}.impact-intro{min-height:auto;padding:115px 20px 70px;gap:45px}.impact-copy{padding-left:17px}.impact-copy h2{font-size:clamp(32px,9vw,40px)}.impact-copy>p{font-size:12px!important}.impact-proof{grid-template-columns:auto 1fr}.impact-proof strong{font-size:27px!important}}
 @media(prefers-reduced-motion:reduce){.credibility-track{animation:none}}
+
+/* Instant Payment brand treatment */
+.credibility-zone{background:linear-gradient(110deg,#edfaff 0%,#f8fcff 52%,#fff5e9 100%);background-image:linear-gradient(rgba(7,102,143,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(7,102,143,.07) 1px,transparent 1px),linear-gradient(110deg,#edfaff 0%,#f8fcff 52%,#fff5e9 100%)}
+.credibility-zone:before,.credibility-zone:after{box-shadow:0 7px 18px rgba(7,102,143,.16)}
+.credibility-track article{border-color:rgba(7,102,143,.15);color:#102a42;box-shadow:0 14px 35px rgba(7,102,143,.08)}
+.impact-copy:before{background:linear-gradient(180deg,var(--cyan),var(--orange))}
+.impact-copy h2{color:#09223b}.impact-copy h2 span{background:linear-gradient(100deg,var(--blue),var(--cyan),var(--orange));background-clip:text;-webkit-background-clip:text;color:transparent}.impact-copy>p{color:#526b7f}
+.network-badge{border-color:rgba(7,102,143,.16);box-shadow:0 9px 22px rgba(7,102,143,.1)}.network-badge span{background:linear-gradient(135deg,var(--blue),var(--cyan),var(--orange))}.impact-proof strong{color:var(--blue)}.impact-proof>p{color:#263e52}
