@@ -11,6 +11,7 @@ import { RouterLink } from '@angular/router';
 })
 export class WebsiteComponent {
   menuOpen = false;
+  activeMega: 'products' | 'partners' | 'company' | 'resources' | null = null;
   activeFaq = 0;
   currentYear = new Date().getFullYear();
 
@@ -31,8 +32,20 @@ export class WebsiteComponent {
   ];
 
   toggleFaq(index: number): void { this.activeFaq = this.activeFaq === index ? -1 : index; }
-  closeMenu(): void { this.menuOpen = false; }
+  toggleMenu(): void {
+    this.menuOpen = !this.menuOpen;
+    if (!this.menuOpen) this.activeMega = null;
+  }
+
+  toggleMega(menu: 'products' | 'partners' | 'company' | 'resources'): void {
+    this.activeMega = this.activeMega === menu ? null : menu;
+  }
+
+  closeMenu(): void {
+    this.menuOpen = false;
+    this.activeMega = null;
+  }
 
   @HostListener('document:keydown.escape')
-  onEscape(): void { this.menuOpen = false; }
+  onEscape(): void { this.closeMenu(); }
 }

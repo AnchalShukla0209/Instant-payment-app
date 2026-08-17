@@ -4,16 +4,70 @@
       <a class="brand" href="#home" aria-label="Instant Payment home" (click)="closeMenu()">
         <img src="assets/images/instant-payment-dark.png" alt="Instant Payment">
       </a>
-      <button class="menu-btn" type="button" aria-label="Toggle navigation" [attr.aria-expanded]="menuOpen" (click)="menuOpen = !menuOpen">
+      <button class="menu-btn" type="button" aria-label="Toggle navigation" [attr.aria-expanded]="menuOpen" (click)="toggleMenu()">
         <i class="bi" [ngClass]="menuOpen ? 'bi-x-lg' : 'bi-list'"></i>
       </button>
       <nav [class.open]="menuOpen" aria-label="Primary navigation">
-        <a href="#home" (click)="closeMenu()">Home</a>
-        <a href="#services" (click)="closeMenu()">Services</a>
-        <a href="#about" (click)="closeMenu()">About us</a>
-        <a href="#security" (click)="closeMenu()">Security</a>
-        <a href="#contact" (click)="closeMenu()">Contact</a>
-        <a class="nav-login" routerLink="/login" (click)="closeMenu()">Partner login <i class="bi bi-arrow-up-right"></i></a>
+        <div class="nav-main">
+          <a class="home-link" href="#home" (click)="closeMenu()">Home</a>
+
+          <div class="nav-item" [class.expanded]="activeMega === 'products'">
+            <button type="button" (click)="toggleMega('products')" [attr.aria-expanded]="activeMega === 'products'">Products <i class="bi bi-chevron-down"></i></button>
+            <div class="mega-menu products-menu">
+              <div class="mega-intro">
+                <span class="mega-icon"><i class="bi bi-grid-1x2"></i></span>
+                <small>PRODUCT ECOSYSTEM</small>
+                <h3>Everything your retail business needs.</h3>
+                <p>Essential assisted banking and payment services through one connected platform.</p>
+                <a href="#services" (click)="closeMenu()">Explore all services <i class="bi bi-arrow-right"></i></a>
+              </div>
+              <div class="mega-links two-col">
+                <a href="#services" (click)="closeMenu()"><i class="bi bi-fingerprint"></i><span><b>AEPS</b><small>Assisted Aadhaar banking</small></span></a>
+                <a href="#services" (click)="closeMenu()"><i class="bi bi-arrow-left-right"></i><span><b>Money Transfer</b><small>Domestic payment service</small></span></a>
+                <a href="#services" (click)="closeMenu()"><i class="bi bi-receipt-cutoff"></i><span><b>Bill Payments</b><small>Everyday utility payments</small></span></a>
+                <a href="#services" (click)="closeMenu()"><i class="bi bi-phone"></i><span><b>Recharge</b><small>Mobile and DTH recharge</small></span></a>
+                <a href="#services" (click)="closeMenu()"><i class="bi bi-credit-card"></i><span><b>Micro ATM</b><small>Retail banking terminal</small></span></a>
+                <a href="#services" (click)="closeMenu()"><i class="bi bi-shield-check"></i><span><b>Protection</b><small>Insurance-led services</small></span></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-item" [class.expanded]="activeMega === 'partners'">
+            <button type="button" (click)="toggleMega('partners')" [attr.aria-expanded]="activeMega === 'partners'">Partner Network <i class="bi bi-chevron-down"></i></button>
+            <div class="mega-menu compact-menu">
+              <div class="mega-links">
+                <a href="#partner" (click)="closeMenu()"><i class="bi bi-shop"></i><span><b>Become a Retailer</b><small>Serve customers and grow your shop</small></span></a>
+                <a href="#partner" (click)="closeMenu()"><i class="bi bi-diagram-3"></i><span><b>Become a Distributor</b><small>Build a partner network in your area</small></span></a>
+              </div>
+              <div class="mega-callout"><i class="bi bi-headset"></i><div><small>PARTNER SUPPORT</small><b>+91 999 165 7766</b></div></div>
+            </div>
+          </div>
+
+          <div class="nav-item" [class.expanded]="activeMega === 'company'">
+            <button type="button" (click)="toggleMega('company')" [attr.aria-expanded]="activeMega === 'company'">Company <i class="bi bi-chevron-down"></i></button>
+            <div class="mega-menu compact-menu company-menu">
+              <div class="mega-links">
+                <a href="#about" (click)="closeMenu()"><i class="bi bi-building"></i><span><b>About Us</b><small>Purpose, platform and impact</small></span></a>
+                <a href="#security" (click)="closeMenu()"><i class="bi bi-shield-lock"></i><span><b>Security</b><small>How we protect the platform</small></span></a>
+                <a href="#contact" (click)="closeMenu()"><i class="bi bi-envelope"></i><span><b>Contact Us</b><small>Connect with our team</small></span></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-item" [class.expanded]="activeMega === 'resources'">
+            <button type="button" (click)="toggleMega('resources')" [attr.aria-expanded]="activeMega === 'resources'">Resources <i class="bi bi-chevron-down"></i></button>
+            <div class="mega-menu compact-menu resources-menu">
+              <div class="mega-links">
+                <a href="#contact" (click)="closeMenu()"><i class="bi bi-question-circle"></i><span><b>FAQs</b><small>Services and onboarding answers</small></span></a>
+                <a href="#contact" (click)="closeMenu()"><i class="bi bi-file-earmark-text"></i><span><b>Policies</b><small>Privacy and terms</small></span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-actions">
+          <a class="nav-partner" href="#partner" (click)="closeMenu()">Become a partner</a>
+          <a class="nav-login" routerLink="/login" (click)="closeMenu()">Login <i class="bi bi-arrow-up-right"></i></a>
+        </div>
       </nav>
     </div>
   </header>
