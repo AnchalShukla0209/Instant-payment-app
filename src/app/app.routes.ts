@@ -47,6 +47,7 @@ import { WebsiteComponent } from './components/Website/website.component';
 import { SalesTeamLoginComponent } from './components/Sales-Team-Login/sales-team-login.component';
 import { SalesTeamDashboardComponent } from './components/Sales-Team-Dashboard/sales-team-dashboard.component';
 import { SalesTeamOnboardingComponent } from './components/Sales-Team-Onboarding/sales-team-onboarding.component';
+import { SalesTeamShellComponent } from './components/Sales-Team-Shell/sales-team-shell.component';
 import { AdminOnboardingComponent } from './components/Admin-Onboarding/admin-onboarding.component';
 
 export const routes: Routes = [
@@ -55,9 +56,15 @@ export const routes: Routes = [
   { path: 'distributor-login', component: DistributorLoginComponent },
   { path: 'master-distributor-login', component: MasterDistributorLoginComponent },
   { path: 'salesteam-login', component: SalesTeamLoginComponent },
-  { path: 'sales-team/dashboard', component: SalesTeamDashboardComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
-  { path: 'sales-team/onboardings/new', component: SalesTeamOnboardingComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
-  { path: 'sales-team/onboardings/:id', component: SalesTeamOnboardingComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
+  {
+    path: 'sales-team', component: SalesTeamShellComponent, canActivate: [authGuard], data: { partnerRole: 'ST' },
+    children: [
+      { path: 'dashboard', component: SalesTeamDashboardComponent },
+      { path: 'onboardings/new', component: SalesTeamOnboardingComponent },
+      { path: 'onboardings/:id', component: SalesTeamOnboardingComponent },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' }
+    ]
+  },
   {
     path: 'distributor/dashboard',
     component: DistributorDashboardComponent,

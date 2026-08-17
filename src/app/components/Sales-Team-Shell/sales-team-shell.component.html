@@ -1,0 +1,23 @@
+<main class="sales-shell" [class.menu-open]="menuOpen">
+  <div class="backdrop" (click)="closeMenu()"></div>
+  <aside>
+    <img src="assets/images/logo__.png" alt="Instant Payment">
+    <div class="profile"><span>{{(session?.displayName || 'S').charAt(0)}}</span><div><strong>{{session?.displayName}}</strong><small>Sales Team workspace</small></div></div>
+    <nav>
+      <a routerLink="/sales-team/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()"><i class="bi bi-grid"></i> Dashboard</a>
+      <a routerLink="/sales-team/onboardings/new" routerLinkActive="active" (click)="closeMenu()"><i class="bi bi-person-plus"></i> Add Partner</a>
+      <a routerLink="/sales-team/dashboard" [queryParams]="{view:'draft'}" (click)="closeMenu()"><i class="bi bi-pencil-square"></i> Draft List <b>{{counts.draft}}</b></a>
+      <a routerLink="/sales-team/dashboard" [queryParams]="{view:'review'}" (click)="closeMenu()"><i class="bi bi-hourglass-split"></i> Under Review <b>{{counts.review}}</b></a>
+      <a routerLink="/sales-team/dashboard" [queryParams]="{view:'rejected'}" (click)="closeMenu()"><i class="bi bi-exclamation-circle"></i> Rejection List <b>{{counts.rejected}}</b></a>
+      <a routerLink="/sales-team/dashboard" [queryParams]="{view:'approved'}" (click)="closeMenu()"><i class="bi bi-patch-check"></i> Onboarded List <b>{{counts.approved}}</b></a>
+    </nav>
+  </aside>
+  <section class="shell-main">
+    <header class="topbar">
+      <button class="menu-toggle" (click)="menuOpen=!menuOpen" aria-label="Open navigation"><i class="bi bi-list"></i></button>
+      <div class="welcome"><strong>{{greeting}}, {{session?.displayName || 'Sales Partner'}}!</strong><small>Last login: {{session?.lastLoginAt | date:'dd MMM yyyy, hh:mm a'}}</small></div>
+      <div class="session-meta"><span><i class="bi bi-geo-alt"></i><small>Login IP</small><strong>{{session?.ipAddress || 'Not available'}}</strong></span><button (click)="logout()"><i class="bi bi-box-arrow-right"></i> Logout</button></div>
+    </header>
+    <div class="page-content"><router-outlet /></div>
+  </section>
+</main>
