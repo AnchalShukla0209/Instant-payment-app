@@ -1,4 +1,4 @@
-<section class="review-page">
+<section class="review-page" *ngIf="!detailId">
  <header><div><span class="eyebrow">SALES TEAM OPERATIONS</span><h1>Partner Onboarding Review</h1><p>Review identity, documents and audit history before activation.</p></div><div class="count"><strong>{{total}}</strong><span>Total applications</span></div></header>
  <div class="alert error" *ngIf="error">{{error}} <button (click)="error=''">×</button></div><div class="alert ok" *ngIf="message">{{message}}</div>
  <div class="filters">
@@ -11,10 +11,11 @@
  <div class="table-card"><table><thead><tr><th>Partner</th><th>Contact</th><th>Type</th><th>Sales person</th><th>Submitted</th><th>Status</th><th></th></tr></thead><tbody><tr *ngFor="let r of rows;trackBy:track"><td><b>{{r.name}}</b><small>{{r.username}}</small></td><td>{{r.phone}}<small>{{r.emailId}}</small></td><td>{{r.userType}}</td><td>{{r.salesPersonName||'—'}}</td><td>{{r.submittedAt|date:'mediumDate'}}</td><td><span class="status" [attr.data-status]="r.onboardingStatus">{{r.onboardingStatus}}</span></td><td><button class="link" (click)="open(r.userId)">Review →</button></td></tr><tr *ngIf="!rows.length"><td colspan="7" class="empty">No onboarding found.</td></tr></tbody></table>
  <footer><span>Page {{filters.pageIndex}} of {{pages}}</span><div><button (click)="page(-1)">Previous</button><button (click)="page(1)">Next</button></div></footer></div>
 </section>
-<div class="overlay" *ngIf="selected"><article class="review-workspace">
+<div class="alert error" *ngIf="detailId&&error">{{error}} <button (click)="error=''">×</button></div><div class="alert ok" *ngIf="detailId&&message">{{message}}</div>
+<article class="review-workspace" *ngIf="selected">
  <section class="review-main">
-  <button class="back-link" (click)="selected=null"><i class="bi bi-arrow-left"></i> Back to Applications</button>
-  <header class="application-header"><div><div class="title-line"><h2>Application #{{selected.userId}}</h2><span class="status" [attr.data-status]="selected.user.onboardingStatus">{{selected.user.onboardingStatus}}</span></div><p><i class="bi bi-person"></i> {{selected.user.name}} ({{selected.user.userType}})<span>·</span><i class="bi bi-telephone"></i> {{selected.user.phone}}<span>·</span><i class="bi bi-envelope"></i> {{selected.user.emailId}}</p></div><button class="close" (click)="selected=null" aria-label="Close">×</button></header>
+  <button class="back-link" (click)="backToList()"><i class="bi bi-arrow-left"></i> Back to Applications</button>
+  <header class="application-header"><div><div class="title-line"><h2>Application #{{selected.userId}}</h2><span class="status" [attr.data-status]="selected.user.onboardingStatus">{{selected.user.onboardingStatus}}</span></div><p><i class="bi bi-person"></i> {{selected.user.name}} ({{selected.user.userType}})<span>·</span><i class="bi bi-telephone"></i> {{selected.user.phone}}<span>·</span><i class="bi bi-envelope"></i> {{selected.user.emailId}}</p></div><button class="close" (click)="backToList()" aria-label="Close">×</button></header>
   <div class="summary">
    <div><i class="bi bi-building"></i><span><small>Company</small><b>{{selected.user.companyName||'—'}}</b></span></div>
    <div><i class="bi bi-person-badge"></i><span><small>Father Name</small><b>{{selected.user.fatherName||'—'}}</b></span></div>
@@ -36,5 +37,5 @@
   <footer class="review-actions" *ngIf="selected.user.onboardingStatus==='PendingReview'||selected.user.onboardingStatus==='PendingReReview'"><button class="danger" (click)="reject()">Reject onboarding</button><button class="primary" (click)="approve()">Approve & activate</button></footer>
  </section>
  <aside class="audit-panel"><header><i class="bi bi-shield-check"></i><h3>Audit History</h3></header><div class="timeline"><div *ngFor="let h of selected.history"><i class="bi" [ngClass]="h.eventType==='DocumentUploaded'?'bi-file-earmark-arrow-up':'bi-file-earmark-text'"></i><article><b>{{h.eventType}}</b><span>{{h.createdAt|date:'medium'}}</span><span>{{h.actorName}} ({{h.actorUserType}})<ng-container *ngIf="h.ipAddress"> · IP {{h.ipAddress}}</ng-container></span><p *ngIf="h.remarks">{{h.remarks}}</p><small>{{h.fromStatus||'New'}} → {{h.toStatus}}</small></article></div></div></aside>
-</article></div><div class="busy" *ngIf="loading">Processing…</div>
+</article><div class="busy" *ngIf="loading">Processing…</div>
 <div class="dialog-backdrop" *ngIf="dialog"><section class="dialog" role="dialog" aria-modal="true"><button class="close" (click)="closeDialog()">×</button><div class="dialog-icon"><i class="bi" [ngClass]="dialog==='approve'?'bi-patch-check':dialog==='retry'?'bi-envelope-arrow-up':'bi-exclamation-triangle'"></i></div><h2>{{dialogTitle}}</h2><p>{{dialogText}}</p><textarea *ngIf="dialog==='decision'||dialog==='finalReject'" [(ngModel)]="dialogRemarks" maxlength="2000" rows="4" placeholder="Enter mandatory remarks"></textarea><div class="dialog-actions"><button (click)="closeDialog()">Cancel</button><button [class.danger]="dialog==='decision'||dialog==='finalReject'" [class.primary]="dialog==='approve'||dialog==='retry'" (click)="confirmDialog()">Confirm</button></div></section></div>

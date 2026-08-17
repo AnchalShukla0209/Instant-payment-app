@@ -175,6 +175,7 @@ export const routes: Routes = [
       { path: 'ClientReport', component: ClientViewListComponent, canActivate: [authGuard] },
       { path: 'ClientUsersReport/:id', component: ClientUserDetailComponent, canActivate: [authGuard] },
       { path: 'sales-team-onboarded', component: AdminOnboardingComponent, canActivate: [authGuard] },
+      { path: 'sales-team-onboarded/:id', component: AdminOnboardingComponent, canActivate: [authGuard] },
       { path: 'MarginList', component: MarginList, canActivate: [authGuard] },
       { path: 'moneytransfer', component: MoneyTransferComponent, canActivate: [authGuard] },
       { path: 'notification-hub', component: NotificationList, canActivate: [authGuard] },
