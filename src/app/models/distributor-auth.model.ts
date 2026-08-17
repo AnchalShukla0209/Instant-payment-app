@@ -1,4 +1,4 @@
-export type PartnerUserType = 'AD' | 'MD';
+export type PartnerUserType = 'AD' | 'MD' | 'ST';
 
 export interface DistributorLoginRequest {
   username: string;

@@ -44,12 +44,20 @@ import { PartnerChangePasswordComponent } from './components/Partner-Change-Pass
 import { PartnerChangePinComponent } from './components/Partner-Change-Pin/partner-change-pin.component';
 import { RblSettlementComponent } from './components/RBL-Settlement/rbl-settlement.component';
 import { WebsiteComponent } from './components/Website/website.component';
+import { SalesTeamLoginComponent } from './components/Sales-Team-Login/sales-team-login.component';
+import { SalesTeamDashboardComponent } from './components/Sales-Team-Dashboard/sales-team-dashboard.component';
+import { SalesTeamOnboardingComponent } from './components/Sales-Team-Onboarding/sales-team-onboarding.component';
+import { AdminOnboardingComponent } from './components/Admin-Onboarding/admin-onboarding.component';
 
 export const routes: Routes = [
   { path: '', component: WebsiteComponent, pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'distributor-login', component: DistributorLoginComponent },
   { path: 'master-distributor-login', component: MasterDistributorLoginComponent },
+  { path: 'salesteam-login', component: SalesTeamLoginComponent },
+  { path: 'sales-team/dashboard', component: SalesTeamDashboardComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
+  { path: 'sales-team/onboardings/new', component: SalesTeamOnboardingComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
+  { path: 'sales-team/onboardings/:id', component: SalesTeamOnboardingComponent, canActivate: [authGuard], data: { partnerRole: 'ST' } },
   {
     path: 'distributor/dashboard',
     component: DistributorDashboardComponent,
@@ -159,6 +167,7 @@ export const routes: Routes = [
       { path: 'TxnReport', component: TxnReportComponent, canActivate: [authGuard] },
       { path: 'ClientReport', component: ClientViewListComponent, canActivate: [authGuard] },
       { path: 'ClientUsersReport/:id', component: ClientUserDetailComponent, canActivate: [authGuard] },
+      { path: 'sales-team-onboarded', component: AdminOnboardingComponent, canActivate: [authGuard] },
       { path: 'MarginList', component: MarginList, canActivate: [authGuard] },
       { path: 'moneytransfer', component: MoneyTransferComponent, canActivate: [authGuard] },
       { path: 'notification-hub', component: NotificationList, canActivate: [authGuard] },

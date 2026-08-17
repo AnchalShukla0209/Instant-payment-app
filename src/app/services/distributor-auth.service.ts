@@ -69,7 +69,7 @@ export class DistributorAuthService {
       const session = JSON.parse(stored) as DistributorSession;
       if (
         !session.accessToken ||
-        !['AD', 'MD'].includes(session.userType) ||
+        !['AD', 'MD', 'ST'].includes(session.userType) ||
         session.expiresAt <= Date.now()
       ) {
         this.clearSession();
@@ -117,7 +117,11 @@ export class DistributorAuthService {
   }
 
   private getBaseUrl(userType: PartnerUserType): string {
-    const segment = userType === 'AD' ? 'distributor' : 'master-distributor';
+    const segment = userType === 'AD'
+      ? 'distributor'
+      : userType === 'MD'
+        ? 'master-distributor'
+        : 'sales-team';
     return `${environment.apiBaseUrl}/v1/${segment}/auth`;
   }
 }
