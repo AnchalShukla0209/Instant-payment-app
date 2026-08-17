@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, Renderer2 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -9,11 +9,16 @@ import { RouterLink } from '@angular/router';
   templateUrl: './website.component.html',
   styleUrls: ['./website.component.scss']
 })
-export class WebsiteComponent {
+export class WebsiteComponent implements AfterViewInit, OnDestroy {
   menuOpen = false;
   activeMega: 'products' | 'partners' | 'company' | 'resources' | null = null;
+  headerCompact = false;
+  scrollProgress = 0;
   activeFaq = 0;
   currentYear = new Date().getFullYear();
+  private revealObserver?: IntersectionObserver;
+
+  constructor(private host: ElementRef<HTMLElement>, private renderer: Renderer2) {}
 
   services = [
     { icon: 'bi-fingerprint', title: 'AEPS', text: 'Cash withdrawal, balance enquiry and mini statements through Aadhaar.' },
@@ -32,6 +37,35 @@ export class WebsiteComponent {
   ];
 
   toggleFaq(index: number): void { this.activeFaq = this.activeFaq === index ? -1 : index; }
+
+  ngAfterViewInit(): void {
+    const root = this.host.nativeElement;
+    const revealTargets = root.querySelectorAll<HTMLElement>('main section:not(.hero), main footer');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    revealTargets.forEach((target, index) => {
+      this.renderer.addClass(target, 'reveal-item');
+      this.renderer.setStyle(target, '--reveal-order', String(index % 3));
+      if (reducedMotion) this.renderer.addClass(target, 'is-visible');
+    });
+
+    if (!reducedMotion && 'IntersectionObserver' in window) {
+      this.revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          this.renderer.addClass(entry.target, 'is-visible');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -8% 0px' });
+      revealTargets.forEach(target => this.revealObserver?.observe(target));
+    } else {
+      revealTargets.forEach(target => this.renderer.addClass(target, 'is-visible'));
+    }
+
+    this.updateScrollState();
+  }
+
+  ngOnDestroy(): void { this.revealObserver?.disconnect(); }
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
     if (!this.menuOpen) this.activeMega = null;
@@ -48,4 +82,12 @@ export class WebsiteComponent {
 
   @HostListener('document:keydown.escape')
   onEscape(): void { this.closeMenu(); }
+
+  @HostListener('window:scroll')
+  updateScrollState(): void {
+    const top = window.scrollY || document.documentElement.scrollTop;
+    const height = document.documentElement.scrollHeight - window.innerHeight;
+    this.headerCompact = top > 36;
+    this.scrollProgress = height > 0 ? Math.min(100, Math.max(0, (top / height) * 100)) : 0;
+  }
 }

@@ -1,5 +1,6 @@
 <main class="site-shell">
-  <header class="topbar">
+  <header class="topbar" [class.compact]="headerCompact">
+    <span class="scroll-progress" [style.width.%]="scrollProgress" aria-hidden="true"></span>
     <div class="nav-wrap">
       <a class="brand" href="#home" aria-label="Instant Payment home" (click)="closeMenu()">
         <img src="assets/images/instant-payment-dark.png" alt="Instant Payment">
