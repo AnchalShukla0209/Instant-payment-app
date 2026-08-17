@@ -1,6 +1,19 @@
 /* You can add global styles to this file, and also import other style files */
 /* GLOBAL SCROLLBAR STYLING */
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+app-root {
+  display: block;
+  min-height: 100%;
+}
+
 * {
   scrollbar-width: auto !important;
   /* Firefox */
