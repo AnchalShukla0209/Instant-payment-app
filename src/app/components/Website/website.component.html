@@ -342,22 +342,40 @@
         <a class="why-cta" href="#partner">Grow with Instant Payment <i class="bi bi-arrow-up-right"></i></a>
       </div>
     </section>
-  </section>
 
-  <section class="section services-section" id="services">
-    <div class="section-head centered">
-      <span class="eyebrow"><i class="bi bi-grid"></i> Everything in one place</span>
-      <h2>Grow your business with <span>digital services</span></h2>
-      <p>Offer essential financial services from one reliable dashboard and create more value for every customer who walks in.</p>
-    </div>
-    <div class="service-grid">
-      <article class="service-card" *ngFor="let service of services; let i = index">
-        <span class="card-no">0{{ i + 1 }}</span>
-        <div class="service-icon"><i class="bi" [ngClass]="service.icon"></i></div>
-        <h3>{{ service.title }}</h3><p>{{ service.text }}</p>
-        <a href="#contact" [attr.aria-label]="'Learn about ' + service.title">Learn more <i class="bi bi-arrow-right"></i></a>
-      </article>
-    </div>
+    <section class="growth-services" id="services" aria-labelledby="growth-services-title">
+      <div class="growth-heading">
+        <span class="eyebrow"><i class="bi bi-stars"></i> Business growth suite</span>
+        <h2 id="growth-services-title">One counter.<br><span>More earning opportunities.</span></h2>
+        <p>Bring everyday banking and payment needs together through a connected service experience built for ambitious Indian retailers.</p>
+      </div>
+
+      <div class="growth-stage">
+        <span class="growth-orbit orbit-left" aria-hidden="true"></span>
+        <span class="growth-orbit orbit-right" aria-hidden="true"></span>
+        <div class="growth-service-grid">
+          <article *ngFor="let service of services | slice:0:4; let i = index">
+            <span class="growth-index">0{{ i + 1 }}</span>
+            <div class="growth-icon-orbit">
+              <span class="growth-icon"><i class="bi" [ngClass]="service.icon"></i></span>
+              <i class="bi bi-check2 growth-check"></i>
+            </div>
+            <h3>{{ service.title }}</h3>
+            <span class="growth-divider"></span>
+            <p>{{ service.text }}</p>
+            <a href="#partner" [attr.aria-label]="'Start offering ' + service.title"><i class="bi bi-arrow-up-right"></i></a>
+            <span class="growth-pedestal" aria-hidden="true"></span>
+          </article>
+        </div>
+      </div>
+
+      <div class="growth-trust-rail" aria-label="Instant Payment partner advantages">
+        <article><i class="bi bi-shield-check"></i><span><b>Trusted operations</b><small>Secure service delivery</small></span></article>
+        <article><i class="bi bi-lightning-charge"></i><span><b>Fast settlements</b><small>Built for daily business</small></span></article>
+        <article><i class="bi bi-headset"></i><span><b>Human support</b><small>Help when you need it</small></span></article>
+        <article><i class="bi bi-graph-up-arrow"></i><span><b>Growth focused</b><small>More value per customer</small></span></article>
+      </div>
+    </section>
   </section>
 
   <section class="section about-section" id="about">
