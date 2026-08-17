@@ -271,3 +271,7 @@ footer{background:#041427;color:#fff;padding:70px max(5vw,24px) 22px}.footer-mai
 .credibility-track .cert-card{border-color:rgba(7,102,143,.12);box-shadow:inset 0 1px 0 #fff,inset -9px -10px 16px rgba(7,102,143,.04),0 12px 0 -7px rgba(7,102,143,.07),0 23px 36px rgba(19,75,105,.13)}
 .credibility-zone .eyebrow{color:#07668f;text-shadow:none}.impact-copy h2{color:#09223b;text-shadow:none}.impact-copy h2 span{background:linear-gradient(100deg,#075f84,#0795aa,#0a6b86);background-clip:text;-webkit-background-clip:text;color:transparent}.impact-copy>p,.impact-proof>p{color:#455f72}.impact-proof strong{color:#07668f;text-shadow:none}.impact-proof b{color:#102a42}.network-badge{border-color:rgba(7,102,143,.15);background:rgba(255,255,255,.78);box-shadow:0 12px 24px rgba(19,75,105,.12)}
 .scene-orb{opacity:.62}.scene-cube-two{opacity:.72}.scene-ring{opacity:.48}.scene-disc{opacity:.7}
+
+/* Match the benefits bar to the continuous textured canvas */
+.partner-strip{border-color:rgba(7,102,143,.12);background:#edf8fa;background-image:linear-gradient(rgba(7,102,143,.065) 1px,transparent 1px),linear-gradient(90deg,rgba(7,102,143,.065) 1px,transparent 1px),linear-gradient(110deg,rgba(229,247,250,.98),rgba(248,252,253,.98) 55%,rgba(255,247,237,.98));background-size:38px 38px,38px 38px,auto;box-shadow:0 20px 55px rgba(10,57,84,.14)}
+.partner-strip>div{border-color:rgba(7,102,143,.13)}.partner-strip i{background:rgba(255,255,255,.8);border:1px solid rgba(7,102,143,.09);box-shadow:0 8px 18px rgba(7,102,143,.08)}
