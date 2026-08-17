@@ -278,3 +278,9 @@ footer{background:#041427;color:#fff;padding:70px max(5vw,24px) 22px}.footer-mai
 
 /* Logo-matched typography: deep navy + dark teal */
 .impact-copy h2{color:#101940}.impact-copy h2 span{background:none;-webkit-background-clip:initial;background-clip:initial;color:#006b82}.impact-proof strong{color:#006b82}.impact-proof b{color:#101940}.impact-copy>p,.impact-proof>p{color:#34475c}
+
+/* Keep the benefits card white; continue texture only around its outer margins */
+.partner-strip{background:#fff!important;background-image:none!important;border-color:rgba(7,102,143,.1);box-shadow:0 18px 60px rgba(5,31,58,.13)}
+.partner-strip:before,.partner-strip:after{content:'';position:absolute;z-index:-1;top:-1px;bottom:-1px;width:calc((100vw - 100%)/2);transform:none;background:#eaf7fa;background-image:linear-gradient(rgba(7,102,143,.075) 1px,transparent 1px),linear-gradient(90deg,rgba(7,102,143,.075) 1px,transparent 1px),linear-gradient(110deg,#e5f7fa,#f2f9fb 58%,#fff7ed);background-size:58px 58px,58px 58px,auto}
+.partner-strip:before{left:auto;right:100%}.partner-strip:after{left:100%;right:auto}
+.partner-strip i{background:#eaf7fa;border-color:transparent;box-shadow:none}
