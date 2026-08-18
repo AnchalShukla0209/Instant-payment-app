@@ -28,6 +28,7 @@ export class AdminOnboardingComponent implements OnInit{
  confirmDialog(){if(this.dialog==='decision'){this.executeDecision();return;}if(this.dialog==='finalReject'){if(this.dialogRemarks.trim().length<5){this.error='Final rejection remarks must contain at least 5 characters.';return;}this.loading=true;this.api.reject(this.selected.userId,this.dialogRemarks.trim()).pipe(finalize(()=>this.loading=false)).subscribe({next:()=>{this.closeDialog();this.backToList();},error:e=>this.error=e.error?.message||'Rejection failed.'});return;}const call=this.dialog==='approve'?this.api.approve(this.selected.userId,this.selected.rowVersion):this.api.retryCredentialEmail(this.selected.userId);this.loading=true;call.pipe(finalize(()=>this.loading=false)).subscribe({next:()=>{this.closeDialog();this.backToList();},error:e=>this.error=e.error?.message||'Action failed.'});}
  closeDialog(){this.dialog='';this.dialogRemarks='';}
  get pages(){return Math.max(1,Math.ceil(this.total/this.filters.pageSize));}
+ get isReviewable(){return this.selected?.user?.onboardingStatus==='PendingReview'||this.selected?.user?.onboardingStatus==='PendingReReview';}
  roleName(type:string){return ({RT:'Retailer',AD:'Distributor',MD:'Master Distributor'} as Record<string,string>)[type]||type||'—';}
  get visibleHistory(){const history=this.selected?.history||[];return this.showAllHistory?history:history.slice(0,6);}
  track(_:number,x:any){return x.id||x.userId;}
