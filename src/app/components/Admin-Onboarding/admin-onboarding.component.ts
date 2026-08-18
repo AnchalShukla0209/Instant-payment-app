@@ -20,7 +20,7 @@ export class AdminOnboardingComponent implements OnInit{
  open(id:number){void this.router.navigate(['/sales-team-onboarded',id]);}
  private loadDetail(id:number,resetTab=true){this.loading=true;if(resetTab){this.reviewTab='documents';this.showAllHistory=false;}this.api.detail(id).pipe(finalize(()=>this.loading=false)).subscribe({next:r=>this.selected=r.data,error:e=>this.error=e.error?.message||'Unable to open review.'});}
  backToList(){void this.router.navigate(['/sales-team-onboarded']);}
- decide(kind:'field'|'document',item:any,status:'Approved'|'Rejected'){this.pendingKind=kind;this.pendingItem=item;this.pendingStatus=status;this.dialogRemarks='';if(status==='Approved'){this.executeDecision();return;}this.dialog='decision';this.dialogTitle=`Reject ${item.fieldName||item.documentType}`;this.dialogText='A clear rejection remark is mandatory and will be visible to the Sales Person.';}
+ decide(kind:'field'|'document',item:any,status:'Approved'|'Rejected'){if(!this.canDecide(item))return;this.pendingKind=kind;this.pendingItem=item;this.pendingStatus=status;this.dialogRemarks='';if(status==='Approved'){this.executeDecision();return;}this.dialog='decision';this.dialogTitle=`Reject ${item.fieldName||item.documentType}`;this.dialogText='A clear rejection remark is mandatory and will be visible to the Sales Person.';}
  private executeDecision(){if(this.pendingStatus==='Rejected'&&this.dialogRemarks.trim().length<3){this.error='Rejection remarks are mandatory.';return;}const call=this.pendingKind==='field'?this.api.decideField(this.selected.userId,this.pendingItem.id,this.pendingStatus,this.dialogRemarks.trim()):this.api.decideDocument(this.selected.userId,this.pendingItem.id,this.pendingStatus,this.dialogRemarks.trim());this.loading=true;call.pipe(finalize(()=>this.loading=false)).subscribe({next:()=>{this.closeDialog();this.message='Review decision saved.';this.loadDetail(this.selected.userId,false);},error:e=>this.error=e.error?.message||'Decision could not be saved.'});}
  reject(){this.dialog='finalReject';this.dialogTitle='Reject onboarding';this.dialogText='The Sales Person will receive these final remarks and can correct and resubmit the application.';this.dialogRemarks='';}
  approve(){this.dialog='approve';this.dialogTitle='Approve and activate?';this.dialogText='All validations will run again. The account will be activated and credentials emailed to the registered address.';}
@@ -29,6 +29,7 @@ export class AdminOnboardingComponent implements OnInit{
  closeDialog(){this.dialog='';this.dialogRemarks='';}
  get pages(){return Math.max(1,Math.ceil(this.total/this.filters.pageSize));}
  get isReviewable(){return this.selected?.user?.onboardingStatus==='PendingReview'||this.selected?.user?.onboardingStatus==='PendingReReview';}
+ canDecide(item:any){return this.isReviewable&&item?.reviewStatus==='Pending';}
  roleName(type:string){return ({RT:'Retailer',AD:'Distributor',MD:'Master Distributor'} as Record<string,string>)[type]||type||'—';}
  get visibleHistory(){const history=this.selected?.history||[];return this.showAllHistory?history:history.slice(0,6);}
  track(_:number,x:any){return x.id||x.userId;}
