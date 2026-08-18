@@ -52,7 +52,9 @@ export class AppComponent {
         // the next login's session) on every future reload before the user logs back in.
         this.idleService.unlockDone();
         void this.router.navigate([
-          userType === 'MD' ? '/master-distributor-login' : '/distributor-login'
+          userType === 'MD' ? '/master-distributor-login'
+            : userType === 'ST' ? '/salesteam-login'
+              : '/distributor-login'
         ]);
         return;
       }

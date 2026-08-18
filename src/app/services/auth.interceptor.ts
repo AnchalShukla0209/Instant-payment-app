@@ -21,6 +21,9 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Read the role before getDistributorSession removes an expired session so a
+    // subsequent 401 can still return the user to the correct partner login page.
+    const storedPartnerUserType = this.getStoredPartnerUserType();
     const distributorSession = this.getDistributorSession();
     const token = distributorSession?.accessToken
       || this.encryptor.decrypt(localStorage.getItem('token') || '')
@@ -86,12 +89,10 @@ export class AuthInterceptor implements HttpInterceptor {
         request$ = next.handle(modifiedReq).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          if (distributorSession) {
+          const partnerUserType = distributorSession?.userType || storedPartnerUserType;
+          if (partnerUserType) {
             sessionStorage.removeItem('instantpay.distributor.session');
-            this.router.navigate([
-              distributorSession.userType === 'MD' ? '/master-distributor-login'
-                : distributorSession.userType === 'ST' ? '/salesteam-login' : '/distributor-login'
-            ]);
+            this.router.navigate([this.getPartnerLoginRoute(partnerUserType)]);
           } else {
             localStorage.clear();
             this.router.navigate(['/login']);
@@ -108,6 +109,26 @@ export class AuthInterceptor implements HttpInterceptor {
       this.loader.show();
       return request$.pipe(finalize(() => this.loader.hide()));
     });
+  }
+
+  private getStoredPartnerUserType(): 'AD' | 'MD' | 'ST' | null {
+    const value = sessionStorage.getItem('instantpay.distributor.session');
+    if (!value) return null;
+
+    try {
+      const userType = JSON.parse(value).userType;
+      return userType === 'AD' || userType === 'MD' || userType === 'ST'
+        ? userType
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private getPartnerLoginRoute(userType: 'AD' | 'MD' | 'ST'): string {
+    return userType === 'MD' ? '/master-distributor-login'
+      : userType === 'ST' ? '/salesteam-login'
+        : '/distributor-login';
   }
 
   private getDistributorSession(): {
