@@ -50,9 +50,9 @@
             <button type="button" (click)="toggleMega('company')" [attr.aria-expanded]="activeMega === 'company'">Company <i class="bi bi-chevron-down"></i></button>
             <div class="mega-menu compact-menu company-menu">
               <div class="mega-links">
-                <a href="#about" (click)="closeMenu()"><i class="bi bi-building"></i><span><b>About Us</b><small>Purpose, platform and impact</small></span></a>
+                <a href="#why-us" (click)="closeMenu()"><i class="bi bi-building"></i><span><b>About Us</b><small>Purpose, platform and impact</small></span></a>
                 <a href="#security" (click)="closeMenu()"><i class="bi bi-shield-lock"></i><span><b>Security</b><small>How we protect the platform</small></span></a>
-                <a href="#contact" (click)="closeMenu()"><i class="bi bi-envelope"></i><span><b>Contact Us</b><small>Connect with our team</small></span></a>
+                <a href="#join-network" (click)="closeMenu()"><i class="bi bi-envelope"></i><span><b>Contact Us</b><small>Connect with our team</small></span></a>
               </div>
             </div>
           </div>
@@ -68,7 +68,7 @@
           </div>
         </div>
         <div class="nav-actions">
-          <a class="nav-partner" href="#partner" (click)="closeMenu()">Become a partner</a>
+          <a class="nav-partner" href="#join-network" (click)="closeMenu()">Become a partner</a>
           <div class="nav-item login-nav" [class.expanded]="activeMega === 'login'">
             <button class="nav-login" type="button" (click)="toggleMega('login')" [attr.aria-expanded]="activeMega === 'login'">Login <i class="bi bi-chevron-down"></i></button>
             <div class="mega-menu login-menu">
