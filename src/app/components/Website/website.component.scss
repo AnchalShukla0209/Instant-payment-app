@@ -509,3 +509,110 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
 @media(max-width:1100px){.hero-copy{width:min(610px,60%)}.hero h1{font-size:clamp(46px,5.4vw,61px)}.hero-brand-plaque{right:7%;top:34%;width:205px}.hero-brand-plaque>img{width:165px}.hero-platform-status{display:none}.hero .fc-one{right:4%}}
 @media(max-width:760px){.hero{min-height:790px}.hero-inner{min-height:790px;padding:140px 20px 56px;align-items:flex-end}.hero-copy{width:100%;max-width:560px;padding:0}.hero:before{background:linear-gradient(180deg,rgba(7,13,43,.25) 0%,rgba(7,13,43,.58) 35%,rgba(7,13,43,.98) 72%,#070d2b 100%)}.hero-art>img:first-child{object-position:67% center;opacity:.78}.hero-brand-plaque{right:8%;top:24%;width:170px;padding:13px}.hero-brand-plaque>img{width:137px}.hero-brand-plaque small{font-size:6px}.hero-brand-orbit{width:205px;height:86px}.hero .fc-one{display:none}.hero h1{font-size:clamp(40px,10.7vw,54px)}.hero-copy>p{font-size:13px!important}.hero-actions{margin:25px 0}.trust-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.trust-row div{min-width:0;padding:11px 8px}.trust-row strong{font-size:17px!important}.trust-row span{font-size:7px}}
 @media(prefers-reduced-motion:reduce){.hero h1 span,.hero .btn-primary:before,.hero .btn-ghost:before,.hero-brand-plaque,.hero-brand-orbit,.hero-platform-status{animation:none}}
+
+/* Unified motion, typography and vertical rhythm */
+.reveal-item .motion-item{
+  opacity:0;
+  translate:0 18px;
+  filter:blur(3px);
+  transition:
+    opacity .62s cubic-bezier(.2,.75,.25,1),
+    translate .62s cubic-bezier(.2,.75,.25,1),
+    filter .62s ease;
+  transition-delay:calc(70ms + (var(--motion-order,0) * 48ms));
+}
+.reveal-item.is-visible .motion-item{opacity:1;translate:0 0;filter:none}
+.motion-action{
+  transition-property:translate,scale,transform,box-shadow,border-color,color,background-color!important;
+  transition-duration:.24s!important;
+  transition-timing-function:ease!important;
+}
+.reveal-item.is-visible .motion-action:hover{translate:0 -3px}
+.reveal-item.is-visible .motion-action:active{translate:0 -1px;scale:.98}
+.motion-action:focus-visible{outline:3px solid rgba(207,85,18,.32);outline-offset:4px}
+
+.hero-copy>.eyebrow{animation:heroContentRise .65s .06s cubic-bezier(.2,.75,.25,1) both}
+.hero-copy>h1{animation:heroContentRise .72s .14s cubic-bezier(.2,.75,.25,1) both}
+.hero-copy>p{animation:heroContentRise .72s .23s cubic-bezier(.2,.75,.25,1) both}
+.hero-actions{animation:heroContentRise .72s .32s cubic-bezier(.2,.75,.25,1) both}
+.trust-row{animation:heroContentRise .72s .41s cubic-bezier(.2,.75,.25,1) both}
+@keyframes heroContentRise{from{opacity:0;translate:0 24px;filter:blur(4px)}to{opacity:1;translate:0 0;filter:none}}
+
+/* One professional display scale for every primary section title. */
+:where(
+  .impact-copy,
+  .security-summary,
+  .media-heading,
+  .why-content,
+  .growth-heading,
+  .enablement-content,
+  .ecosystem-heading,
+  .story-copy-card,
+  .dashboard-copy,
+  .network-copy,
+  .infra-heading
+) h2{
+  font-size:clamp(40px,4.15vw,56px)!important;
+  line-height:1.01!important;
+  letter-spacing:-.052em!important;
+}
+:where(
+  .impact-copy,
+  .security-summary,
+  .media-heading,
+  .why-content,
+  .growth-heading,
+  .enablement-content,
+  .ecosystem-heading,
+  .story-copy-card,
+  .dashboard-copy,
+  .network-copy,
+  .infra-heading
+)>p{
+  font-size:clamp(12px,.95vw,15px)!important;
+  line-height:1.7!important;
+}
+.eyebrow{font-size:clamp(8px,.7vw,10px)!important;line-height:1.35}
+
+@media(min-width:761px){
+  .security-showcase{padding-bottom:92px}
+  .payment-platform{padding-bottom:96px}
+  .platform-manifesto{margin-bottom:44px}
+  .media-coverage{padding-bottom:98px}
+  .media-heading{margin-bottom:38px}
+  .why-choose{padding-bottom:100px}
+  .growth-services{padding-bottom:100px}
+  .growth-heading{margin-bottom:40px}
+  .growth-trust-rail{margin-top:40px}
+  .partner-enablement{padding-bottom:102px}
+  .enablement-story--retailer{margin-top:62px;padding-top:72px}
+  .ecosystem-trust{padding-bottom:104px}
+  .ecosystem-stage{margin-top:58px}
+  .transformation-stories{padding-bottom:108px}
+  .dashboard-showcase{padding-bottom:108px}
+  .network-application{padding-bottom:110px}
+  .infra-experience{margin-bottom:72px}
+}
+
+@media(max-width:760px){
+  .reveal-item .motion-item{translate:0 13px;transition-delay:calc(35ms + (var(--motion-order,0) * 30ms))}
+  :where(
+    .impact-copy,
+    .security-summary,
+    .media-heading,
+    .why-content,
+    .growth-heading,
+    .enablement-content,
+    .ecosystem-heading,
+    .story-copy-card,
+    .dashboard-copy,
+    .network-copy,
+    .infra-heading
+  ) h2{font-size:clamp(34px,10.2vw,48px)!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .reveal-item .motion-item{opacity:1;translate:none;filter:none;transition:none!important}
+  .hero-copy>.eyebrow,.hero-copy>h1,.hero-copy>p,.hero-actions,.trust-row{animation:none;opacity:1;translate:none;filter:none}
+  .motion-action{transition:none!important}
+}
