@@ -9,11 +9,12 @@ import { NgSelectModule } from '@ng-select/ng-select';
 @Component({selector:'app-admin-onboarding',standalone:true,imports:[CommonModule,FormsModule,NgSelectModule],templateUrl:'./admin-onboarding.component.html',styleUrl:'./admin-onboarding.component.scss'})
 export class AdminOnboardingComponent implements OnInit{
  private api=inject(AdminOnboardingService);private route=inject(ActivatedRoute);private router=inject(Router);loading=false; error=''; message=''; rows:any[]=[]; salesPeople:any[]=[]; selected:any=null; total=0;detailId=0;showAllHistory=false;reviewTab:'documents'|'information'='documents';
- filters:any={pageIndex:1,pageSize:10,search:'',status:'',fromDate:'',toDate:'',salesTeamId:''};
+ private today(){const now=new Date();const offset=now.getTimezoneOffset();return new Date(now.getTime()-offset*60000).toISOString().slice(0,10);}
+ filters:any={pageIndex:1,pageSize:10,search:'',status:'',fromDate:this.today(),toDate:this.today(),salesTeamId:''};
  dialog:''|'decision'|'finalReject'|'approve'|'retry'='';dialogTitle='';dialogText='';dialogRemarks='';pendingKind:'field'|'document'='field';pendingItem:any=null;pendingStatus:'Approved'|'Rejected'='Approved';
  ngOnInit(){this.detailId=Number(this.route.snapshot.paramMap.get('id'))||0;if(this.detailId)this.loadDetail(this.detailId);else{this.load();this.api.salesPeople().subscribe({next:r=>this.salesPeople=r.data||[]});}}
  load(){if(this.filters.fromDate&&this.filters.toDate&&this.filters.fromDate>this.filters.toDate){this.error='From Date cannot be later than To Date.';return;}this.loading=true;this.error='';this.api.list(this.filters).pipe(finalize(()=>this.loading=false)).subscribe({next:r=>{this.rows=r.data.data;this.total=r.data.totalCount;},error:e=>this.error=e.error?.message||'Unable to load onboardings.'});}
- reset(){this.filters={pageIndex:1,pageSize:10,search:'',status:'',fromDate:'',toDate:'',salesTeamId:''};this.load();}
+ reset(){const today=this.today();this.filters={pageIndex:1,pageSize:10,search:'',status:'',fromDate:today,toDate:today,salesTeamId:''};this.load();}
  page(delta:number){const p=this.filters.pageIndex+delta;if(p<1||p>Math.ceil(this.total/this.filters.pageSize))return;this.filters.pageIndex=p;this.load();}
  open(id:number){void this.router.navigate(['/sales-team-onboarded',id]);}
  private loadDetail(id:number,resetTab=true){this.loading=true;if(resetTab){this.reviewTab='documents';this.showAllHistory=false;}this.api.detail(id).pipe(finalize(()=>this.loading=false)).subscribe({next:r=>this.selected=r.data,error:e=>this.error=e.error?.message||'Unable to open review.'});}

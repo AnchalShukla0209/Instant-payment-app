@@ -47,3 +47,6 @@
 .filter-actions button{min-width:0;padding:8px 9px;gap:5px}
 .reset-btn{min-width:0}
 @media(max-width:1350px){.filters{grid-template-columns:repeat(3,minmax(0,1fr))}.filter-actions{display:grid}}
+
+:host{min-height:100vh;background:linear-gradient(180deg,#faf8fd 0,#f6f2fa 100%)}
+.review-page{min-height:100vh}
