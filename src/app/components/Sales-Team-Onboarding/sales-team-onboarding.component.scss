@@ -176,11 +176,12 @@
   color: #4f4358;
 }
 .grid > label::after {
-  content: " *";
+  content: "*";
   color: #d33b50;
   grid-column: 2;
   grid-row: 1;
   justify-self: start;
+  margin-left: 3px;
 }
 .grid label > input,
 .grid label > select,
@@ -254,6 +255,10 @@
   color: #63318a;
   font-size: 11px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }
 .verify button:hover:not(.done) {
   background: #63318a;
