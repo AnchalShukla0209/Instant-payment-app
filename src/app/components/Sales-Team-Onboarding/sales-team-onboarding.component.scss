@@ -168,13 +168,26 @@
   gap: 16px 20px;
 }
 .grid label {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
   font-size: 11px;
   font-weight: 700;
   color: #4f4358;
 }
-.grid > label:after {
+.grid > label::after {
   content: " *";
   color: #d33b50;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: start;
+}
+.grid label > input,
+.grid label > select,
+.grid label > .verify,
+.grid label > ng-select,
+.grid label > .field-error {
+  grid-column: 1 / -1;
 }
 .grid input,
 .grid select,
@@ -606,14 +619,6 @@ summary {
   }
 }
 
-/* Keep mandatory indicators beside their labels instead of below the controls. */
-.grid > label::after {
-  content: none;
-}
-.grid > label::before {
-  content: "* ";
-  color: #d33b50;
-}
 .docs strong::after {
   content: " *";
   color: #d33b50;
