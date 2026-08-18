@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, Renderer2 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { WebsiteEnquiryService } from '../../services/website-enquiry.service';
 
 @Component({
   selector: 'app-website',
@@ -11,14 +13,26 @@ import { RouterLink } from '@angular/router';
 })
 export class WebsiteComponent implements AfterViewInit, OnDestroy {
   menuOpen = false;
-  activeMega: 'products' | 'partners' | 'company' | 'resources' | null = null;
+  activeMega: 'products' | 'partners' | 'company' | 'resources' | 'login' | null = null;
+  founderVideoMuted = true;
   headerCompact = false;
   scrollProgress = 0;
   activeFaq = 0;
+  activeServiceStory = 0;
+  activeDashboard = 0;
+  enquirySubmitting = false;
+  enquirySuccess = false;
+  enquiryFeedback = '';
   currentYear = new Date().getFullYear();
   private revealObserver?: IntersectionObserver;
+  private serviceStoryTimer?: ReturnType<typeof setInterval>;
+  private dashboardTimer?: ReturnType<typeof setInterval>;
 
-  constructor(private host: ElementRef<HTMLElement>, private renderer: Renderer2) {}
+  constructor(
+    private host: ElementRef<HTMLElement>,
+    private renderer: Renderer2,
+    private websiteEnquiryService: WebsiteEnquiryService
+  ) {}
 
   services = [
     { icon: 'bi-fingerprint', title: 'AEPS', text: 'Cash withdrawal, balance enquiry and mini statements through Aadhaar.' },
@@ -36,12 +50,79 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
     { q: 'How do I get started?', a: 'Choose “Become a Partner”, submit your details, and our onboarding team will contact you for verification and activation.' }
   ];
 
+  serviceStories = [
+    {
+      image: 'assets/images/transformation-service-centre-v1.png',
+      alt: 'Customers receiving assistance inside a modern Instant Payment service centre',
+      eyebrow: 'Modern service centres',
+      lead: 'Transforming everyday access through',
+      accent: 'welcoming digital centres.',
+      text: 'Purpose-built environments combine friendly guidance, connected services and modern technology to make every customer journey feel simple.',
+      tags: ['Assisted access', 'Modern experience'],
+      metric: 'Centre ready'
+    },
+    {
+      image: 'assets/images/transformation-customer-assistance-v1.png',
+      alt: 'Instant Payment executive assisting an elderly customer with a tablet',
+      eyebrow: 'Human-first assistance',
+      lead: 'Making digital financial services',
+      accent: 'clear, personal and trusted.',
+      text: 'Knowledgeable representatives guide customers step by step, combining digital convenience with the confidence of real human support.',
+      tags: ['Personal guidance', 'Customer confidence'],
+      metric: 'Human first'
+    },
+    {
+      image: 'assets/images/transformation-rural-outreach-v1.png',
+      alt: 'Instant Payment field representative guiding a rural family through digital services',
+      eyebrow: 'Community outreach',
+      lead: 'Bringing useful digital access',
+      accent: 'closer to rural communities.',
+      text: 'Field-led support and approachable technology help families understand and use essential services without travelling far from home.',
+      tags: ['Field assistance', 'Inclusive reach'],
+      metric: 'Community led'
+    },
+    {
+      image: 'assets/images/transformation-india-network-v1.png',
+      alt: 'Instant Payment tablet connected to a luminous digital network across India',
+      eyebrow: 'Connected India',
+      lead: 'Powering local service delivery through',
+      accent: 'one nationwide network.',
+      text: 'Secure digital infrastructure connects partners and communities across India, helping dependable services move further and faster.',
+      tags: ['Secure network', 'Nationwide scale'],
+      metric: 'India connected'
+    }
+  ];
+
+  dashboards = [
+    { label: 'Retailer', title: 'Retailer Dashboard', image: 'assets/images/dashboard-retailer.png', alt: 'Instant Payment retailer dashboard with wallet, quick services and recent transactions', icon: 'bi-shop-window', note: 'Serve customers and manage daily transactions from one counter.' },
+    { label: 'Distributor', title: 'Distributor Dashboard', image: 'assets/images/dashboard-distributor.png', alt: 'Instant Payment distributor dashboard with wallet, network activity and onboarding insights', icon: 'bi-diagram-3', note: 'Track network activity, partner onboarding and territory performance.' },
+    { label: 'Master Distributor', title: 'Master Distributor Dashboard', image: 'assets/images/dashboard-master-distributor.png', alt: 'Instant Payment master distributor dashboard with network analytics and recent onboardings', icon: 'bi-buildings', note: 'See the complete distribution network with clear operational intelligence.' },
+    { label: 'Sales Team', title: 'Sales Team Dashboard', image: 'assets/images/dashboard-sales-team.png', alt: 'Instant Payment sales team dashboard for partner onboarding management', icon: 'bi-people', note: 'Move every partner application from first draft to successful activation.' }
+  ];
+
   toggleFaq(index: number): void { this.activeFaq = this.activeFaq === index ? -1 : index; }
+
+  toggleFounderVideoMute(video: HTMLVideoElement): void {
+    this.founderVideoMuted = !this.founderVideoMuted;
+    video.muted = this.founderVideoMuted;
+  }
 
   ngAfterViewInit(): void {
     const root = this.host.nativeElement;
-    const revealTargets = root.querySelectorAll<HTMLElement>('main section:not(.hero), main footer');
+    const revealTargets = root.querySelectorAll<HTMLElement>('main section:not(.hero):not(.credibility-zone), main footer, .impact-intro, .founder-story, .enablement-story--retailer');
+    const motionTargets = root.querySelectorAll<HTMLElement>(
+      'main section:not(.hero) :is(h2, h3, .eyebrow, p, article, a, button), .impact-intro :is(strong, b), .founder-story :is(.video-kicker, .video-placeholder-copy, .founder-role, h3, blockquote), main footer :is(h2, h3, p, a, button)'
+    );
+    const actionTargets = root.querySelectorAll<HTMLElement>('main a, main button');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    motionTargets.forEach((target, index) => {
+      this.renderer.addClass(target, 'motion-item');
+      this.renderer.setStyle(target, '--motion-order', String(index % 5));
+
+    });
+
+    actionTargets.forEach(target => this.renderer.addClass(target, 'motion-action'));
 
     revealTargets.forEach((target, index) => {
       this.renderer.addClass(target, 'reveal-item');
@@ -63,15 +144,97 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
     }
 
     this.updateScrollState();
+    if (!reducedMotion) {
+      this.startServiceStoryTimer();
+      this.startDashboardTimer();
+    }
   }
 
-  ngOnDestroy(): void { this.revealObserver?.disconnect(); }
+  ngOnDestroy(): void {
+    this.revealObserver?.disconnect();
+    if (this.serviceStoryTimer) clearInterval(this.serviceStoryTimer);
+    if (this.dashboardTimer) clearInterval(this.dashboardTimer);
+  }
+
+  selectServiceStory(index: number): void {
+    this.activeServiceStory = index;
+    this.startServiceStoryTimer();
+  }
+
+  nextServiceStory(): void {
+    this.activeServiceStory = (this.activeServiceStory + 1) % this.serviceStories.length;
+    this.startServiceStoryTimer();
+  }
+
+  previousServiceStory(): void {
+    this.activeServiceStory = (this.activeServiceStory - 1 + this.serviceStories.length) % this.serviceStories.length;
+    this.startServiceStoryTimer();
+  }
+
+  private startServiceStoryTimer(): void {
+    if (this.serviceStoryTimer) clearInterval(this.serviceStoryTimer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    this.serviceStoryTimer = setInterval(() => {
+      this.activeServiceStory = (this.activeServiceStory + 1) % this.serviceStories.length;
+    }, 6500);
+  }
+
+  selectDashboard(index: number): void {
+    this.activeDashboard = index;
+    this.startDashboardTimer();
+  }
+
+  nextDashboard(): void {
+    this.activeDashboard = (this.activeDashboard + 1) % this.dashboards.length;
+    this.startDashboardTimer();
+  }
+
+  previousDashboard(): void {
+    this.activeDashboard = (this.activeDashboard - 1 + this.dashboards.length) % this.dashboards.length;
+    this.startDashboardTimer();
+  }
+
+  private startDashboardTimer(): void {
+    if (this.dashboardTimer) clearInterval(this.dashboardTimer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    this.dashboardTimer = setInterval(() => {
+      this.activeDashboard = (this.activeDashboard + 1) % this.dashboards.length;
+    }, 6000);
+  }
+
+  submitPartnerEnquiry(event: Event): void {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    if (this.enquirySubmitting || !form.reportValidity()) return;
+
+    const data = new FormData(form);
+    this.enquirySubmitting = true;
+    this.enquiryFeedback = '';
+
+    this.websiteEnquiryService.submit({
+      fullName: String(data.get('name') || '').trim(),
+      mobile: String(data.get('mobile') || '').trim(),
+      email: String(data.get('email') || '').trim(),
+      interest: String(data.get('interest') || '').trim(),
+      message: String(data.get('message') || '').trim()
+    }).pipe(finalize(() => this.enquirySubmitting = false)).subscribe({
+      next: response => {
+        this.enquirySuccess = true;
+        this.enquiryFeedback = response.message || 'Thank you. Our partner team will contact you shortly.';
+        form.reset();
+      },
+      error: error => {
+        this.enquirySuccess = false;
+        this.enquiryFeedback = error?.error?.message || 'We could not submit your enquiry right now. Please try again shortly.';
+      }
+    });
+  }
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
     if (!this.menuOpen) this.activeMega = null;
   }
 
-  toggleMega(menu: 'products' | 'partners' | 'company' | 'resources'): void {
+  toggleMega(menu: 'products' | 'partners' | 'company' | 'resources' | 'login'): void {
     this.activeMega = this.activeMega === menu ? null : menu;
   }
 
