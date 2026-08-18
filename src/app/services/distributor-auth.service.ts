@@ -101,6 +101,7 @@ export class DistributorAuthService {
   ): DistributorSession {
     const session: DistributorSession = {
       ...response,
+      deviceName: this.getDeviceName(),
       expiresAt: Date.now() + response.expiresInSeconds * 1000
     };
     sessionStorage.setItem(this.sessionKey, JSON.stringify(session));
@@ -114,6 +115,20 @@ export class DistributorAuthService {
     localStorage.setItem('lastActivity', Date.now().toString());
 
     return session;
+  }
+
+  private getDeviceName(): string {
+    const userAgent = navigator.userAgent;
+    if (/iPhone/i.test(userAgent)) return 'iPhone (iOS)';
+    if (/iPad/i.test(userAgent)) return 'iPad (iPadOS)';
+    if (/Android/i.test(userAgent)) {
+      const model = userAgent.match(/Android[^;]*;\s*([^;)]+?)(?:\s+Build\/|;|\))/i)?.[1]?.trim();
+      return model ? `${model} (Android)` : 'Android mobile';
+    }
+    if (/Windows/i.test(userAgent)) return 'Windows computer';
+    if (/Macintosh|Mac OS X/i.test(userAgent)) return 'Mac computer';
+    if (/Linux/i.test(userAgent)) return 'Linux computer';
+    return 'Web browser';
   }
 
   private getBaseUrl(userType: PartnerUserType): string {

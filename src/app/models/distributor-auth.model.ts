@@ -28,6 +28,9 @@ export interface DistributorSession {
   username: string;
   userType: PartnerUserType;
   displayName: string;
+  lastLoginAt: string;
+  ipAddress: string;
+  deviceName?: string;
   expiresAt: number;
 }
 
