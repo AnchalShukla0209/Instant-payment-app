@@ -609,7 +609,13 @@
           </div>
 
           <div class="network-assurance"><i class="bi bi-patch-check"></i><span><b>Partner-first response</b><small>Your details go directly to our business team.</small></span></div>
-          <button class="network-submit" type="submit"><span>Submit partner enquiry</span><i class="bi bi-arrow-up-right"></i></button>
+          <button class="network-submit" type="submit" [disabled]="enquirySubmitting">
+            <span>{{ enquirySubmitting ? 'Sending enquiry...' : 'Submit partner enquiry' }}</span>
+            <i class="bi" [ngClass]="enquirySubmitting ? 'bi-arrow-repeat network-submit-spinner' : 'bi-arrow-up-right'"></i>
+          </button>
+          <p *ngIf="enquiryFeedback" class="network-feedback" [class.is-success]="enquirySuccess" role="status" aria-live="polite">
+            <i class="bi" [ngClass]="enquirySuccess ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'"></i>{{ enquiryFeedback }}
+          </p>
           <p class="network-privacy"><i class="bi bi-lock"></i> Your information is used only to respond to this enquiry.</p>
         </form>
       </div>

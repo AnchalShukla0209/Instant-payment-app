@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, Renderer2 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { WebsiteEnquiryService } from '../../services/website-enquiry.service';
 
 @Component({
   selector: 'app-website',
@@ -17,12 +19,19 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
   activeFaq = 0;
   activeServiceStory = 0;
   activeDashboard = 0;
+  enquirySubmitting = false;
+  enquirySuccess = false;
+  enquiryFeedback = '';
   currentYear = new Date().getFullYear();
   private revealObserver?: IntersectionObserver;
   private serviceStoryTimer?: ReturnType<typeof setInterval>;
   private dashboardTimer?: ReturnType<typeof setInterval>;
 
-  constructor(private host: ElementRef<HTMLElement>, private renderer: Renderer2) {}
+  constructor(
+    private host: ElementRef<HTMLElement>,
+    private renderer: Renderer2,
+    private websiteEnquiryService: WebsiteEnquiryService
+  ) {}
 
   services = [
     { icon: 'bi-fingerprint', title: 'AEPS', text: 'Cash withdrawal, balance enquiry and mini statements through Aadhaar.' },
@@ -178,17 +187,29 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
   submitPartnerEnquiry(event: Event): void {
     event.preventDefault();
     const form = event.currentTarget as HTMLFormElement;
+    if (this.enquirySubmitting || !form.reportValidity()) return;
+
     const data = new FormData(form);
-    const subject = `Partner enquiry - ${data.get('interest') || 'Instant Payment network'}`;
-    const body = [
-      `Name: ${data.get('name') || ''}`,
-      `Mobile: ${data.get('mobile') || ''}`,
-      `Email: ${data.get('email') || ''}`,
-      `Interested as: ${data.get('interest') || ''}`,
-      '',
-      `Message: ${data.get('message') || ''}`
-    ].join('\n');
-    window.location.href = `mailto:info@instantpayments.in?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    this.enquirySubmitting = true;
+    this.enquiryFeedback = '';
+
+    this.websiteEnquiryService.submit({
+      fullName: String(data.get('name') || '').trim(),
+      mobile: String(data.get('mobile') || '').trim(),
+      email: String(data.get('email') || '').trim(),
+      interest: String(data.get('interest') || '').trim(),
+      message: String(data.get('message') || '').trim()
+    }).pipe(finalize(() => this.enquirySubmitting = false)).subscribe({
+      next: response => {
+        this.enquirySuccess = true;
+        this.enquiryFeedback = response.message || 'Thank you. Our partner team will contact you shortly.';
+        form.reset();
+      },
+      error: error => {
+        this.enquirySuccess = false;
+        this.enquiryFeedback = error?.error?.message || 'We could not submit your enquiry right now. Please try again shortly.';
+      }
+    });
   }
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
