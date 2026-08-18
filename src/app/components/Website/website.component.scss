@@ -723,3 +723,73 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
   .manifesto-ribbon,.manifesto-line i,.identity-layer,.identity-face,.platform-detail-card h2,.payment-channels span,.platform-progress i,
   .founder-card,.founder-role i,.founder-card h3,.founder-card blockquote{animation:none!important}
 }
+
+/* Media Coverage: editorial motion, active story cards and a living proof rail. */
+.media-heading h2{
+  color:transparent;
+  background:linear-gradient(105deg,#0c133d 0 38%,#cf5512 46%,#0c133d 55% 100%);
+  background-size:235% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:mediaTitleFlow 5.3s ease-in-out infinite;
+}
+.media-heading h2 span{color:inherit}
+.media-coverage.is-visible .media-feature{animation:mediaFeatureGlow 4.8s ease-in-out infinite}
+.media-coverage.is-visible .feature-label{animation:mediaLabelPulse 3.2s ease-in-out infinite}
+.media-coverage.is-visible .feature-copy h3{
+  color:transparent;
+  background:linear-gradient(105deg,#fff 0 38%,#f2a17a 46%,#fff 55% 100%);
+  background-size:235% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:mediaDarkTitleFlow 5s ease-in-out infinite;
+}
+.media-coverage.is-visible .media-thumb{animation:mediaThumbBreathe 4s ease-in-out infinite}
+.media-coverage.is-visible .media-feed article:nth-child(2) .media-thumb{animation-delay:-1s}
+.media-coverage.is-visible .media-feed article:nth-child(3) .media-thumb{animation-delay:-2s}
+.media-coverage.is-visible .media-feed article:nth-child(4) .media-thumb{animation-delay:-3s}
+.media-coverage.is-visible .media-feed article>a{animation:mediaArrowPulse 3.2s ease-in-out infinite}
+.media-coverage.is-visible .media-feed article:nth-child(even)>a{animation-delay:-1.6s}
+.media-coverage.is-visible .media-values article>i{animation:mediaValuePulse 3.6s ease-in-out infinite}
+.media-coverage.is-visible .media-values article:nth-child(2)>i{animation-delay:-.9s}
+.media-coverage.is-visible .media-values article:nth-child(3)>i{animation-delay:-1.8s}
+.media-coverage.is-visible .media-values article:nth-child(4)>i{animation-delay:-2.7s}
+@keyframes mediaTitleFlow{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
+@keyframes mediaDarkTitleFlow{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
+@keyframes mediaFeatureGlow{50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset -18px -20px 32px rgba(0,0,0,.18),0 15px 0 -8px rgba(207,85,18,.16),0 38px 70px rgba(12,19,61,.27)}}
+@keyframes mediaLabelPulse{50%{translate:0 -3px;box-shadow:0 14px 26px rgba(207,85,18,.34)}}
+@keyframes mediaThumbBreathe{50%{translate:0 -3px;scale:1.025;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 14px 24px rgba(12,19,61,.18)}}
+@keyframes mediaArrowPulse{50%{translate:2px -2px;scale:1.08;box-shadow:0 11px 21px rgba(12,19,61,.23)}}
+@keyframes mediaValuePulse{50%{translate:0 -3px;rotate:3deg;box-shadow:0 12px 22px rgba(12,19,61,.12)}}
+
+/* Why Choose Us: leadership orbit, moving brand line and active pillars. */
+.why-content h2{
+  color:transparent;
+  background:linear-gradient(105deg,#0c133d 0 38%,#cf5512 46%,#0c133d 55% 100%);
+  background-size:235% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:whyTitleFlow 5.4s ease-in-out infinite;
+}
+.why-content h2 span{color:inherit}
+.why-choose.is-visible .why-brand-line span{background-size:220% 100%;animation:whyBrandLineFlow 3.4s linear infinite}
+.why-choose.is-visible .why-brand-line i{animation:whyBrandNode 3.4s ease-in-out infinite}
+.why-choose.is-visible .leadership-portrait-frame{animation:whyPortraitFloat 5.2s ease-in-out infinite}
+.why-choose.is-visible .pillar-icon{animation:whyPillarPulse 3.8s ease-in-out infinite}
+.why-choose.is-visible .why-pillars article:nth-child(2) .pillar-icon{animation-delay:-.95s}
+.why-choose.is-visible .why-pillars article:nth-child(3) .pillar-icon{animation-delay:-1.9s}
+.why-choose.is-visible .why-pillars article:nth-child(4) .pillar-icon{animation-delay:-2.85s}
+.why-cta{position:relative;overflow:hidden;animation:whyCtaPulse 3.2s ease-in-out infinite}
+.why-cta:before{content:'';position:absolute;inset:-2px;width:42%;transform:translateX(-170%) skewX(-18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);animation:whyCtaSweep 3.6s ease-in-out infinite}.why-cta>*{position:relative;z-index:1}
+@keyframes whyTitleFlow{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
+@keyframes whyBrandLineFlow{to{background-position:-220% 50%}}
+@keyframes whyBrandNode{50%{translate:-8px 0;scale:1.18;box-shadow:0 0 0 6px rgba(207,85,18,.08)}}
+@keyframes whyPortraitFloat{50%{translate:0 -7px;filter:drop-shadow(0 34px 27px rgba(12,19,61,.22))}}
+@keyframes whyPillarPulse{50%{translate:0 -4px;scale:1.04;rotate:3deg}}
+@keyframes whyCtaPulse{50%{translate:0 -3px;box-shadow:0 18px 32px rgba(12,19,61,.25)}}
+@keyframes whyCtaSweep{0%,35%{transform:translateX(-170%) skewX(-18deg)}72%,100%{transform:translateX(370%) skewX(-18deg)}}
+
+@media(prefers-reduced-motion:reduce){
+  .media-heading h2,.media-feature,.feature-label,.feature-copy h3,.media-thumb,.media-feed article>a,.media-values article>i,
+  .why-content h2,.why-brand-line span,.why-brand-line i,.leadership-portrait-frame,.pillar-icon,.why-cta,.why-cta:before{animation:none!important}
+}
