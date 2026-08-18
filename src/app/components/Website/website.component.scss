@@ -624,7 +624,7 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
   background-size:235% 100%!important;
   -webkit-background-clip:text!important;
   background-clip:text!important;
-  animation:impactTitleFlow 5.2s ease-in-out infinite;
+  animation:impactTitleFlow 5.2s ease-in-out infinite,impactHeadlineFloat 4.4s ease-in-out infinite;
 }
 .impact-copy h2 span{
   color:transparent!important;
@@ -632,16 +632,22 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
   background-size:235% 100%!important;
   -webkit-background-clip:text!important;
   background-clip:text!important;
-  animation:impactTitleFlow 5.2s .28s ease-in-out infinite;
+  animation:impactTitleFlow 5.2s .28s ease-in-out infinite,impactAccentFloat 4.4s -.8s ease-in-out infinite;
 }
+.impact-intro.is-visible .impact-copy>.eyebrow{animation:impactEyebrowPulse 3.6s ease-in-out infinite}
+.impact-intro.is-visible .impact-copy>p{animation:impactParagraphBreathe 4.8s ease-in-out infinite}
 .impact-proof strong{display:inline-block;animation:impactMetricPulse 3s ease-in-out infinite}
 .impact-proof b{display:inline-block;animation:impactLabelLift 3s .12s ease-in-out infinite}
 .impact-copy>.eyebrow i{display:inline-block;animation:impactStarSpin 4.5s linear infinite}
 @keyframes impactTitleFlow{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
+@keyframes impactHeadlineFloat{50%{translate:0 -4px;filter:drop-shadow(0 9px 10px rgba(12,19,61,.1))}}
+@keyframes impactAccentFloat{50%{translate:7px 0;filter:drop-shadow(0 8px 10px rgba(207,85,18,.14))}}
+@keyframes impactEyebrowPulse{50%{letter-spacing:.18em;color:#0c133d}}
+@keyframes impactParagraphBreathe{50%{translate:3px 0;color:#0c133d}}
 @keyframes impactMetricPulse{50%{translate:0 -3px;filter:drop-shadow(0 8px 13px rgba(207,85,18,.22))}}
 @keyframes impactLabelLift{50%{translate:0 -1px;letter-spacing:.012em}}
 @keyframes impactStarSpin{to{rotate:360deg}}
-@media(prefers-reduced-motion:reduce){.impact-copy h2,.impact-copy h2 span,.impact-proof strong,.impact-proof b,.impact-copy>.eyebrow i{animation:none}}
+@media(prefers-reduced-motion:reduce){.impact-copy h2,.impact-copy h2 span,.impact-copy>.eyebrow,.impact-copy>p,.impact-proof strong,.impact-proof b,.impact-copy>.eyebrow i{animation:none}}
 
 /* Security: scanning protection flow and living card stack. */
 .security-summary h2{
