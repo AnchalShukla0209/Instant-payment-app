@@ -16,9 +16,11 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
   scrollProgress = 0;
   activeFaq = 0;
   activeServiceStory = 0;
+  activeDashboard = 0;
   currentYear = new Date().getFullYear();
   private revealObserver?: IntersectionObserver;
   private serviceStoryTimer?: ReturnType<typeof setInterval>;
+  private dashboardTimer?: ReturnType<typeof setInterval>;
 
   constructor(private host: ElementRef<HTMLElement>, private renderer: Renderer2) {}
 
@@ -81,6 +83,13 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
     }
   ];
 
+  dashboards = [
+    { label: 'Retailer', title: 'Retailer Dashboard', image: 'assets/images/dashboard-retailer.png', alt: 'Instant Payment retailer dashboard with wallet, quick services and recent transactions', icon: 'bi-shop-window', note: 'Serve customers and manage daily transactions from one counter.' },
+    { label: 'Distributor', title: 'Distributor Dashboard', image: 'assets/images/dashboard-distributor.png', alt: 'Instant Payment distributor dashboard with wallet, network activity and onboarding insights', icon: 'bi-diagram-3', note: 'Track network activity, partner onboarding and territory performance.' },
+    { label: 'Master Distributor', title: 'Master Distributor Dashboard', image: 'assets/images/dashboard-master-distributor.png', alt: 'Instant Payment master distributor dashboard with network analytics and recent onboardings', icon: 'bi-buildings', note: 'See the complete distribution network with clear operational intelligence.' },
+    { label: 'Sales Team', title: 'Sales Team Dashboard', image: 'assets/images/dashboard-sales-team.png', alt: 'Instant Payment sales team dashboard for partner onboarding management', icon: 'bi-people', note: 'Move every partner application from first draft to successful activation.' }
+  ];
+
   toggleFaq(index: number): void { this.activeFaq = this.activeFaq === index ? -1 : index; }
 
   ngAfterViewInit(): void {
@@ -108,12 +117,16 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
     }
 
     this.updateScrollState();
-    if (!reducedMotion) this.startServiceStoryTimer();
+    if (!reducedMotion) {
+      this.startServiceStoryTimer();
+      this.startDashboardTimer();
+    }
   }
 
   ngOnDestroy(): void {
     this.revealObserver?.disconnect();
     if (this.serviceStoryTimer) clearInterval(this.serviceStoryTimer);
+    if (this.dashboardTimer) clearInterval(this.dashboardTimer);
   }
 
   selectServiceStory(index: number): void {
@@ -137,6 +150,29 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
     this.serviceStoryTimer = setInterval(() => {
       this.activeServiceStory = (this.activeServiceStory + 1) % this.serviceStories.length;
     }, 6500);
+  }
+
+  selectDashboard(index: number): void {
+    this.activeDashboard = index;
+    this.startDashboardTimer();
+  }
+
+  nextDashboard(): void {
+    this.activeDashboard = (this.activeDashboard + 1) % this.dashboards.length;
+    this.startDashboardTimer();
+  }
+
+  previousDashboard(): void {
+    this.activeDashboard = (this.activeDashboard - 1 + this.dashboards.length) % this.dashboards.length;
+    this.startDashboardTimer();
+  }
+
+  private startDashboardTimer(): void {
+    if (this.dashboardTimer) clearInterval(this.dashboardTimer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    this.dashboardTimer = setInterval(() => {
+      this.activeDashboard = (this.activeDashboard + 1) % this.dashboards.length;
+    }, 6000);
   }
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;

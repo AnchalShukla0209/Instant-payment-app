@@ -551,45 +551,23 @@
         <span class="dashboard-depth dashboard-depth--one" aria-hidden="true"></span>
         <span class="dashboard-depth dashboard-depth--two" aria-hidden="true"></span>
 
-        <div class="dashboard-window">
-          <aside class="dashboard-sidebar">
-            <img src="assets/images/instant-payment-light.png" alt="Instant Payment">
-            <nav aria-label="Dashboard preview menu">
-              <i class="bi bi-grid-fill active"></i><i class="bi bi-wallet2"></i><i class="bi bi-people"></i><i class="bi bi-receipt"></i><i class="bi bi-graph-up"></i>
-            </nav>
-            <i class="bi bi-gear dashboard-settings"></i>
-          </aside>
-
-          <div class="dashboard-ui">
-            <header><div><small>Welcome back</small><strong>Partner overview</strong></div><span><i class="bi bi-bell"></i><b>IP</b></span></header>
-
-            <div class="dashboard-metrics">
-              <article><i class="bi bi-wallet2"></i><span><small>Today's volume</small><b>₹ 4.82 L</b><em>+18.4%</em></span></article>
-              <article><i class="bi bi-arrow-left-right"></i><span><small>Transactions</small><b>1,286</b><em>Live</em></span></article>
-              <article><i class="bi bi-shop"></i><span><small>Active retailers</small><b>438</b><em>+24</em></span></article>
-            </div>
-
-            <div class="dashboard-workspace">
-              <article class="dashboard-chart-card">
-                <div><span><small>Business pulse</small><b>Weekly performance</b></span><em>+26%</em></div>
-                <div class="dashboard-chart" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><svg viewBox="0 0 300 90" preserveAspectRatio="none"><polyline points="0,72 40,59 78,65 118,34 155,47 198,20 240,33 300,8"></polyline></svg></div>
-              </article>
-
-              <article class="dashboard-actions-card">
-                <div><small>Quick launch</small><b>Popular services</b></div>
-                <span><i class="bi bi-fingerprint"></i><small>AEPS</small></span>
-                <span><i class="bi bi-arrow-left-right"></i><small>Transfer</small></span>
-                <span><i class="bi bi-phone"></i><small>Recharge</small></span>
-                <span><i class="bi bi-receipt"></i><small>Bills</small></span>
-              </article>
-            </div>
-
-            <div class="dashboard-activity"><span><i class="bi bi-check2-circle"></i><b>Settlement completed</b><small>₹84,260 processed securely</small></span><em>Just now</em></div>
-          </div>
+        <div class="dashboard-window dashboard-window--real">
+          <figure *ngFor="let dashboard of dashboards; let i = index" [class.active]="activeDashboard === i">
+            <img [src]="dashboard.image" [alt]="dashboard.alt" loading="lazy" decoding="async">
+          </figure>
+          <span class="dashboard-screen-gloss" aria-hidden="true"></span>
         </div>
 
-        <div class="dashboard-float dashboard-float--live"><i></i><span><b>Live intelligence</b><small>Every signal, one view</small></span></div>
-        <div class="dashboard-float dashboard-float--secure"><i class="bi bi-shield-check"></i><span><b>Secure by design</b><small>Protected operations</small></span></div>
+        <div class="dashboard-float dashboard-float--live"><i class="bi" [ngClass]="dashboards[activeDashboard].icon"></i><span><b>{{ dashboards[activeDashboard].title }}</b><small>{{ dashboards[activeDashboard].note }}</small></span></div>
+        <div class="dashboard-float dashboard-float--secure"><i class="bi bi-shield-check"></i><span><b>Real application</b><small>Live role-based experience</small></span></div>
+
+        <div class="dashboard-role-controls" aria-label="Choose dashboard role">
+          <button type="button" class="dashboard-role-arrow" (click)="previousDashboard()" aria-label="Previous dashboard"><i class="bi bi-arrow-left"></i></button>
+          <div class="dashboard-role-tabs">
+            <button *ngFor="let dashboard of dashboards; let i = index" type="button" [class.active]="activeDashboard === i" (click)="selectDashboard(i)" [attr.aria-current]="activeDashboard === i ? 'true' : null"><i class="bi" [ngClass]="dashboard.icon"></i><span>{{ dashboard.label }}</span></button>
+          </div>
+          <button type="button" class="dashboard-role-arrow" (click)="nextDashboard()" aria-label="Next dashboard"><i class="bi bi-arrow-right"></i></button>
+        </div>
       </div>
     </section>
   </section>
