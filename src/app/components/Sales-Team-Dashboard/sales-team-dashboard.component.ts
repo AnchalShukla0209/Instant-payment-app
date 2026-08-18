@@ -17,5 +17,6 @@ export class SalesTeamDashboardComponent implements OnInit {
  selectView(view:ListView){this.view=view;this.status=view==='draft'?'Draft':view==='review'?'Review':view==='rejected'?'Rejected':view==='approved'?'Approved':'';this.page=1;this.loadList();}
  loadList(){if(this.fromDate&&this.toDate&&this.fromDate>this.toDate){this.error='From Date cannot be later than To Date.';return;}this.loading=true;this.error='';this.api.list({pageIndex:this.page,pageSize:this.pageSize,search:this.search,status:this.status,fromDate:this.fromDate,toDate:this.toDate}).subscribe({next:r=>{this.rows=r.data.data;this.total=r.data.totalCount;this.loading=false;},error:e=>{this.loading=false;this.error=e.error?.message||'Applications could not be loaded.';}});}
  reset(){this.search='';this.fromDate=this.today();this.toDate=this.today();this.page=1;this.selectView('all');}
+ roleName(type:string){return ({RT:'Retailer',AD:'Distributor',MD:'Master Distributor'} as Record<string,string>)[type]||type||'—';}
  changePage(delta:number){const next=this.page+delta;if(next<1||next>Math.ceil(this.total/this.pageSize))return;this.page=next;this.loadList();}
 }

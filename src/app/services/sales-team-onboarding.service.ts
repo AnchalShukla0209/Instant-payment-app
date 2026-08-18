@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export type OnboardingStatus = 'Draft' | 'PendingReview' | 'Rejected' | 'PendingReReview' | 'Approved';
-export interface OnboardingListItem { userId:number; name:string; username:string; phone:string; emailId:string; userType:string; onboardingStatus:OnboardingStatus; createdAt?:string; updatedAt?:string; }
+export interface OnboardingListItem { userId:number; name:string; username:string; phone:string; emailId:string; userType:string; panCard:string; aadhaarMasked:string; onboardingStatus:OnboardingStatus; createdAt?:string; updatedAt?:string; }
 export interface OnboardingPage { data:OnboardingListItem[]; totalCount:number; pageIndex:number; pageSize:number; }
 export interface ApiEnvelope<T> { success:boolean; data:T; message?:string; }
 export interface OnboardingFilters { pageIndex:number; pageSize:number; search?:string; status?:string; fromDate?:string; toDate?:string; }
