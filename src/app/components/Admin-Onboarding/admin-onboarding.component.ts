@@ -6,14 +6,18 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AdminOnboardingService } from '../../services/admin-onboarding.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { LoaderComponent } from '../app-loader/loader.component';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({selector:'app-admin-onboarding',standalone:true,imports:[CommonModule,FormsModule,NgSelectModule,LoaderComponent],templateUrl:'./admin-onboarding.component.html',styleUrl:'./admin-onboarding.component.scss'})
 export class AdminOnboardingComponent implements OnInit{
- private api=inject(AdminOnboardingService);private route=inject(ActivatedRoute);private router=inject(Router);loading=false; error=''; message=''; rows:any[]=[]; salesPeople:any[]=[]; selected:any=null; total=0;detailId=0;showAllHistory=false;reviewTab:'documents'|'information'='documents';
+ private api=inject(AdminOnboardingService);private route=inject(ActivatedRoute);private router=inject(Router);private toastr=inject(ToastrService);private _error='';private _message='';
+ get error(){return this._error;}set error(value:string){this._error=value;if(value)this.toastr.error(value);}
+ get message(){return this._message;}set message(value:string){this._message=value;if(value)this.toastr.success(value);}
+ loading=false;rows:any[]=[];salesPeople:any[]=[];selected:any=null;total=0;detailId=0;showAllHistory=false;reviewTab:'documents'|'information'='documents';
  private today(){const now=new Date();const offset=now.getTimezoneOffset();return new Date(now.getTime()-offset*60000).toISOString().slice(0,10);}
  filters:any={pageIndex:1,pageSize:10,search:'',status:'',fromDate:this.today(),toDate:this.today(),salesTeamId:''};
  dialog:''|'decision'|'finalReject'|'approve'|'retry'='';dialogTitle='';dialogText='';dialogRemarks='';pendingKind:'field'|'document'='field';pendingItem:any=null;pendingStatus:'Approved'|'Rejected'='Approved';
- ngOnInit(){this.detailId=Number(this.route.snapshot.paramMap.get('id'))||0;if(this.detailId)this.loadDetail(this.detailId);else{this.load();this.api.salesPeople().subscribe({next:r=>this.salesPeople=r.data||[]});}}
+ ngOnInit(){this.detailId=Number(this.route.snapshot.paramMap.get('id'))||0;if(this.detailId)this.loadDetail(this.detailId);else{this.load();this.api.salesPeople().subscribe({next:r=>this.salesPeople=r.data||[],error:e=>this.error=e.error?.message||'Sales persons could not be loaded.'});}}
  load(){if(this.filters.fromDate&&this.filters.toDate&&this.filters.fromDate>this.filters.toDate){this.error='From Date cannot be later than To Date.';return;}this.loading=true;this.error='';this.api.list(this.filters).pipe(finalize(()=>this.loading=false)).subscribe({next:r=>{this.rows=r.data.data;this.total=r.data.totalCount;},error:e=>this.error=e.error?.message||'Unable to load onboardings.'});}
  reset(){const today=this.today();this.filters={pageIndex:1,pageSize:10,search:'',status:'',fromDate:today,toDate:today,salesTeamId:''};this.load();}
  page(delta:number){const p=this.filters.pageIndex+delta;if(p<1||p>Math.ceil(this.total/this.filters.pageSize))return;this.filters.pageIndex=p;this.load();}
@@ -25,7 +29,7 @@ export class AdminOnboardingComponent implements OnInit{
  reject(){this.dialog='finalReject';this.dialogTitle='Reject onboarding';this.dialogText='The Sales Person will receive these final remarks and can correct and resubmit the application.';this.dialogRemarks='';}
  approve(){if(!this.canActivate)return;this.dialog='approve';this.dialogTitle='Approve and activate?';this.dialogText='All validations will run again. The account will be activated and credentials emailed to the registered address.';}
  retryEmail(){this.dialog='retry';this.dialogTitle='Retry credential email?';this.dialogText='A new temporary password will be generated and sent to the registered email address.';}
- confirmDialog(){if(this.dialog==='decision'){this.executeDecision();return;}if(this.dialog==='finalReject'){if(this.dialogRemarks.trim().length<5){this.error='Final rejection remarks must contain at least 5 characters.';return;}this.loading=true;this.api.reject(this.selected.userId,this.dialogRemarks.trim()).pipe(finalize(()=>this.loading=false)).subscribe({next:()=>{this.closeDialog();this.backToList();},error:e=>this.error=e.error?.message||'Rejection failed.'});return;}const call=this.dialog==='approve'?this.api.approve(this.selected.userId,this.selected.rowVersion):this.api.retryCredentialEmail(this.selected.userId);this.loading=true;call.pipe(finalize(()=>this.loading=false)).subscribe({next:()=>{this.closeDialog();this.backToList();},error:e=>this.error=e.error?.message||'Action failed.'});}
+ confirmDialog(){if(this.dialog==='decision'){this.executeDecision();return;}if(this.dialog==='finalReject'){if(this.dialogRemarks.trim().length<5){this.error='Final rejection remarks must contain at least 5 characters.';return;}this.loading=true;this.api.reject(this.selected.userId,this.dialogRemarks.trim()).pipe(finalize(()=>this.loading=false)).subscribe({next:r=>{this.message=r.data?.message||'Onboarding rejected successfully.';this.closeDialog();this.backToList();},error:e=>this.error=e.error?.message||'Rejection failed.'});return;}const action=this.dialog;const call=action==='approve'?this.api.approve(this.selected.userId,this.selected.rowVersion):this.api.retryCredentialEmail(this.selected.userId);this.loading=true;call.pipe(finalize(()=>this.loading=false)).subscribe({next:r=>{this.message=r.data?.message||(action==='approve'?'Onboarding approved and activated.':'Credential email sent successfully.');this.closeDialog();this.backToList();},error:e=>this.error=e.error?.message||'Action failed.'});}
  closeDialog(){this.dialog='';this.dialogRemarks='';}
  get pages(){return Math.max(1,Math.ceil(this.total/this.filters.pageSize));}
  get isReviewable(){return this.selected?.user?.onboardingStatus==='PendingReview'||this.selected?.user?.onboardingStatus==='PendingReReview';}

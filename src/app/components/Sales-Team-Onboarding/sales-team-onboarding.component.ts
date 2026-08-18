@@ -8,12 +8,16 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SalesTeamOnboardingService } from '../../services/sales-team-onboarding.service';
 import { ClientUserVerificationService, CommissionPlanOption, UserDropdownOption } from '../../services/client-user-verification.service';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { ToastrService } from 'ngx-toastr';
 
 type DocType='PanCopy'|'AadhaarFront'|'AadhaarBack'|'Selfie'|'Logo';
 @Component({selector:'app-sales-team-onboarding',standalone:true,imports:[CommonModule,ReactiveFormsModule,FormsModule,NgSelectModule],templateUrl:'./sales-team-onboarding.component.html',styleUrl:'./sales-team-onboarding.component.scss'})
 export class SalesTeamOnboardingComponent implements OnInit{
- private fb=inject(FormBuilder);private api=inject(SalesTeamOnboardingService);private lookups=inject(ClientUserVerificationService);private route=inject(ActivatedRoute);private router=inject(Router);private destroyRef=inject(DestroyRef);
- userId=0;rowVersion='';status='Draft';saving=false;message='';error='';step=1;documents:any[]=[];history:any[]=[];verified:any={phone:false,email:false,pan:false,aadhaar:false};verifiedValues={phone:'',email:'',pan:'',aadhaar:''};readonly docTypes:DocType[]=['PanCopy','AadhaarFront','AadhaarBack','Selfie','Logo'];
+ private fb=inject(FormBuilder);private api=inject(SalesTeamOnboardingService);private lookups=inject(ClientUserVerificationService);private route=inject(ActivatedRoute);private router=inject(Router);private destroyRef=inject(DestroyRef);private toastr=inject(ToastrService);
+ private _message='';private _error='';
+ get message(){return this._message;}set message(value:string){this._message=value;if(value)this.toastr.success(value);}
+ get error(){return this._error;}set error(value:string){this._error=value;if(value)this.toastr.error(value);}
+ userId=0;rowVersion='';status='Draft';saving=false;step=1;documents:any[]=[];history:any[]=[];verified:any={phone:false,email:false,pan:false,aadhaar:false};verifiedValues={phone:'',email:'',pan:'',aadhaar:''};readonly docTypes:DocType[]=['PanCopy','AadhaarFront','AadhaarBack','Selfie','Logo'];
  dialog:''|'otp'|'correction'|'submit'|'leave'='';dialogTitle='';dialogText='';dialogValue='';otpType:'phone'|'email'='phone';challengeId='';pendingFile?:File;pendingDoc?:DocType;initializing=true;
  readonly mandatory=['userType','companyName','name','fatherName','username','emailId','phone','panCard','aadharCard','addressLine1','addressLine2','state','city','pincode','shopAddress','shopState','shopCity','shopZipCode','latitude','longitude','commissionPlanId','wlId'] as const;
  readonly identityFields=['userType','companyName','name','fatherName','username','emailId','phone','panCard','aadharCard','commissionPlanId','wlId'] as const;
