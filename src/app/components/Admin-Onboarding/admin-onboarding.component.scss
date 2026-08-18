@@ -50,3 +50,5 @@
 
 :host{min-height:100vh;background:linear-gradient(180deg,#faf8fd 0,#f6f2fa 100%)}
 .review-page{min-height:100vh}
+.list-heading .count>div{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+.list-heading .count strong,.list-heading .count span{display:inline;margin:0}
