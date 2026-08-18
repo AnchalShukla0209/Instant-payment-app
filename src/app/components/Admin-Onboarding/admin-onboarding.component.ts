@@ -5,8 +5,9 @@ import { finalize } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdminOnboardingService } from '../../services/admin-onboarding.service';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { LoaderComponent } from '../app-loader/loader.component';
 
-@Component({selector:'app-admin-onboarding',standalone:true,imports:[CommonModule,FormsModule,NgSelectModule],templateUrl:'./admin-onboarding.component.html',styleUrl:'./admin-onboarding.component.scss'})
+@Component({selector:'app-admin-onboarding',standalone:true,imports:[CommonModule,FormsModule,NgSelectModule,LoaderComponent],templateUrl:'./admin-onboarding.component.html',styleUrl:'./admin-onboarding.component.scss'})
 export class AdminOnboardingComponent implements OnInit{
  private api=inject(AdminOnboardingService);private route=inject(ActivatedRoute);private router=inject(Router);loading=false; error=''; message=''; rows:any[]=[]; salesPeople:any[]=[]; selected:any=null; total=0;detailId=0;showAllHistory=false;reviewTab:'documents'|'information'='documents';
  private today(){const now=new Date();const offset=now.getTimezoneOffset();return new Date(now.getTime()-offset*60000).toISOString().slice(0,10);}
