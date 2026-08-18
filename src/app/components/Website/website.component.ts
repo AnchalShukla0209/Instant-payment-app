@@ -15,8 +15,10 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
   headerCompact = false;
   scrollProgress = 0;
   activeFaq = 0;
+  activeServiceStory = 0;
   currentYear = new Date().getFullYear();
   private revealObserver?: IntersectionObserver;
+  private serviceStoryTimer?: ReturnType<typeof setInterval>;
 
   constructor(private host: ElementRef<HTMLElement>, private renderer: Renderer2) {}
 
@@ -36,11 +38,54 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
     { q: 'How do I get started?', a: 'Choose “Become a Partner”, submit your details, and our onboarding team will contact you for verification and activation.' }
   ];
 
+  serviceStories = [
+    {
+      image: 'assets/images/transformation-service-centre-v1.png',
+      alt: 'Customers receiving assistance inside a modern Instant Payment service centre',
+      eyebrow: 'Modern service centres',
+      lead: 'Transforming everyday access through',
+      accent: 'welcoming digital centres.',
+      text: 'Purpose-built environments combine friendly guidance, connected services and modern technology to make every customer journey feel simple.',
+      tags: ['Assisted access', 'Modern experience'],
+      metric: 'Centre ready'
+    },
+    {
+      image: 'assets/images/transformation-customer-assistance-v1.png',
+      alt: 'Instant Payment executive assisting an elderly customer with a tablet',
+      eyebrow: 'Human-first assistance',
+      lead: 'Making digital financial services',
+      accent: 'clear, personal and trusted.',
+      text: 'Knowledgeable representatives guide customers step by step, combining digital convenience with the confidence of real human support.',
+      tags: ['Personal guidance', 'Customer confidence'],
+      metric: 'Human first'
+    },
+    {
+      image: 'assets/images/transformation-rural-outreach-v1.png',
+      alt: 'Instant Payment field representative guiding a rural family through digital services',
+      eyebrow: 'Community outreach',
+      lead: 'Bringing useful digital access',
+      accent: 'closer to rural communities.',
+      text: 'Field-led support and approachable technology help families understand and use essential services without travelling far from home.',
+      tags: ['Field assistance', 'Inclusive reach'],
+      metric: 'Community led'
+    },
+    {
+      image: 'assets/images/transformation-india-network-v1.png',
+      alt: 'Instant Payment tablet connected to a luminous digital network across India',
+      eyebrow: 'Connected India',
+      lead: 'Powering local service delivery through',
+      accent: 'one nationwide network.',
+      text: 'Secure digital infrastructure connects partners and communities across India, helping dependable services move further and faster.',
+      tags: ['Secure network', 'Nationwide scale'],
+      metric: 'India connected'
+    }
+  ];
+
   toggleFaq(index: number): void { this.activeFaq = this.activeFaq === index ? -1 : index; }
 
   ngAfterViewInit(): void {
     const root = this.host.nativeElement;
-    const revealTargets = root.querySelectorAll<HTMLElement>('main section:not(.hero), main footer, .enablement-story--retailer');
+    const revealTargets = root.querySelectorAll<HTMLElement>('main section:not(.hero):not(.credibility-zone), main footer, .enablement-story--retailer');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     revealTargets.forEach((target, index) => {
@@ -63,9 +108,36 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
     }
 
     this.updateScrollState();
+    if (!reducedMotion) this.startServiceStoryTimer();
   }
 
-  ngOnDestroy(): void { this.revealObserver?.disconnect(); }
+  ngOnDestroy(): void {
+    this.revealObserver?.disconnect();
+    if (this.serviceStoryTimer) clearInterval(this.serviceStoryTimer);
+  }
+
+  selectServiceStory(index: number): void {
+    this.activeServiceStory = index;
+    this.startServiceStoryTimer();
+  }
+
+  nextServiceStory(): void {
+    this.activeServiceStory = (this.activeServiceStory + 1) % this.serviceStories.length;
+    this.startServiceStoryTimer();
+  }
+
+  previousServiceStory(): void {
+    this.activeServiceStory = (this.activeServiceStory - 1 + this.serviceStories.length) % this.serviceStories.length;
+    this.startServiceStoryTimer();
+  }
+
+  private startServiceStoryTimer(): void {
+    if (this.serviceStoryTimer) clearInterval(this.serviceStoryTimer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    this.serviceStoryTimer = setInterval(() => {
+      this.activeServiceStory = (this.activeServiceStory + 1) % this.serviceStories.length;
+    }, 6500);
+  }
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
     if (!this.menuOpen) this.activeMega = null;

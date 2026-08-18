@@ -489,6 +489,44 @@
         </div>
       </div>
     </section>
+
+    <section class="transformation-stories" id="transformation-stories" aria-labelledby="transformation-stories-title">
+      <div class="transformation-intro">
+        <span class="eyebrow"><i class="bi bi-layers"></i> Transformation stories</span>
+        <p>One connected vision. Many ways to create meaningful local impact.</p>
+      </div>
+
+      <div class="story-shell">
+        <div class="story-visual-card">
+          <span class="story-depth depth-one" aria-hidden="true"></span>
+          <span class="story-depth depth-two" aria-hidden="true"></span>
+          <figure *ngFor="let story of serviceStories; let i = index" [class.active]="activeServiceStory === i">
+            <img [src]="story.image" [alt]="story.alt" loading="lazy" decoding="async">
+          </figure>
+          <div class="story-image-label"><i class="bi bi-broadcast-pin"></i><span><b>{{ serviceStories[activeServiceStory].metric }}</b><small>Instant Payment in action</small></span></div>
+          <div class="story-index"><span>0{{ activeServiceStory + 1 }}</span><small>/ 0{{ serviceStories.length }}</small></div>
+        </div>
+
+        <div class="story-copy-card">
+          <span class="story-glow" aria-hidden="true"></span>
+          <article *ngFor="let story of serviceStories; let i = index" [class.active]="activeServiceStory === i">
+            <span class="eyebrow"><i class="bi bi-stars"></i> {{ story.eyebrow }}</span>
+            <h2 [id]="i === 0 ? 'transformation-stories-title' : null">{{ story.lead }}<br><span>{{ story.accent }}</span></h2>
+            <p>{{ story.text }}</p>
+            <div class="story-tags"><span *ngFor="let tag of story.tags"><i class="bi bi-check2-circle"></i>{{ tag }}</span></div>
+            <a class="story-cta" href="#partner"><span>Explore the partner experience</span><i class="bi bi-arrow-up-right"></i></a>
+          </article>
+
+          <div class="story-controls" aria-label="Transformation story controls">
+            <button type="button" (click)="previousServiceStory()" aria-label="Previous story"><i class="bi bi-arrow-left"></i></button>
+            <div class="story-dots">
+              <button *ngFor="let story of serviceStories; let i = index" type="button" [class.active]="activeServiceStory === i" (click)="selectServiceStory(i)" [attr.aria-label]="'Show story ' + (i + 1)" [attr.aria-current]="activeServiceStory === i ? 'true' : null"></button>
+            </div>
+            <button type="button" (click)="nextServiceStory()" aria-label="Next story"><i class="bi bi-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
   </section>
 
   <section class="section about-section" id="about">
