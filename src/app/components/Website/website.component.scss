@@ -44,6 +44,7 @@ nav { gap:17px; }
 .mega-links small { color:var(--muted); font-size:8px; line-height:1.35; }
 .compact-menu { left:50%; width:440px; grid-template-columns:1fr; }
 .compact-menu .mega-links { grid-template-columns:1fr 1fr; }
+.partner-menu{width:520px}.partner-menu .mega-links>a{min-height:70px}
 .company-menu { left:-120px; width:530px; }
 .company-menu .mega-links { grid-template-columns:repeat(3,1fr); }
 .resources-menu { left:auto; right:-70px; width:370px; }
