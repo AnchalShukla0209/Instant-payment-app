@@ -103,9 +103,9 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     const root = this.host.nativeElement;
-    const revealTargets = root.querySelectorAll<HTMLElement>('main section:not(.hero):not(.credibility-zone), main footer, .impact-intro, .enablement-story--retailer');
+    const revealTargets = root.querySelectorAll<HTMLElement>('main section:not(.hero):not(.credibility-zone), main footer, .impact-intro, .founder-story, .enablement-story--retailer');
     const motionTargets = root.querySelectorAll<HTMLElement>(
-      'main section:not(.hero) :is(h2, h3, .eyebrow, p, article, a, button), .impact-intro :is(strong, b), main footer :is(h2, h3, p, a, button)'
+      'main section:not(.hero) :is(h2, h3, .eyebrow, p, article, a, button), .impact-intro :is(strong, b), .founder-story :is(.video-kicker, .video-placeholder-copy, .founder-role, h3, blockquote), main footer :is(h2, h3, p, a, button)'
     );
     const actionTargets = root.querySelectorAll<HTMLElement>('main a, main button');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

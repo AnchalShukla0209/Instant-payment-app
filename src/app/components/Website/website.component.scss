@@ -642,3 +642,84 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
 @keyframes impactLabelLift{50%{translate:0 -1px;letter-spacing:.012em}}
 @keyframes impactStarSpin{to{rotate:360deg}}
 @media(prefers-reduced-motion:reduce){.impact-copy h2,.impact-copy h2 span,.impact-proof strong,.impact-proof b,.impact-copy>.eyebrow i{animation:none}}
+
+/* Security: scanning protection flow and living card stack. */
+.security-summary h2{
+  color:transparent;
+  background:linear-gradient(105deg,#0c133d 0 38%,#cf5512 46%,#0c133d 55% 100%);
+  background-size:235% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:securityTitleFlow 5.4s ease-in-out infinite;
+}
+.security-summary h2 span{
+  color:transparent;
+  background:linear-gradient(105deg,#cf5512 0 38%,#0c133d 46%,#cf5512 55% 100%);
+  background-size:235% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:securityTitleFlow 5.4s .3s ease-in-out infinite;
+}
+.security-showcase.is-visible .security-accent{animation:securityLineScan 3.3s ease-in-out infinite}
+.security-showcase.is-visible .security-stack article>i:not(.security-arrow){animation:securityIconBreathe 3.4s ease-in-out infinite}
+.security-showcase.is-visible .security-stack article:nth-of-type(2)>i{animation-delay:-.85s}
+.security-showcase.is-visible .security-stack article:nth-of-type(3)>i{animation-delay:-1.7s}
+.security-showcase.is-visible .security-stack article:nth-of-type(4)>i{animation-delay:-2.55s}
+.security-showcase.is-visible .security-index{animation:securityIndexPulse 3.4s ease-in-out infinite}
+.security-showcase.is-visible .security-stack-line{background-size:100% 230%;animation:securityRailFlow 3.8s linear infinite}
+@keyframes securityTitleFlow{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
+@keyframes securityLineScan{0%,100%{width:58px}50%{width:116px;filter:drop-shadow(0 5px 8px rgba(207,85,18,.22))}}
+@keyframes securityIconBreathe{50%{translate:0 -4px;scale:1.04;filter:drop-shadow(0 9px 9px rgba(12,19,61,.16))}}
+@keyframes securityIndexPulse{50%{scale:1.07;box-shadow:0 12px 27px rgba(207,85,18,.16)}}
+@keyframes securityRailFlow{to{background-position:0 230%}}
+
+/* Payments: connected platform motion with animated brand typography. */
+.payment-platform.is-visible .manifesto-ribbon{animation:paymentRibbonFloat 4.4s ease-in-out infinite}
+.payment-platform.is-visible .manifesto-line i{animation:paymentNodeTravel 3.6s ease-in-out infinite}
+.payment-platform.is-visible .identity-layer.layer-back{animation:paymentLayerBack 5.6s ease-in-out infinite}
+.payment-platform.is-visible .identity-layer.layer-mid{animation:paymentLayerMid 5.6s -1.4s ease-in-out infinite}
+.payment-platform.is-visible .identity-face{animation:paymentFaceFloat 4.8s ease-in-out infinite}
+.platform-detail-card h2{
+  color:transparent;
+  background:linear-gradient(105deg,#0c133d 0 38%,#cf5512 46%,#0c133d 55% 100%);
+  background-size:235% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:paymentTitleFlow 5.2s ease-in-out infinite;
+}
+.platform-detail-card h2 span{color:inherit}
+.payment-platform.is-visible .payment-channels span{animation:paymentChipFloat 3.5s ease-in-out infinite}
+.payment-platform.is-visible .payment-channels span:nth-child(2){animation-delay:-1.15s}
+.payment-platform.is-visible .payment-channels span:nth-child(3){animation-delay:-2.3s}
+.payment-platform.is-visible .platform-progress i{background-size:220% 100%;animation:paymentProgressFlow 3.2s linear infinite}
+@keyframes paymentRibbonFloat{50%{translate:0 -5px;filter:drop-shadow(0 12px 15px rgba(12,19,61,.14))}}
+@keyframes paymentNodeTravel{0%,100%{top:0}50%{top:100%;background:#cf5512}}
+@keyframes paymentLayerBack{50%{translate:-6px 5px}}
+@keyframes paymentLayerMid{50%{translate:-3px 3px}}
+@keyframes paymentFaceFloat{50%{translate:0 -7px;filter:drop-shadow(0 14px 18px rgba(12,19,61,.08))}}
+@keyframes paymentTitleFlow{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
+@keyframes paymentChipFloat{50%{translate:0 -3px;box-shadow:0 11px 20px rgba(12,19,61,.09)}}
+@keyframes paymentProgressFlow{to{background-position:-220% 50%}}
+
+/* Founder: cinematic portrait motion and leadership text treatment. */
+.founder-story.is-visible .founder-card{animation:founderCardFloat 5.2s ease-in-out infinite}
+.founder-story.is-visible .founder-role i{display:inline-block;animation:founderStarSpin 5s linear infinite}
+.founder-card h3{
+  color:transparent!important;
+  background:linear-gradient(105deg,#fff 0 38%,#f0a17a 46%,#fff 55% 100%);
+  background-size:235% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:founderTextFlow 5s ease-in-out infinite;
+}
+.founder-story.is-visible .founder-card blockquote{animation:founderQuoteGlow 3.8s ease-in-out infinite}
+@keyframes founderCardFloat{50%{translate:0 -7px;filter:drop-shadow(0 15px 18px rgba(12,19,61,.1))}}
+@keyframes founderStarSpin{to{rotate:360deg}}
+@keyframes founderTextFlow{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
+@keyframes founderQuoteGlow{50%{border-left-color:#f5a57d;color:#fff}}
+
+@media(prefers-reduced-motion:reduce){
+  .security-summary h2,.security-summary h2 span,.security-accent,.security-stack article>i,.security-index,.security-stack-line,
+  .manifesto-ribbon,.manifesto-line i,.identity-layer,.identity-face,.platform-detail-card h2,.payment-channels span,.platform-progress i,
+  .founder-card,.founder-role i,.founder-card h3,.founder-card blockquote{animation:none!important}
+}
