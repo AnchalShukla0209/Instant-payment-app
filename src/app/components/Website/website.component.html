@@ -157,14 +157,16 @@
     </div>
 
     <div class="founder-story" aria-labelledby="founder-story-title">
-      <div class="founder-video-placeholder" role="img" aria-label="Founder vision video coming soon">
-        <div class="video-brand-mark"><img src="assets/images/logo_2.png" alt="" loading="lazy" decoding="async"></div>
+      <div class="founder-video-placeholder">
+        <video #founderVideo controls playsinline preload="metadata" [muted]="founderVideoMuted" aria-label="Instant Payment founder's vision brand film">
+          <source src="assets/videos/instant-payment-founder-vision-v1.mp4" type="video/mp4">
+          Your browser does not support HTML5 video.
+        </video>
         <span class="video-kicker"><i class="bi bi-camera-video"></i> Founder’s vision</span>
-        <div class="video-placeholder-copy">
-          <span class="video-play"><i class="bi bi-play-fill"></i></span>
-          <div><strong>Our story is taking shape.</strong><small>Founder video coming soon</small></div>
-        </div>
-        <span class="video-duration">COMING SOON</span>
+        <button class="video-volume-toggle" type="button" (click)="toggleFounderVideoMute(founderVideo)" [attr.aria-label]="founderVideoMuted ? 'Turn video sound on' : 'Turn video sound off'">
+          <i class="bi" [ngClass]="founderVideoMuted ? 'bi-volume-mute-fill' : 'bi-volume-up-fill'"></i>
+          <span>{{ founderVideoMuted ? 'Volume Off' : 'Volume On' }}</span>
+        </button>
       </div>
 
       <article class="founder-card">

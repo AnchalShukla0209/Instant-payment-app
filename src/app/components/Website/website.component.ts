@@ -14,6 +14,7 @@ import { WebsiteEnquiryService } from '../../services/website-enquiry.service';
 export class WebsiteComponent implements AfterViewInit, OnDestroy {
   menuOpen = false;
   activeMega: 'products' | 'partners' | 'company' | 'resources' | 'login' | null = null;
+  founderVideoMuted = true;
   headerCompact = false;
   scrollProgress = 0;
   activeFaq = 0;
@@ -100,6 +101,11 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
   ];
 
   toggleFaq(index: number): void { this.activeFaq = this.activeFaq === index ? -1 : index; }
+
+  toggleFounderVideoMute(video: HTMLVideoElement): void {
+    this.founderVideoMuted = !this.founderVideoMuted;
+    video.muted = this.founderVideoMuted;
+  }
 
   ngAfterViewInit(): void {
     const root = this.host.nativeElement;
