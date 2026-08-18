@@ -616,3 +616,29 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
   .hero-copy>.eyebrow,.hero-copy>h1,.hero-copy>p,.hero-actions,.trust-row{animation:none;opacity:1;translate:none;filter:none}
   .motion-action{transition:none!important}
 }
+
+/* Our Impact: an intentional, high-visibility brand motion sequence. */
+.impact-copy h2{
+  color:transparent!important;
+  background:linear-gradient(105deg,#0c133d 0 38%,#cf5512 46%,#0c133d 55% 100%)!important;
+  background-size:235% 100%!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  animation:impactTitleFlow 5.2s ease-in-out infinite;
+}
+.impact-copy h2 span{
+  color:transparent!important;
+  background:linear-gradient(105deg,#cf5512 0 38%,#0c133d 46%,#cf5512 55% 100%)!important;
+  background-size:235% 100%!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  animation:impactTitleFlow 5.2s .28s ease-in-out infinite;
+}
+.impact-proof strong{display:inline-block;animation:impactMetricPulse 3s ease-in-out infinite}
+.impact-proof b{display:inline-block;animation:impactLabelLift 3s .12s ease-in-out infinite}
+.impact-copy>.eyebrow i{display:inline-block;animation:impactStarSpin 4.5s linear infinite}
+@keyframes impactTitleFlow{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
+@keyframes impactMetricPulse{50%{translate:0 -3px;filter:drop-shadow(0 8px 13px rgba(207,85,18,.22))}}
+@keyframes impactLabelLift{50%{translate:0 -1px;letter-spacing:.012em}}
+@keyframes impactStarSpin{to{rotate:360deg}}
+@media(prefers-reduced-motion:reduce){.impact-copy h2,.impact-copy h2 span,.impact-proof strong,.impact-proof b,.impact-copy>.eyebrow i{animation:none}}
