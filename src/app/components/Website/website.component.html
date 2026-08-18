@@ -570,6 +570,50 @@
         </div>
       </div>
     </section>
+
+    <section class="network-application" id="join-network" aria-labelledby="network-application-title">
+      <span class="network-orbit network-orbit--one" aria-hidden="true"></span>
+      <span class="network-orbit network-orbit--two" aria-hidden="true"></span>
+
+      <div class="network-copy">
+        <span class="eyebrow"><i class="bi bi-people"></i> Join the Instant Payment network</span>
+        <h2 id="network-application-title">Build a business.<br><span>Become the trusted counter.</span></h2>
+        <p>Choose the opportunity that fits your ambition. Our partner team will guide you from first conversation to confident activation.</p>
+
+        <div class="network-benefit-grid">
+          <article><i class="bi bi-graph-up-arrow"></i><span><b>Growth potential</b><small>More services and earning opportunities</small></span></article>
+          <article><i class="bi bi-shield-check"></i><span><b>Trusted platform</b><small>Secure, structured partner journeys</small></span></article>
+          <article><i class="bi bi-headset"></i><span><b>Human support</b><small>Guidance from onboarding to scale</small></span></article>
+          <article><i class="bi bi-lightning-charge"></i><span><b>Quick activation</b><small>Clear steps and faster readiness</small></span></article>
+        </div>
+
+        <div class="network-contact-strip">
+          <a href="tel:+919991657766"><i class="bi bi-telephone"></i><span><small>Partner helpline</small><b>+91 999 165 7766</b></span></a>
+          <a href="mailto:info@instantpayments.in"><i class="bi bi-envelope"></i><span><small>Email our team</small><b>info@instantpayments.in</b></span></a>
+        </div>
+      </div>
+
+      <div class="network-form-scene">
+        <span class="network-form-depth network-form-depth--one" aria-hidden="true"></span>
+        <span class="network-form-depth network-form-depth--two" aria-hidden="true"></span>
+
+        <form class="network-form-card" (submit)="submitPartnerEnquiry($event)">
+          <header><div><span>Partner application</span><h3>Tell us about your ambition.</h3></div><i class="bi bi-shield-check"></i></header>
+
+          <div class="network-form-grid">
+            <label><span>Full name</span><div><i class="bi bi-person"></i><input name="name" type="text" autocomplete="name" placeholder="Your full name" required></div></label>
+            <label><span>Mobile number</span><div><i class="bi bi-telephone"></i><input name="mobile" type="tel" inputmode="numeric" autocomplete="tel" pattern="[0-9]{10}" maxlength="10" placeholder="10 digit mobile" required></div></label>
+            <label><span>Email address</span><div><i class="bi bi-envelope"></i><input name="email" type="email" autocomplete="email" placeholder="name@example.com" required></div></label>
+            <label><span>Interested as</span><div><i class="bi bi-briefcase"></i><select name="interest" required><option value="" disabled selected>Select an opportunity</option><option>Retailer</option><option>Distributor</option><option>Master Distributor</option><option>Sales Partner</option></select></div></label>
+            <label class="network-message"><span>Tell us more</span><div><i class="bi bi-chat-left-text"></i><textarea name="message" rows="4" placeholder="Your location, current business and requirement"></textarea></div></label>
+          </div>
+
+          <div class="network-assurance"><i class="bi bi-patch-check"></i><span><b>Partner-first response</b><small>Your details go directly to our business team.</small></span></div>
+          <button class="network-submit" type="submit"><span>Submit partner enquiry</span><i class="bi bi-arrow-up-right"></i></button>
+          <p class="network-privacy"><i class="bi bi-lock"></i> Your information is used only to respond to this enquiry.</p>
+        </form>
+      </div>
+    </section>
   </section>
 
   <section class="section about-section" id="about">

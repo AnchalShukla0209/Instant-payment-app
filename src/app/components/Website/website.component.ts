@@ -174,6 +174,22 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
       this.activeDashboard = (this.activeDashboard + 1) % this.dashboards.length;
     }, 6000);
   }
+
+  submitPartnerEnquiry(event: Event): void {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const data = new FormData(form);
+    const subject = `Partner enquiry - ${data.get('interest') || 'Instant Payment network'}`;
+    const body = [
+      `Name: ${data.get('name') || ''}`,
+      `Mobile: ${data.get('mobile') || ''}`,
+      `Email: ${data.get('email') || ''}`,
+      `Interested as: ${data.get('interest') || ''}`,
+      '',
+      `Message: ${data.get('message') || ''}`
+    ].join('\n');
+    window.location.href = `mailto:info@instantpayments.in?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
     if (!this.menuOpen) this.activeMega = null;
