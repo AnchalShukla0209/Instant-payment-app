@@ -807,3 +807,8 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
   .media-heading h2,.media-feature,.feature-label,.feature-copy h3,.media-thumb,.media-feed article>a,.media-values article>i,
   .why-content h2,.why-brand-line span,.why-brand-line i,.leadership-portrait-frame,.pillar-icon,.why-cta,.why-cta:before{animation:none!important}
 }
+
+/* Media proof rail stays legible at a glance. */
+.media-values article{min-height:72px;gap:14px}
+.media-values b{font-size:12px;line-height:1.25}
+.media-values span{font-size:9px;line-height:1.45}
