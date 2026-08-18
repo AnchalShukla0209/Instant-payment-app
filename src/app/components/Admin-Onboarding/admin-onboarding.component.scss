@@ -39,3 +39,11 @@
 @media(max-width:1350px){.filters{grid-template-columns:repeat(3,minmax(0,1fr))}.filter-actions{justify-content:flex-end}}
 @media(max-width:800px){.review-page{padding:18px}.list-heading{align-items:flex-start}.filters{grid-template-columns:1fr 1fr}.search-field{grid-column:1/-1}.filter-actions{grid-column:1/-1}.filter-actions button{flex:1}}
 @media(max-width:520px){.review-page{padding:12px}.list-heading{flex-direction:column}.list-heading .count{width:100%}.filters{grid-template-columns:1fr}.search-field,.filter-actions{grid-column:auto}.table-card>footer{align-items:flex-start;gap:10px;flex-direction:column}}
+
+/* List spacing and filter alignment corrections */
+.review-page{margin-top:-14px;min-height:calc(100vh - 78px);padding-top:20px}
+.filters{grid-template-columns:minmax(0,1.35fr) minmax(0,1.15fr) minmax(0,.9fr) minmax(0,.85fr) minmax(0,.85fr) 166px;gap:10px}
+.filter-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;min-width:0}
+.filter-actions button{min-width:0;padding:8px 9px;gap:5px}
+.reset-btn{min-width:0}
+@media(max-width:1350px){.filters{grid-template-columns:repeat(3,minmax(0,1fr))}.filter-actions{display:grid}}
