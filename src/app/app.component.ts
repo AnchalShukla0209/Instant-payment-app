@@ -80,6 +80,7 @@ export class AppComponent {
       || url.includes('/login')
       || url.includes('/distributor-login')
       || url.includes('/master-distributor-login')
+      || url.includes('/salesteam-login')
       || url.includes('/reset-password');
   }
 
