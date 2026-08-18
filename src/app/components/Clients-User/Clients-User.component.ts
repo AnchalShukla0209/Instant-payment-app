@@ -155,8 +155,6 @@ export class ClientUserDetailComponent implements OnInit {
   isLoading: boolean = false;
   TotalBalance: Number = 0;
   ShowTotalBalance: boolean = false;
-  lat: string = '';
-  lng: string = '';
   commissionPlans: CommissionPlanOption[] = [];
   wlUsers: UserDropdownOption[] = [];
   adUsers: UserDropdownOption[] = [];
@@ -308,8 +306,6 @@ export class ClientUserDetailComponent implements OnInit {
   }
 
   ngOnInit() {
-
-    this.setCurrentLocation();
     this.loadCommissionPlans();
     this.loadUserDropdowns();
     this.MainclientId = Number(this.route.snapshot.paramMap.get('id'));
@@ -341,24 +337,6 @@ export class ClientUserDetailComponent implements OnInit {
       },
       error: () => (this.isLoading = false),
     });
-  }
-
-  setCurrentLocation(): void {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        this.lat = position.coords.latitude.toFixed(4);
-        this.lng = position.coords.longitude.toFixed(4);
-        this.clientForm.get('shopInfo')?.patchValue({
-          Latitude: this.lat,
-          Longitude: this.lng
-        });
-      },
-      () => {
-        this.toastr.info('Location unavailable. Please enter latitude and longitude manually.');
-      }
-    );
   }
 
   loadCommissionPlans(): void {
@@ -697,8 +675,8 @@ export class ClientUserDetailComponent implements OnInit {
         ShopState: ['', Validators.required],
         ShopCity: ['', Validators.required],
         ShopZipCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-        Latitude: [this.lat, [Validators.required, Validators.min(-90), Validators.max(90), Validators.pattern(/^-?\d{1,2}(\.\d{1,4})?$/)]],
-        Longitude: [this.lng, [Validators.required, Validators.min(-180), Validators.max(180), Validators.pattern(/^-?\d{1,3}(\.\d{1,4})?$/)]]
+        Latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90), Validators.pattern(/^-?\d{1,2}(\.\d{1,4})?$/)]],
+        Longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180), Validators.pattern(/^-?\d{1,3}(\.\d{1,4})?$/)]]
       }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
@@ -907,35 +885,6 @@ export class ClientUserDetailComponent implements OnInit {
     }
     return `${field} is invalid.`;
   }
-
-  getCurrentLatitude(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        alert('Geolocation is not supported by this browser.');
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        position => resolve(position.coords.latitude.toString()),
-        error => alert(error.message)
-      );
-    });
-  }
-
-  getCurrentLongitude(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        alert('Geolocation is not supported by this browser.');
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        position => resolve(position.coords.longitude.toString()),
-        error => alert(error.message)
-      );
-    });
-  }
-
 
   onSubmit(): void {
 
