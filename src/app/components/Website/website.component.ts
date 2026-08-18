@@ -13,7 +13,7 @@ import { WebsiteEnquiryService } from '../../services/website-enquiry.service';
 })
 export class WebsiteComponent implements AfterViewInit, OnDestroy {
   menuOpen = false;
-  activeMega: 'products' | 'partners' | 'company' | 'resources' | null = null;
+  activeMega: 'products' | 'partners' | 'company' | 'resources' | 'login' | null = null;
   headerCompact = false;
   scrollProgress = 0;
   activeFaq = 0;
@@ -228,7 +228,7 @@ export class WebsiteComponent implements AfterViewInit, OnDestroy {
     if (!this.menuOpen) this.activeMega = null;
   }
 
-  toggleMega(menu: 'products' | 'partners' | 'company' | 'resources'): void {
+  toggleMega(menu: 'products' | 'partners' | 'company' | 'resources' | 'login'): void {
     this.activeMega = this.activeMega === menu ? null : menu;
   }
 

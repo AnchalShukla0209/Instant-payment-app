@@ -67,7 +67,17 @@
         </div>
         <div class="nav-actions">
           <a class="nav-partner" href="#partner" (click)="closeMenu()">Become a partner</a>
-          <a class="nav-login" routerLink="/login" (click)="closeMenu()">Login <i class="bi bi-arrow-up-right"></i></a>
+          <div class="nav-item login-nav" [class.expanded]="activeMega === 'login'">
+            <button class="nav-login" type="button" (click)="toggleMega('login')" [attr.aria-expanded]="activeMega === 'login'">Login <i class="bi bi-chevron-down"></i></button>
+            <div class="mega-menu login-menu">
+              <div class="mega-links">
+                <a href="https://instantpayment.in/login" (click)="closeMenu()"><i class="bi bi-shop"></i><span><b>Retailer Login</b><small>Access your retail services workspace</small></span><i class="bi bi-arrow-up-right"></i></a>
+                <a href="https://instantpayment.in/distributor-login" (click)="closeMenu()"><i class="bi bi-diagram-3"></i><span><b>Distributor Login</b><small>Manage retailers and transactions</small></span><i class="bi bi-arrow-up-right"></i></a>
+                <a href="https://instantpayment.in/master-distributor-login" (click)="closeMenu()"><i class="bi bi-diagram-2"></i><span><b>Master Distributor Login</b><small>Manage your distributor network</small></span><i class="bi bi-arrow-up-right"></i></a>
+                <a href="https://instantpayment.in/salesteam-login" (click)="closeMenu()"><i class="bi bi-people"></i><span><b>Sales Team Login</b><small>Open the partner onboarding workspace</small></span><i class="bi bi-arrow-up-right"></i></a>
+              </div>
+            </div>
+          </div>
         </div>
       </nav>
     </div>
