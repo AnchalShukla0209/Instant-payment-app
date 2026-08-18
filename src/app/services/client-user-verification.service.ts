@@ -27,6 +27,14 @@ export interface UserDropdownOption {
   userType: string;
 }
 
+export interface IdentityAvailability {
+  usernameAvailable: boolean;
+  phoneAvailable: boolean;
+  emailAvailable: boolean;
+  panAvailable: boolean;
+  aadhaarAvailable: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClientUserVerificationService {
   /** Default base used by the White-Label Admin's Client Users report. */
@@ -93,6 +101,19 @@ export class ClientUserVerificationService {
   getPartnerCommissionPlans(): Observable<{ success: boolean; data: CommissionPlanOption[] }> {
     return this.http.get<{ success: boolean; data: CommissionPlanOption[] }>(
       `${this.partnerUserBase}/commission-plans`
+    );
+  }
+
+  checkPartnerIdentityAvailability(payload: {
+    userId: number;
+    username: string;
+    phone: string;
+    emailId: string;
+    panCard: string;
+    aadharCard: string;
+  }): Observable<{ success: boolean; data: IdentityAvailability }> {
+    return this.http.post<{ success: boolean; data: IdentityAvailability }>(
+      `${this.partnerUserBase}/identity-availability`, payload
     );
   }
 

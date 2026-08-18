@@ -83,6 +83,7 @@ export class DistributorUserReportComponent implements OnInit {
     AadharCard: '',
     MPin: '',
     CustomerName: '',
+    FatherName: '',
     UserType: '',
 
     ShopAddress: '',
@@ -186,6 +187,7 @@ export class DistributorUserReportComponent implements OnInit {
   pageSize = 10;
   visiblePages: (number | null)[] = [];
   name: string = '';
+  private identityAvailabilityRequestId = 0;
 
   @ViewChild('clientModel', { static: true }) clientModal!: TemplateRef<any>;
   @ViewChild('ViewclientDetailsModel', { static: true }) ViewclientDetailsModel!: TemplateRef<any>;
@@ -195,16 +197,15 @@ export class DistributorUserReportComponent implements OnInit {
 
     this.clientForm = this.fb.group({
       companyInfo: this.fb.group({
-        UserType: ['MD', Validators.required],
+        UserType: ['RT', Validators.required],
         CompanyName: ['', Validators.required],
         CustomerName: ['', Validators.required],
+        FatherName: ['', Validators.required],
         UserName: ['', Validators.required],
         EmailId: ['', [Validators.required, Validators.email]],
         Phone: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
-        Password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/)]],
         PanCard: ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
         AadharCard: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
-        MPin: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
         CommissionPlanId: [null, Validators.required],
       }),
       addressInfo: this.fb.group({
@@ -219,8 +220,8 @@ export class DistributorUserReportComponent implements OnInit {
         ShopState: ['', Validators.required],
         ShopCity: ['', Validators.required],
         ShopZipCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-        Latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
-        Longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]]
+        Latitude: ['', [Validators.required, Validators.pattern(/^-?\d{1,3}(?:\.\d{1,5})?$/), Validators.min(-90), Validators.max(90)]],
+        Longitude: ['', [Validators.required, Validators.pattern(/^-?\d{1,3}(?:\.\d{1,5})?$/), Validators.min(-180), Validators.max(180)]]
       }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
@@ -239,7 +240,6 @@ export class DistributorUserReportComponent implements OnInit {
         LogoFile: [null, Validators.required],
         SelfieFile: [null, Validators.required]
       }),
-      TxnPin: ['9999', Validators.required]
 
     });
   }
@@ -308,7 +308,6 @@ export class DistributorUserReportComponent implements OnInit {
 
   ngOnInit() {
 
-    this.setCurrentLocation();
     this.loadCommissionPlans();
     this.loadClients(this.currentPage, this.pageSize);
   }
@@ -343,24 +342,6 @@ export class DistributorUserReportComponent implements OnInit {
     });
   }
 
-  setCurrentLocation(): void {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        this.lat = position.coords.latitude.toString();
-        this.lng = position.coords.longitude.toString();
-        this.clientForm.get('shopInfo')?.patchValue({
-          Latitude: this.lat,
-          Longitude: this.lng
-        });
-      },
-      () => {
-        this.toastr.info('Location unavailable. Please enter latitude and longitude manually.');
-      }
-    );
-  }
-
   loadCommissionPlans(): void {
     this.verificationService.getPartnerCommissionPlans().subscribe({
       next: response => {
@@ -368,6 +349,46 @@ export class DistributorUserReportComponent implements OnInit {
       },
       error: () => this.toastr.error('Unable to load commission plans.')
     });
+  }
+
+  clearDuplicate(field: 'UserName' | 'Phone' | 'EmailId' | 'PanCard' | 'AadharCard'): void {
+    this.identityAvailabilityRequestId++;
+    const control = this.clientForm.get(`companyInfo.${field}`);
+    if (!control?.hasError('duplicate')) return;
+    const errors = { ...(control.errors || {}) };
+    delete errors['duplicate'];
+    control.setErrors(Object.keys(errors).length ? errors : null);
+  }
+
+  checkIdentityAvailability(): void {
+    const group = this.clientForm.get('companyInfo') as FormGroup;
+    const requestId = ++this.identityAvailabilityRequestId;
+    this.verificationService.checkPartnerIdentityAvailability({
+      userId: this.clientId,
+      username: String(group.get('UserName')?.value || '').trim(),
+      phone: String(group.get('Phone')?.value || '').trim(),
+      emailId: String(group.get('EmailId')?.value || '').trim(),
+      panCard: String(group.get('PanCard')?.value || '').trim(),
+      aadharCard: String(group.get('AadharCard')?.value || '').trim()
+    }).subscribe({
+      next: response => {
+        if (requestId !== this.identityAvailabilityRequestId || !response.success) return;
+        this.setDuplicateError('UserName', !response.data.usernameAvailable);
+        this.setDuplicateError('Phone', !response.data.phoneAvailable);
+        this.setDuplicateError('EmailId', !response.data.emailAvailable);
+        this.setDuplicateError('PanCard', !response.data.panAvailable);
+        this.setDuplicateError('AadharCard', !response.data.aadhaarAvailable);
+      }
+    });
+  }
+
+  private setDuplicateError(field: 'UserName' | 'Phone' | 'EmailId' | 'PanCard' | 'AadharCard', duplicate: boolean): void {
+    const control = this.clientForm.get(`companyInfo.${field}`);
+    if (!control) return;
+    const errors = { ...(control.errors || {}) };
+    if (duplicate) errors['duplicate'] = true;
+    else delete errors['duplicate'];
+    control.setErrors(Object.keys(errors).length ? errors : null);
   }
 
   sendVerificationOtp(type: ClientUserVerificationType): void {
@@ -616,6 +637,7 @@ export class DistributorUserReportComponent implements OnInit {
       PanCard: '',
       AadharCard: '',
       MPin: '',
+      FatherName: '',
       DomainName: '',
       Logo: '',
       AddressLine1: '',
@@ -653,16 +675,15 @@ export class DistributorUserReportComponent implements OnInit {
 
     this.clientForm = this.fb.group({
       companyInfo: this.fb.group({
-        UserType: ['MD', Validators.required],
+        UserType: ['RT', Validators.required],
         CompanyName: ['', Validators.required],
         CustomerName: ['', Validators.required],
+        FatherName: ['', Validators.required],
         UserName: ['', Validators.required],
         EmailId: ['', [Validators.required, Validators.email]],
         Phone: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
-        Password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/)]],
         PanCard: ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]],
         AadharCard: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
-        MPin: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
         CommissionPlanId: [null, Validators.required],
       }),
       addressInfo: this.fb.group({
@@ -677,8 +698,8 @@ export class DistributorUserReportComponent implements OnInit {
         ShopState: ['', Validators.required],
         ShopCity: ['', Validators.required],
         ShopZipCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-        Latitude: [this.lat, [Validators.required, Validators.min(-90), Validators.max(90)]],
-        Longitude: [this.lng, [Validators.required, Validators.min(-180), Validators.max(180)]]
+        Latitude: ['', [Validators.required, Validators.pattern(/^-?\d{1,3}(?:\.\d{1,5})?$/), Validators.min(-90), Validators.max(90)]],
+        Longitude: ['', [Validators.required, Validators.pattern(/^-?\d{1,3}(?:\.\d{1,5})?$/), Validators.min(-180), Validators.max(180)]]
       }),
       serviceRights: this.fb.group({
         Recharge: ['Active', Validators.required],
@@ -697,7 +718,6 @@ export class DistributorUserReportComponent implements OnInit {
         LogoFile: [null, Validators.required],
         SelfieFile: [null, Validators.required]
       }),
-      TxnPin: ['9999', Validators.required]
 
     });
 
@@ -756,13 +776,12 @@ export class DistributorUserReportComponent implements OnInit {
     this.model = {
       CompanyName: companyInfo.CompanyName,
       CustomerName: companyInfo.CustomerName,
+      FatherName: companyInfo.FatherName,
       UserName: companyInfo.UserName,
       EmailId: companyInfo.EmailId,
       Phone: companyInfo.Phone,
-      Password: companyInfo.Password,
       PanCard: companyInfo.PanCard,
       AadharCard: companyInfo.AadharCard,
-      MPin: companyInfo.MPin,
       UserType: companyInfo.UserType,
 
       ShopAddress: shopInfo.ShopAddress,
@@ -794,7 +813,6 @@ export class DistributorUserReportComponent implements OnInit {
       Debit: serviceRights.Debit,
       Status: serviceRights.Status,
 
-      TxnPin: this.clientForm.get('TxnPin')?.value,
       PlanId: companyInfo.CommissionPlanId,
       PlanName: this.commissionPlans.find(plan => plan.id === Number(companyInfo.CommissionPlanId))?.planName || '',
       RegDate: new Date().toISOString().substring(0, 16)
@@ -868,6 +886,7 @@ export class DistributorUserReportComponent implements OnInit {
   }
 
   private getValidationMessage(field: string, errors: any): string {
+    if (errors.duplicate) return `${field} already belongs to an active or submitted user.`;
     if (errors.required) return `${field} is required.`;
     if (errors.email) return `${field} must be a valid email.`;
     if (errors.pattern) {
@@ -879,40 +898,13 @@ export class DistributorUserReportComponent implements OnInit {
         case 'Password': return 'Password must be 10+ chars, include letters, number & special char.';
         case 'Pincode': return 'Pincode must be 6-digit number.';
         case 'ShopZipCode': return 'ShopZipCode must be 6-digit number.';
+        case 'Latitude': return 'Latitude must contain no more than 5 decimal places.';
+        case 'Longitude': return 'Longitude must contain no more than 5 decimal places.';
         default: return `${field} format is invalid.`;
       }
     }
     return `${field} is invalid.`;
   }
-
-  getCurrentLatitude(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        alert('Geolocation is not supported by this browser.');
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        position => resolve(position.coords.latitude.toString()),
-        error => alert(error.message)
-      );
-    });
-  }
-
-  getCurrentLongitude(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        alert('Geolocation is not supported by this browser.');
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        position => resolve(position.coords.longitude.toString()),
-        error => alert(error.message)
-      );
-    });
-  }
-
 
   onSubmit(): void {
 
@@ -936,14 +928,11 @@ export class DistributorUserReportComponent implements OnInit {
     formData.append('UserName', companyInfo.UserName);
     formData.append('EmailId', companyInfo.EmailId);
     formData.append('Phone', companyInfo.Phone);
-    //formData.append('Password', this.encryptor.encrypt(companyInfo.Password));
-    formData.append('Password', companyInfo.Password);
     formData.append('PanCard', companyInfo.PanCard);
     formData.append('AadharCard', companyInfo.AadharCard);
-    //formData.append('MPin', this.encryptor.encrypt(companyInfo.MPin));
-    formData.append('MPin', companyInfo.MPin);
     formData.append('UserType', companyInfo.UserType);
     formData.append('CustomerName', companyInfo.CustomerName);
+    formData.append('FatherName', companyInfo.FatherName);
     formData.append('CommissionPlanId', String(companyInfo.CommissionPlanId));
     formData.append('MobileVerificationToken', this.mobileVerificationToken);
     formData.append('EmailVerificationToken', this.emailVerificationToken);
@@ -974,7 +963,6 @@ export class DistributorUserReportComponent implements OnInit {
     formData.append('Status', serviceRights.Status);
 
     // Flat fields outside nested groups
-    formData.append('TxnPin', '9999');
     formData.append('lat', String(shopaddressInfo.Latitude));
     formData.append('longitute', String(shopaddressInfo.Longitude));
 
@@ -1020,6 +1008,7 @@ export class DistributorUserReportComponent implements OnInit {
           CompanyName: res.companyName,
           UserType: res.userType,
           CustomerName: res.customerName,
+          FatherName: res.fatherName,
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
@@ -1148,6 +1137,7 @@ export class DistributorUserReportComponent implements OnInit {
 
           CompanyName: res.companyName,
           CustomerName: res.customerName,
+          FatherName: res.fatherName,
           UserName: res.userName,
           EmailId: res.emailId,
           Phone: res.phone,
@@ -1417,5 +1407,3 @@ export class DistributorUserReportComponent implements OnInit {
 
 
 }
-
-
