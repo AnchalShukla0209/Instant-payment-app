@@ -7,4 +7,6 @@
 <!-- Unlock popup -->
 <app-unlock *ngIf="showUnlock" (unlocked)="onUnlocked()"></app-unlock>
 
+<app-loader *ngIf="globalLoader.loading$ | async"></app-loader>
+
 <router-outlet></router-outlet>

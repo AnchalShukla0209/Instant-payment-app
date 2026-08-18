@@ -6,16 +6,18 @@ import {
   HttpRequest,
   HttpErrorResponse
 } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { defer, Observable, throwError } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { EncryptionService } from '../encryption/encryption.service';
+import { GlobalLoaderService } from './global-loader.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
     private encryptor: EncryptionService,
-    private router: Router
+    private router: Router,
+    private loader: GlobalLoaderService
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -70,19 +72,18 @@ export class AuthInterceptor implements HttpInterceptor {
       }
     });
 
+    let request$: Observable<HttpEvent<any>>;
     if (skipUrls.some(url => req.url.includes(url))) {
-      return next.handle(modifiedReq);
-    }
-
-    // Check OTP verification for protected API calls
-    const otpRequired = localStorage.getItem('otpRequired');
-    const otpVerified = localStorage.getItem('otpVerified');
-    if (!distributorSession && otpRequired === 'true' && otpVerified !== 'true') {
-      this.router.navigate(['/login']);
-      return throwError(() => new Error('OTP verification required'));
-    }
-
-    return next.handle(modifiedReq).pipe(
+      request$ = next.handle(modifiedReq);
+    } else {
+      // Check OTP verification for protected API calls
+      const otpRequired = localStorage.getItem('otpRequired');
+      const otpVerified = localStorage.getItem('otpVerified');
+      if (!distributorSession && otpRequired === 'true' && otpVerified !== 'true') {
+        this.router.navigate(['/login']);
+        request$ = throwError(() => new Error('OTP verification required'));
+      } else {
+        request$ = next.handle(modifiedReq).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
           if (distributorSession) {
@@ -99,7 +100,14 @@ export class AuthInterceptor implements HttpInterceptor {
 
         return throwError(() => error);
       })
-    );
+        );
+      }
+    }
+
+    return defer(() => {
+      this.loader.show();
+      return request$.pipe(finalize(() => this.loader.hide()));
+    });
   }
 
   private getDistributorSession(): {

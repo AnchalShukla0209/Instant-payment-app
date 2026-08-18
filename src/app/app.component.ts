@@ -4,11 +4,13 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { unlockComponent } from './components/Lock-Screen/unlock.component';
 import { IdleService } from './services/idle.service';
 import { filter } from 'rxjs/operators';
+import { LoaderComponent } from './components/app-loader/loader.component';
+import { GlobalLoaderService } from './services/global-loader.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, unlockComponent],
+  imports: [CommonModule, RouterOutlet, unlockComponent, LoaderComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
@@ -16,7 +18,7 @@ export class AppComponent {
   showUnlock = false;
   warningSeconds?: number;
 
-  constructor(private idleService: IdleService, private router: Router) { }
+  constructor(private idleService: IdleService, private router: Router, public globalLoader: GlobalLoaderService) { }
 
   ngOnInit() {
     // Route change watcher
