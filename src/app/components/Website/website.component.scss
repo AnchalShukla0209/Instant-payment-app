@@ -812,3 +812,43 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
 .media-values article{min-height:72px;gap:14px}
 .media-values b{font-size:12px;line-height:1.25}
 .media-values span{font-size:9px;line-height:1.45}
+
+/* Footer energy field: animated depth grid, aurora beams and orbital network. */
+.footer-canvas{
+  background-size:52px 52px,52px 52px,140% 140%,140% 140%;
+  animation:footerGridTravel 16s linear infinite;
+}
+.footer-canvas:before,.footer-canvas:after{content:'';position:absolute;z-index:0;pointer-events:none}
+.footer-canvas:before{
+  width:1150px;height:1150px;left:50%;top:46%;translate:-50% -50%;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,transparent 0 9deg,rgba(51,194,222,.075) 10deg 10.8deg,transparent 11.6deg 19deg,rgba(207,85,18,.07) 20deg 20.8deg,transparent 21.6deg 30deg);
+  -webkit-mask-image:radial-gradient(circle,transparent 0 15%,#000 31% 68%,transparent 80%);
+  mask-image:radial-gradient(circle,transparent 0 15%,#000 31% 68%,transparent 80%);
+  animation:footerEnergySpin 28s linear infinite;
+}
+.footer-canvas:after{
+  inset:-30%;
+  background:
+    linear-gradient(112deg,transparent 24%,rgba(37,190,220,.03) 31%,rgba(76,215,236,.16) 35%,rgba(37,190,220,.03) 39%,transparent 47%),
+    linear-gradient(248deg,transparent 27%,rgba(207,85,18,.03) 34%,rgba(235,106,39,.15) 38%,rgba(207,85,18,.03) 42%,transparent 50%),
+    radial-gradient(circle at 22% 34%,rgba(65,210,232,.22) 0 2px,transparent 3px),
+    radial-gradient(circle at 72% 64%,rgba(236,112,48,.25) 0 2px,transparent 3px);
+  background-size:180% 180%,180% 180%,130px 130px,170px 170px;
+  mix-blend-mode:screen;
+  animation:footerAuroraSweep 10s ease-in-out infinite alternate;
+}
+.footer-ring{z-index:1;border-color:rgba(84,211,232,.2);box-shadow:0 0 45px rgba(33,188,218,.11),inset 0 0 35px rgba(207,85,18,.06)}
+.footer-ring:before{border-color:rgba(207,85,18,.15)}
+.footer-ring:after{border-style:dashed;border-color:rgba(96,218,237,.13)}
+.footer-wave{z-index:1;animation:footerWaveBreathe 5.5s ease-in-out infinite}
+.footer-content,.footer-trust-strip,.footer-legal{position:relative;z-index:2}
+@keyframes footerGridTravel{
+  to{background-position:52px 52px,52px 52px,100% 35%,0 65%}
+}
+@keyframes footerEnergySpin{to{rotate:360deg}}
+@keyframes footerAuroraSweep{
+  0%{translate:-4% -2%;rotate:-2deg;opacity:.62}
+  100%{translate:5% 3%;rotate:3deg;opacity:1}
+}
+@keyframes footerWaveBreathe{50%{translate:0 -22px;scale:1.06;filter:drop-shadow(0 -12px 24px rgba(207,85,18,.12))}}
+@media(prefers-reduced-motion:reduce){.footer-canvas,.footer-canvas:before,.footer-canvas:after,.footer-wave{animation:none!important}}
