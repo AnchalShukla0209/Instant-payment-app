@@ -14,3 +14,21 @@
 @media(max-width:1250px){.review-workspace{grid-template-columns:minmax(0,1fr) 300px}.review-main{padding:24px}.audit-panel{margin:18px 14px 18px 0}.review-row,.review-row.document{grid-template-columns:auto minmax(150px,1fr) auto auto auto auto;gap:8px}}
 @media(max-width:1050px){.review-workspace{grid-template-columns:1fr}.audit-panel{position:static;margin:0 24px 24px;max-height:none}.review-main{padding:24px 28px}}
 @media(max-width:700px){.review-main{padding:18px}.audit-panel{margin:0 18px 18px}.application-header h2{font-size:23px}.summary{margin-top:20px;padding:8px 14px}}
+
+/* Complete review details */
+.review-workspace{margin-top:-14px;min-height:calc(100vh - 78px);border-radius:0}
+.application-header .close{display:grid;place-items:center;padding:0;line-height:1;font-size:24px}
+.sales-owner{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:7px 10px;border-radius:8px;background:#f0e8f7;color:#5d3179}
+.sales-owner i{font-size:15px}
+.complete-information{background:#fff;border:1px solid #e6dce9;border-radius:14px;margin:-8px 0 26px;padding:18px 20px;box-shadow:0 5px 18px #3b175208}
+.complete-information h3{display:flex;align-items:center;gap:9px;margin:0 0 15px;color:#33203e;font-size:14px}
+.complete-information h3 i{color:var(--primary);font-size:17px}
+.information-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 24px}
+.information-grid>div{position:relative;min-width:0;padding:11px 0;border-top:1px solid #f0eaf3}
+.information-grid small,.information-grid b{display:block}
+.information-grid small{color:#76677e;font-size:11px;margin-bottom:4px}
+.information-grid b{color:#23162c;font-weight:600;overflow-wrap:anywhere}
+.information-grid em{display:inline-block;margin-top:5px;padding:2px 7px;border-radius:9px;background:#fff0f1;color:#b52b37;font-size:10px;font-style:normal}
+.information-grid em.verified{background:#e8f8ef;color:#167448}
+@media(max-width:1050px){.review-workspace{margin-top:0}.information-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.information-grid{grid-template-columns:1fr}.complete-information{padding:15px}.sales-owner{display:flex}}
