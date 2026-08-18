@@ -674,7 +674,12 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
 @keyframes securityRailFlow{to{background-position:0 230%}}
 
 /* Payments: connected platform motion with animated brand typography. */
-.payment-platform.is-visible .manifesto-ribbon{animation:paymentRibbonFloat 4.4s ease-in-out infinite}
+.manifesto-ribbon{isolation:isolate;background-size:240% 100%;background-position:0 50%}
+.manifesto-ribbon:before{content:'';position:absolute;z-index:0;inset:-2px;width:32%;transform:translateX(-170%) skewX(-22deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);filter:blur(.5px)}
+.manifesto-ribbon span{position:relative;z-index:1;color:transparent;background:linear-gradient(100deg,#fff 0 40%,#ffd2bb 48%,#fff 56% 100%);background-size:230% 100%;-webkit-background-clip:text;background-clip:text}
+.payment-platform.is-visible .manifesto-ribbon{animation:paymentRibbonFloat 4.4s ease-in-out infinite,paymentRibbonGradient 6s linear infinite}
+.payment-platform.is-visible .manifesto-ribbon:before{animation:paymentRibbonSheen 3.8s ease-in-out infinite}
+.payment-platform.is-visible .manifesto-ribbon span{animation:paymentRibbonText 4.8s ease-in-out infinite}
 .payment-platform.is-visible .manifesto-line i{animation:paymentNodeTravel 3.6s ease-in-out infinite}
 .payment-platform.is-visible .identity-layer.layer-back{animation:paymentLayerBack 5.6s ease-in-out infinite}
 .payment-platform.is-visible .identity-layer.layer-mid{animation:paymentLayerMid 5.6s -1.4s ease-in-out infinite}
@@ -693,6 +698,9 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
 .payment-platform.is-visible .payment-channels span:nth-child(3){animation-delay:-2.3s}
 .payment-platform.is-visible .platform-progress i{background-size:220% 100%;animation:paymentProgressFlow 3.2s linear infinite}
 @keyframes paymentRibbonFloat{50%{translate:0 -5px;filter:drop-shadow(0 12px 15px rgba(12,19,61,.14))}}
+@keyframes paymentRibbonGradient{to{background-position:-240% 50%}}
+@keyframes paymentRibbonSheen{0%,35%{transform:translateX(-170%) skewX(-22deg)}72%,100%{transform:translateX(430%) skewX(-22deg)}}
+@keyframes paymentRibbonText{0%,18%{background-position:100% 50%}68%,100%{background-position:-105% 50%}}
 @keyframes paymentNodeTravel{0%,100%{top:0}50%{top:100%;background:#cf5512}}
 @keyframes paymentLayerBack{50%{translate:-6px 5px}}
 @keyframes paymentLayerMid{50%{translate:-3px 3px}}
@@ -720,7 +728,7 @@ footer{background:#080d2b}.footer-main a:hover{color:#f0a27a}.back-top{backgroun
 
 @media(prefers-reduced-motion:reduce){
   .security-summary h2,.security-summary h2 span,.security-accent,.security-stack article>i,.security-index,.security-stack-line,
-  .manifesto-ribbon,.manifesto-line i,.identity-layer,.identity-face,.platform-detail-card h2,.payment-channels span,.platform-progress i,
+  .manifesto-ribbon,.manifesto-ribbon:before,.manifesto-ribbon span,.manifesto-line i,.identity-layer,.identity-face,.platform-detail-card h2,.payment-channels span,.platform-progress i,
   .founder-card,.founder-role i,.founder-card h3,.founder-card blockquote{animation:none!important}
 }
 
