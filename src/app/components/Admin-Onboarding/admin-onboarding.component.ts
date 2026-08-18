@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdminOnboardingService } from '../../services/admin-onboarding.service';
+import { NgSelectModule } from '@ng-select/ng-select';
 
-@Component({selector:'app-admin-onboarding',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./admin-onboarding.component.html',styleUrl:'./admin-onboarding.component.scss'})
+@Component({selector:'app-admin-onboarding',standalone:true,imports:[CommonModule,FormsModule,NgSelectModule],templateUrl:'./admin-onboarding.component.html',styleUrl:'./admin-onboarding.component.scss'})
 export class AdminOnboardingComponent implements OnInit{
  private api=inject(AdminOnboardingService);private route=inject(ActivatedRoute);private router=inject(Router);loading=false; error=''; message=''; rows:any[]=[]; salesPeople:any[]=[]; selected:any=null; total=0;detailId=0;showAllHistory=false;reviewTab:'documents'|'information'='documents';
  filters:any={pageIndex:1,pageSize:10,search:'',status:'',fromDate:'',toDate:'',salesTeamId:''};
@@ -25,6 +26,7 @@ export class AdminOnboardingComponent implements OnInit{
  confirmDialog(){if(this.dialog==='decision'){this.executeDecision();return;}if(this.dialog==='finalReject'){if(this.dialogRemarks.trim().length<5){this.error='Final rejection remarks must contain at least 5 characters.';return;}this.loading=true;this.api.reject(this.selected.userId,this.dialogRemarks.trim()).pipe(finalize(()=>this.loading=false)).subscribe({next:()=>{this.closeDialog();this.backToList();},error:e=>this.error=e.error?.message||'Rejection failed.'});return;}const call=this.dialog==='approve'?this.api.approve(this.selected.userId,this.selected.rowVersion):this.api.retryCredentialEmail(this.selected.userId);this.loading=true;call.pipe(finalize(()=>this.loading=false)).subscribe({next:()=>{this.closeDialog();this.backToList();},error:e=>this.error=e.error?.message||'Action failed.'});}
  closeDialog(){this.dialog='';this.dialogRemarks='';}
  get pages(){return Math.max(1,Math.ceil(this.total/this.filters.pageSize));}
+ roleName(type:string){return ({RT:'Retailer',AD:'Distributor',MD:'Master Distributor'} as Record<string,string>)[type]||type||'—';}
  get visibleHistory(){const history=this.selected?.history||[];return this.showAllHistory?history:history.slice(0,6);}
  track(_:number,x:any){return x.id||x.userId;}
  viewDocument(d:any){this.loading=true;this.api.document(this.selected.userId,d.id).pipe(finalize(()=>this.loading=false)).subscribe({next:blob=>{const url=URL.createObjectURL(blob);window.open(url,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(url),60000);},error:e=>this.error=e.error?.message||'Document could not be opened.'});}
