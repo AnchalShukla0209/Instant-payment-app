@@ -9,6 +9,7 @@ export interface OnboardingPage { data:OnboardingListItem[]; totalCount:number; 
 export interface ApiEnvelope<T> { success:boolean; data:T; message?:string; }
 export interface OnboardingFilters { pageIndex:number; pageSize:number; search?:string; status?:string; fromDate?:string; toDate?:string; }
 export interface SalesTeamHierarchyContext { id:number; name:string; username:string; phone:string; userType:'WL'; }
+export interface IdentityAvailability { usernameAvailable:boolean; phoneAvailable:boolean; emailAvailable:boolean; panAvailable:boolean; aadhaarAvailable:boolean; }
 
 @Injectable({ providedIn: 'root' })
 export class SalesTeamOnboardingService {
@@ -27,6 +28,7 @@ export class SalesTeamOnboardingService {
   resume(phone: string): Observable<ApiEnvelope<any>> { return this.http.get<ApiEnvelope<any>>(`${this.baseUrl}/resume-by-phone`, { params: { phone } }); }
   uploadDocument(userId:number, type:string, file:File, correctionRemarks=''): Observable<ApiEnvelope<any>> { const body = new FormData(); body.append('file', file); body.append('correctionRemarks', correctionRemarks); return this.http.post<ApiEnvelope<any>>(`${this.baseUrl}/${userId}/documents/${type}`, body); }
   detail(userId:number): Observable<ApiEnvelope<any>> { return this.http.get<ApiEnvelope<any>>(`${this.baseUrl}/${userId}`); }
+  identityAvailability(payload:unknown): Observable<ApiEnvelope<IdentityAvailability>> { return this.http.post<ApiEnvelope<IdentityAvailability>>(`${this.baseUrl}/identity-availability`,payload); }
   submit(userId:number, rowVersion:string): Observable<ApiEnvelope<any>> { return this.http.post<ApiEnvelope<any>>(`${this.baseUrl}/${userId}/submit`, { rowVersion }); }
   sendOtp(type:'phone'|'email',value:string,clientId:number){return this.http.post<any>(`${this.baseUrl}/send-${type}-otp`,{value,clientId});}
   verifyOtp(challengeId:string,otp:string,type:'phone'|'email',clientId:number){return this.http.post<any>(`${this.baseUrl}/verify-otp`,{challengeId,otp,type,clientId});}
